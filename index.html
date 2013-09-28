@@ -1,0 +1,83 @@
+<html ng-app="timetable">
+<head>
+    <title>Flinders Timetable Planner</title>
+    <script src="js/vendor/modernizr/modernizr.custom.90019.js"></script>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.js"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js"></script>
+
+    <script src="js/timetable.js"></script>
+    <script>
+        timetable({});
+    </script>
+
+    <link href="css/styles.css" rel="stylesheet"/>
+</head>
+<body ng-controller="TimetableController">
+<div class="container">
+    <h1>Flinders Timetable Planner</h1>
+
+    <p>Use this tool to find the ideal timetable for next semester</p>
+
+    <form class="form" role="form">
+
+        <h2>When are we planning for?</h2>
+
+        <div class="row">
+            <div class="col-md-2">
+                <label>Year</label>
+                <select class="form-control" ng-model="activeYear" ng-change="updateTopic()"
+                        ng-options="y for y in years">
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label>Semester</label>
+                <select class="form-control" ng-model="activeSemester" ng-change="updateTopic()"
+                        ng-options="s for s in semesters">
+                </select>
+            </div>
+        </div>
+
+        <h2>Okay, now which topics are you planning to do?</h2>
+
+        <div class="row">
+            <div class="col-md-2">
+                <label>Subject Area</label>
+                <select class="form-control input-block-level" ng-model="activeSubjectArea"
+                        ng-change="updateTopic()"
+                        ng-options="s for s in subjectAreas">
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label>Topic Name</label>
+                <select class="form-control" ng-model="activeTopic">
+                    <option ng-repeat="topic in topics" value="{{ topic }}">
+                        {{ topic.name }} ({{ topic.code }}, {{ topic.year }}, {{ topic.semester }})
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row row-spaced">
+            <div class="col-md-5">
+            </div>
+            <div class="col-md-2">
+                <input class="form-control btn btn-primary" type="submit" ng-click="addTopic()"
+                       value="Add Topic">
+            </div>
+        </div>
+
+
+    </form>
+
+
+    <div>
+        <h3>Chosen Topics</h3>
+        <ul>
+            <li ng-repeat="topic in chosenTopics">{{ topic.name }}</li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>
