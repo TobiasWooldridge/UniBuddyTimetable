@@ -113,28 +113,18 @@
         <div ng-repeat="topic in chosenTopics">
             <h3>{{ topic.code }} {{ topic.name }}</h3>
 
-            <div class="row">
-                <div ng-repeat="class in topic.classes" class="col-md-3">
-                    <h4>{{ class.name }}</h4>
-
-                    <p>{{ class.note }}</p>
+            <div ng-repeat="class in topic.classes">
+                <h4>{{ class.name }}</h4>
 
                     <div ng-show="class.class_groups" class="list-group">
-                        <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" href="#">
-                            <div class="row">
-                                <div class="col-md-1"><h5>Group {{ class_group.group_id }}</h5></div>
-
-                                <div class="col-md-9">
-                                    <ul ng-repeat="class_session in class_group.class_sessions">
-                                        <li>{{ class_session.day_of_week }} {{ class_session.time_starts_at }} &ndash;
-                                            {{
-                                            class_session.time_ends_at }}
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                    <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="alert(class.name)">
+                        <h5 ng-show="class.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5>
+                        <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
+                            class_session.day_of_week }} {{ class_session.time_starts_at }} &ndash;
+                            {{
+                            class_session.time_ends_at }}
+                        </p>
+                    </a>
                 </div>
             </div>
         </div>

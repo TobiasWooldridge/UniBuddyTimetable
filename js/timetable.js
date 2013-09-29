@@ -84,6 +84,10 @@ function timetable(userConfig) {
             });
         }
 
+        $scope.selectClassGroup = function (classGroup) {
+
+        }
+
         $scope.years = [new Date().getFullYear()];
         $scope.activeYear = $scope.years[0];
 
