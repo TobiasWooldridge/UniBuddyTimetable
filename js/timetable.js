@@ -26,12 +26,22 @@ function timetable(userConfig) {
                 });
             },
             getTopicsAsync: function (subject_area, year, semester, callback) {
-                var url = config.api_path + 'subjects/' + subject_area + "?"
+                var url = config.api_path + 'topics'+ "?"
 
+                if (subject_area !== "Any")
+                    url += "&subject_area=" + subject_area;
                 if (year !== "Any")
                     url += "&year=" + year;
                 if (semester !== "Any")
                     url += "&semester=" + semester;
+
+                $http.get(url).success(function(data, status, headers, config) {
+                    callback(data, status, headers, config);
+                });
+            },
+            getTimetableAsync: function (topic_id, callback) {
+                var url = config.api_path + 'topics/' + topic_id;
+
 
                 $http.get(url).success(function(data, status, headers, config) {
                     callback(data, status, headers, config);
@@ -50,16 +60,16 @@ function timetable(userConfig) {
         }
 
         $scope.addTopic = function() {
-            console.log($scope.activeTopic);
-
-            $scope.chosenTopics.push(angular.fromJson($scope.activeTopic));
+            topicFactory.getTimetableAsync($scope.activeTopic, function (topic) {
+                $scope.chosenTopics.push(topic);
+            });
         }
 
         $scope.years = [new Date().getFullYear()];
         $scope.activeYear = $scope.years[0];
 
         $scope.semesters = ["S1", "NS1", "S2", "NS2"];
-        $scope.activeSemester = $scope.semesters[0];
+        $scope.activeSemester = $scope.semesters[2];
 
         topicFactory.getSubjectAreasAsync(function (data) {
             $scope.subjectAreas = data;

@@ -20,6 +20,13 @@
 
     <p>Use this tool to find the ideal timetable for next semester</p>
 
+    <p>Find the optimal timetable in a few simple steps</p>
+    <ol>
+        <li>Choose which semester you're planning for</li>
+        <li>Choose your topics</li>
+        <li>Specify your criteria for an ideal table</li>
+    </ol>
+
     <form class="form" role="form">
 
         <h2>When are we planning for?</h2>
@@ -52,17 +59,13 @@
             <div class="col-md-5">
                 <label>Topic Name</label>
                 <select class="form-control" ng-model="activeTopic">
-                    <option ng-repeat="topic in topics" value="{{ topic }}">
+                    <option ng-repeat="topic in topics" value="{{ topic.id }}">
                         {{ topic.name }} ({{ topic.code }}, {{ topic.year }}, {{ topic.semester }})
                     </option>
                 </select>
             </div>
-        </div>
-
-        <div class="row row-spaced">
-            <div class="col-md-5">
-            </div>
             <div class="col-md-2">
+                <label>Magic button</label>
                 <input class="form-control btn btn-primary" type="submit" ng-click="addTopic()"
                        value="Add Topic">
             </div>
@@ -72,11 +75,18 @@
     </form>
 
 
-    <div>
+    <div ng-show="chosenTopics.length">
         <h3>Chosen Topics</h3>
         <ul>
-            <li ng-repeat="topic in chosenTopics">{{ topic.name }}</li>
+            <li ng-repeat="topic in chosenTopics">{{ topic.code }} {{ topic.name }}</li>
         </ul>
+    </div>
+
+    <div ng-show="!chosenTopics.length">
+        <p>Choose more topics to begin.</p>
+    </div>
+    <div ng-show="chosenTopics.length">
+        <h2>Ready? Let's find the ideal timetable</h2>
     </div>
 </div>
 </body>
