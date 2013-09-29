@@ -39,8 +39,16 @@ function timetable(userConfig) {
                     callback(data, status, headers, config);
                 });
             },
-            getTimetableAsync: function (topic_id, callback) {
+            getTopicAsync: function (topic_id, callback) {
                 var url = config.api_path + 'topics/' + topic_id;
+
+
+                $http.get(url).success(function(data, status, headers, config) {
+                    callback(data, status, headers, config);
+                });
+            },
+            getTimetableAsync: function (topic_id, callback) {
+                var url = config.api_path + 'topics/' + topic_id + '/classes';
 
 
                 $http.get(url).success(function(data, status, headers, config) {
@@ -60,8 +68,13 @@ function timetable(userConfig) {
         }
 
         $scope.addTopic = function() {
-            topicFactory.getTimetableAsync($scope.activeTopic, function (topic) {
+            topicId = $scope.activeTopic;
+            topicFactory.getTopicAsync(topicId, function (topic) {
                 $scope.chosenTopics.push(topic);
+
+                topicFactory.getTimetableAsync(topicId, function (classes) {
+                    topic.classes = classes;
+                });
             });
         }
 

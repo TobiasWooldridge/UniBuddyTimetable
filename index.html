@@ -87,6 +87,23 @@
     </div>
     <div ng-show="chosenTopics.length">
         <h2>Ready? Let's find the ideal timetable</h2>
+
+        <div ng-repeat="topic in chosenTopics">
+            <h3>{{ topic.code }} {{ topic.name }}</h3>
+            <div ng-repeat="class in topic.classes">
+                <h4>{{ class.name }}</h4>
+                <p>{{ class.note }}</p>
+                <ul ng-show="class.class_groups">
+                    <li ng-repeat="class_group in class.class_groups">
+                        <h5>Group {{ class_group.group_id }}</h5>
+
+                        <ul ng-repeat="class_session in class_group.class_sessions">
+                            <li>{{ class_session.day_of_week }} {{ class_session.time_starts_at }}</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 </body>
