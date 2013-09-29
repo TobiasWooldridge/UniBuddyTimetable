@@ -16,7 +16,10 @@
 </head>
 <body ng-controller="TimetableController">
 <div class="container">
-    <h1>Flinders Timetable Planner</h1>
+    <div class="page-header">
+        <h1>Flinders Timetable Planner</h1>
+    </div>
+
 
     <p>Use this tool to find the ideal timetable for next semester</p>
 
@@ -28,82 +31,127 @@
     </ol>
 
     <form class="form" role="form">
-
-        <h2>When are we planning for?</h2>
-
-        <div class="row">
-            <div class="col-md-2">
-                <label>Year</label>
-                <select class="form-control" ng-model="activeYear" ng-change="updateTopic()"
-                        ng-options="y for y in years">
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label>Semester</label>
-                <select class="form-control" ng-model="activeSemester" ng-change="updateTopic()"
-                        ng-options="s for s in semesters">
-                </select>
-            </div>
+        <div class="page-header">
+            <h2>When are we planning for?</h2>
         </div>
 
-        <h2>Okay, now which topics are you planning to do?</h2>
-
-        <div class="row">
-            <div class="col-md-2">
-                <label>Subject Area</label>
-                <select class="form-control input-block-level" ng-model="activeSubjectArea"
-                        ng-change="updateTopic()"
-                        ng-options="s for s in subjectAreas">
-                </select>
-            </div>
-            <div class="col-md-5">
-                <label>Topic Name</label>
-                <select class="form-control" ng-model="activeTopic">
-                    <option ng-repeat="topic in topics" value="{{ topic.id }}">
-                        {{ topic.name }} ({{ topic.code }}, {{ topic.year }}, {{ topic.semester }})
-                    </option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label>Magic button</label>
-                <input class="form-control btn btn-primary" type="submit" ng-click="addTopic()"
-                       value="Add Topic">
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-2">
+                    <label>Year</label>
+                    <select class="form-control" ng-model="activeYear" ng-change="updateTopic()"
+                            ng-options="y for y in years">
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Semester</label>
+                    <select class="form-control" ng-model="activeSemester" ng-change="updateTopic()"
+                            ng-options="s for s in semesters">
+                    </select>
+                </div>
             </div>
         </div>
 
 
+        <div class="page-header">
+            <h2>Okay, now which topics are you planning to do?</h2>
+        </div>
+        <table class="table table-bordered">
+            <tr>
+                <th>
+                    <label>Subject Area</label>
+                </th>
+                <th>
+                    <label>Topic Name</label>
+                </th>
+                <th>
+                    <label>Action</label>
+                </th>
+            </tr>
+
+
+            <tr ng-repeat="topic in chosenTopics">
+                <td>
+                    {{ topic.subject_area }}
+                </td>
+                <td>
+                    {{ topic.name }} ({{ topic.code }})
+                </td>
+                <td>
+                    <button type="form-control button" class="btn btn-danger">Remove</button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <select class="form-control" ng-model="activeSubjectArea"
+                            ng-change="updateTopic()"
+                            ng-options="s for s in subjectAreas">
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" ng-model="activeTopic">
+                        <option ng-repeat="topic in topics" value="{{ topic.id }}">
+                            {{ topic.name }} ({{ topic.code }})
+                        </option>
+                    </select>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-primary" ng-click="addTopic()">Add</button>
+                </td>
+            </tr>
+        </table>
     </form>
 
+    <hr/>
 
     <div ng-show="chosenTopics.length">
-        <h3>Chosen Topics</h3>
-        <ul>
-            <li ng-repeat="topic in chosenTopics">{{ topic.code }} {{ topic.name }}</li>
-        </ul>
-    </div>
-
-    <div ng-show="!chosenTopics.length">
-        <p>Choose more topics to begin.</p>
-    </div>
-    <div ng-show="chosenTopics.length">
-        <h2>Ready? Let's find the ideal timetable</h2>
+        <div class="page-header">
+            <h2>Ready? Let's find the ideal timetable</h2>
+        </div>
 
         <div ng-repeat="topic in chosenTopics">
             <h3>{{ topic.code }} {{ topic.name }}</h3>
-            <div ng-repeat="class in topic.classes">
-                <h4>{{ class.name }}</h4>
-                <p>{{ class.note }}</p>
-                <ul ng-show="class.class_groups">
-                    <li ng-repeat="class_group in class.class_groups">
-                        <h5>Group {{ class_group.group_id }}</h5>
 
-                        <ul ng-repeat="class_session in class_group.class_sessions">
-                            <li>{{ class_session.day_of_week }} {{ class_session.time_starts_at }}</li>
-                        </ul>
-                    </li>
-                </ul>
+            <div class="row">
+                <div ng-repeat="class in topic.classes" class="col-md-3">
+                    <h4>{{ class.name }}</h4>
+
+                    <p>{{ class.note }}</p>
+
+                    <div ng-show="class.class_groups" class="list-group">
+                        <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" href="#">
+                            <div class="row">
+                                <div class="col-md-1"><h5>Group {{ class_group.group_id }}</h5></div>
+
+                                <div class="col-md-9">
+                                    <ul ng-repeat="class_session in class_group.class_sessions">
+                                        <li>{{ class_session.day_of_week }} {{ class_session.time_starts_at }} &ndash;
+                                            {{
+                                            class_session.time_ends_at }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <table class="timetable table table-bordered">
+            <tr>
+                <td></td>
+                <th ng-repeat="day in days">{{ day }}</th>
+            </tr>
+            <tr ng-repeat="hour in hours">
+                <th>{{ hour }}</th>
+                <td ng-repeat="bookings in timetable[hour]">
+                    <div ng-each="booking in bookings">{{ booking }}</div>
+                </td>
+            </tr>
+        </table>
+
     </div>
 </div>
 </body>

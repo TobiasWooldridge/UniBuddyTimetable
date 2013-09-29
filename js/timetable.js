@@ -12,13 +12,13 @@ function timetable(userConfig) {
 
     var app = angular.module('timetable', []);
 
-    app.factory('topicFactory', function($http) {
+    app.factory('topicFactory', function ($http) {
         return {
             getSubjectAreasAsync: function (callback) {
-                $http.get(config.api_path + 'subjects').success(function(data, status, headers, config) {
+                $http.get(config.api_path + 'subjects').success(function (data, status, headers, config) {
                     mutilated_data = []
 
-                    angular.forEach(data, function(value) {
+                    angular.forEach(data, function (value) {
                         mutilated_data.push(value.subject_area);
                     });
 
@@ -26,7 +26,7 @@ function timetable(userConfig) {
                 });
             },
             getTopicsAsync: function (subject_area, year, semester, callback) {
-                var url = config.api_path + 'topics'+ "?"
+                var url = config.api_path + 'topics' + "?"
 
                 if (subject_area !== "Any")
                     url += "&subject_area=" + subject_area;
@@ -35,7 +35,7 @@ function timetable(userConfig) {
                 if (semester !== "Any")
                     url += "&semester=" + semester;
 
-                $http.get(url).success(function(data, status, headers, config) {
+                $http.get(url).success(function (data, status, headers, config) {
                     callback(data, status, headers, config);
                 });
             },
@@ -43,7 +43,7 @@ function timetable(userConfig) {
                 var url = config.api_path + 'topics/' + topic_id;
 
 
-                $http.get(url).success(function(data, status, headers, config) {
+                $http.get(url).success(function (data, status, headers, config) {
                     callback(data, status, headers, config);
                 });
             },
@@ -51,7 +51,7 @@ function timetable(userConfig) {
                 var url = config.api_path + 'topics/' + topic_id + '/classes';
 
 
-                $http.get(url).success(function(data, status, headers, config) {
+                $http.get(url).success(function (data, status, headers, config) {
                     callback(data, status, headers, config);
                 });
             }
@@ -67,13 +67,19 @@ function timetable(userConfig) {
             });
         }
 
-        $scope.addTopic = function() {
+        $scope.addTopic = function () {
             topicId = $scope.activeTopic;
             topicFactory.getTopicAsync(topicId, function (topic) {
                 $scope.chosenTopics.push(topic);
 
-                topicFactory.getTimetableAsync(topicId, function (classes) {
-                    topic.classes = classes;
+                topicFactory.getTimetableAsync(topicId, function (class_types) {
+
+                    angular.forEach(class_types, function(class_type) {
+                        class_type.active_class_group = class_type.class_groups[0];
+                    });
+
+
+                    topic.classes = class_types;
                 });
             });
         }
@@ -89,5 +95,22 @@ function timetable(userConfig) {
             $scope.activeSubjectArea = data[0];
             $scope.updateTopic();
         });
+
+        // Hardcoding this for now #YOLO
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        hours = ["8 AM", "9AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
+
+        timetable = {}
+
+        angular.forEach(hours, function (hour) {
+            timetable[hour] = {}
+            angular.forEach(days, function (day) {
+                timetable[hour][day] = [];
+            });
+        })
+
+        $scope.days = days;
+        $scope.hours = hours;
+        $scope.timetable = timetable;
     })
 }
