@@ -119,6 +119,10 @@ function timetable(userConfig) {
         }
 
         $scope.addTopic = function () {
+            if (!validateTopic()) {
+                return;
+            }
+
             topicId = $scope.activeTopic.id;
 
             topicFactory.getTopicAsync(topicId, function (topic) {
