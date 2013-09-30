@@ -95,18 +95,31 @@ function timetable(userConfig) {
             return ids;
         }
 
-        $scope.topicAlreadySelected = function (topicId) {
+        topicAlreadySelected = function (topicId) {
             return $scope.chosenTopicIds().indexOf(parseInt(topicId)) !== -1;
         }
 
-        $scope.updateTopic = function () {
+        $scope.validateTopic = function() {
+            if (typeof $scope.activeTopic === "undefined") {
+                return false;
+            }
+
+            if (topicAlreadySelected($scope.activeTopic.id)) {
+                return false;
+            }
+
+            return true;
+        };
+
+        $scope.updateTopics = function () {
             topicFactory.getTopicsAsync($scope.activeSubjectArea, $scope.activeYear, $scope.activeSemester, function (data) {
                 $scope.topics = data;
+                $scope.activeTopic = data[0];
             });
         }
 
         $scope.addTopic = function () {
-            topicId = $scope.activeTopicId;
+            topicId = $scope.activeTopic.id;
 
             topicFactory.getTopicAsync(topicId, function (topic) {
                 $scope.chosenTopics.push(topic);
@@ -197,7 +210,7 @@ function timetable(userConfig) {
         topicFactory.getSubjectAreasAsync(function (data) {
             $scope.subjectAreas = data;
             $scope.activeSubjectArea = data[0];
-            $scope.updateTopic();
+            $scope.updateTopics();
         });
     })
 }

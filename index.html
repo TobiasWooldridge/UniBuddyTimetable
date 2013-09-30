@@ -17,6 +17,9 @@
         <h1>Flinders Timetable Planner</h1>
     </div>
 
+    <div class="alert alert-danger">
+        This project is still in development. Expect things to be broken and/or unfinished.
+    </div>
 
     <p>Use this tool to find the ideal timetable for next semester</p>
 
@@ -36,14 +39,14 @@
             <div class="row">
                 <div class="col-md-2">
                     <label>Year</label>
-                    <select class="form-control" ng-model="activeYear" ng-change="updateTopic()"
+                    <select class="form-control" ng-model="activeYear" ng-change="updateTopics()"
                             ng-options="y for y in years">
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label>Semester</label>
-                    <select class="form-control" ng-model="activeSemester" ng-change="updateTopic()"
-                            ng-options="s for s in semesters">
+                    <select class="form-control" ng-model="activeSemester" ng-change="updateTopics()"
+                            ng-options="s as s for s in semesters">
                     </select>
                 </div>
             </div>
@@ -82,19 +85,17 @@
             <tr>
                 <td>
                     <select class="form-control" ng-model="activeSubjectArea"
-                            ng-change="updateTopic()"
+                            ng-change="updateTopics()"
                             ng-options="s for s in subjectAreas">
                     </select>
                 </td>
                 <td>
-                    <select class="form-control" ng-model="activeTopicId">
-                        <option ng-repeat="topic in topics" value="{{ topic.id }}">
-                            {{ topic.name }} ({{ topic.code }})
-                        </option>
+                    <select class="form-control" ng-model="activeTopic"
+                            ng-options="t as t.code + ' ' + t.name + ' ' for t in topics">
                     </select>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-primary" ng-click="addTopic()" ng-disabled="topicAlreadySelected(activeTopicId)">Add</button>
+                    <button type="button" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">Add</button>
                 </td>
             </tr>
         </table>
@@ -114,7 +115,7 @@
                 <h4>{{ class.name }}</h4>
 
                     <div ng-show="class.class_groups" class="list-group">
-                    <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="updateTimetable(); (class.active_class_group = class_group)">
+                    <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="(class.active_class_group = class_group) && updateTimetable()">
                         <h5 ng-show="class.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5>
                         <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
                             class_session.day_of_week }} {{ class_session.time_starts_at }} &ndash; {{ class_session.time_ends_at }}
@@ -127,7 +128,7 @@
         <table class="timetable table table-bordered">
             <tr>
                 <td></td>
-                <th ng-repeat="day in days">{{ day }}</th>
+                <th ng-repeat="day in days" width="1">{{ day }}</th>
             </tr>
             <tr ng-repeat="hour in hours">
                 <th>{{ hour }}</th>
