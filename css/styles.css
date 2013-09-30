@@ -7591,4 +7591,6 @@ table.topics td {
   background-image: linear-gradient(to bottom, #428bca 0%, #3278b3 100%);
   background-repeat: repeat-x;
   border-color: #3278b3;
+  padding: 5px 10px;
+  margin: 5px;
 }
