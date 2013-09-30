@@ -133,8 +133,7 @@
             <tr ng-repeat="hour in hours">
                 <th>{{ hour }}</th>
                 <td ng-repeat="day in days">
-                    {{ timetable[hour][day] }}
-                    <div ng-each="booking in timetable[hour][day]">
+                    <div ng-repeat="booking in timetable[hour][day]" class="booking">
                         {{ booking }}
                     </div>
                 </td>

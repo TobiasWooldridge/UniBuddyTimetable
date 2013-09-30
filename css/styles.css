@@ -7584,3 +7584,11 @@ a.list-group-item {
 table.topics td {
   vertical-align: middle !important;
 }
+.booking {
+  background: #428bca;
+  text-shadow: 0 -1px 0 #3071a9;
+  color: #ffffff;
+  background-image: linear-gradient(to bottom, #428bca 0%, #3278b3 100%);
+  background-repeat: repeat-x;
+  border-color: #3278b3;
+}
