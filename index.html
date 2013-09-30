@@ -8,9 +8,6 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js"></script>
 
     <script src="js/timetable.js"></script>
-    <script>
-        timetable({});
-    </script>
 
     <link href="css/styles.css" rel="stylesheet"/>
 </head>
@@ -27,7 +24,7 @@
     <ol>
         <li>Choose which semester you're planning for</li>
         <li>Choose your topics</li>
-        <li>Specify your criteria for an ideal table</li>
+        <li>Specify your criteria for an ideal table (no clashes, maximum number of days free, minimum time spent at university, etc.)</li>
     </ol>
 
     <form class="form" role="form">
@@ -78,7 +75,7 @@
                     {{ topic.name }} ({{ topic.code }})
                 </td>
                 <td>
-                    <button type="form-control button" class="btn btn-danger">Remove</button>
+                    <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
                 </td>
             </tr>
 
@@ -90,14 +87,14 @@
                     </select>
                 </td>
                 <td>
-                    <select class="form-control" ng-model="activeTopic">
+                    <select class="form-control" ng-model="activeTopicId">
                         <option ng-repeat="topic in topics" value="{{ topic.id }}">
                             {{ topic.name }} ({{ topic.code }})
                         </option>
                     </select>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-primary" ng-click="addTopic()">Add</button>
+                    <button type="button" class="btn btn-primary" ng-click="addTopic()" ng-disabled="topicAlreadySelected(activeTopicId)">Add</button>
                 </td>
             </tr>
         </table>
@@ -107,7 +104,7 @@
 
     <div ng-show="chosenTopics.length">
         <div class="page-header">
-            <h2>Ready? Let's find the ideal timetable</h2>
+            <h3>Ready? Let's find the ideal timetable</h3>
         </div>
 
         <div ng-repeat="topic in chosenTopics">
@@ -117,12 +114,10 @@
                 <h4>{{ class.name }}</h4>
 
                     <div ng-show="class.class_groups" class="list-group">
-                    <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="alert(class.name)">
+                    <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="updateTimetable(); (class.active_class_group = class_group)">
                         <h5 ng-show="class.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5>
                         <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
-                            class_session.day_of_week }} {{ class_session.time_starts_at }} &ndash;
-                            {{
-                            class_session.time_ends_at }}
+                            class_session.day_of_week }} {{ class_session.time_starts_at }} &ndash; {{ class_session.time_ends_at }}
                         </p>
                     </a>
                 </div>
@@ -136,13 +131,20 @@
             </tr>
             <tr ng-repeat="hour in hours">
                 <th>{{ hour }}</th>
-                <td ng-repeat="bookings in timetable[hour]">
-                    <div ng-each="booking in bookings">{{ booking }}</div>
+                <td ng-repeat="day in days">
+                    {{ timetable[hour][day] }}
+                    <div ng-each="booking in timetable[hour][day]">
+                        {{ booking }}
+                    </div>
                 </td>
             </tr>
         </table>
 
     </div>
 </div>
+
+<script>
+    timetable({});
+</script>
 </body>
 </html>
