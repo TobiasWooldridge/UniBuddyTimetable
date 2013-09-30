@@ -119,7 +119,7 @@ function timetable(userConfig) {
         }
 
         $scope.addTopic = function () {
-            if (!validateTopic()) {
+            if (!$scope.validateTopic()) {
                 return;
             }
 
