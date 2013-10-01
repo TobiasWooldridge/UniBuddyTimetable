@@ -7626,6 +7626,7 @@ table.timetable div.booking {
   padding: 5px 10px;
   margin: 2px;
   opacity: 0.8;
+  border-radius: 4px;
 }
 table.timetable div.topic-0 {
   background: red;
