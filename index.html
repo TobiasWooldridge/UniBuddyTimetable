@@ -89,24 +89,26 @@
         </table>
     </form>
 
-    <div ng-show="chosenTopics.length">
+    <div ng-show="chosenTopics.length" class="chosen-topics">
         <div class="page-header">
             <h3>Ready? Let's find the ideal timetable</h3>
         </div>
 
-        <div ng-repeat="topic in chosenTopics">
-            <h3>{{ topic.code }} {{ topic.name }}</h3>
+        <div class="row">
+            <div ng-repeat="topic in chosenTopics" class="col-md-3">
+                <h3>{{ topic.code }} {{ topic.name }}</h3>
 
-            <div ng-repeat="class in topic.classes">
-                <h4>{{ class.name }}</h4>
+                <div ng-repeat="class in topic.classes" ng-show="class.class_groups.length > 1  ">
+                    <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration) / 60}} minutes)</h4>
 
-                    <div ng-show="class.class_groups" class="list-group">
-                    <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="(class.active_class_group = class_group) && updateTimetable()">
-                        <h5 ng-show="class.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5>
-                        <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
-                            class_session.day_of_week }} {{ class_session.time_starts_at }} &ndash; {{ class_session.time_ends_at }}
-                        </p>
-                    </a>
+                        <div ng-show="class.class_groups" class="list-group">
+                        <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="(class.active_class_group = class_group) && updateTimetable()">
+                            <!-- <h5 ng-show="class.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5> -->
+                            <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
+                                class_session.day_of_week }} {{ class_session.time_starts_at }}
+                            </p>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -135,9 +137,8 @@
                 <tr rowspan="{{ hours.length }}">
                     <td class="hours">
                         <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}" style="position: absolute; height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
-                            {{ booking.topic.name }}
                             {{ booking.topic.code }}
-                            <!--{{ booking.class_session }}-->
+                            {{ booking.class_type.name }}
                         </div>
                     </td>
                 </tr>

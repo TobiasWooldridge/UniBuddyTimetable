@@ -7601,7 +7601,6 @@ table.topics .action {
 table.timetable {
   table-layout: fixed;
   border-collapse: collapse;
-  font-size: 0.9em;
 }
 table.timetable .times {
   width: 100px;
@@ -7612,6 +7611,7 @@ table.timetable table {
   padding: 0;
   border: 0;
   border-layout: fixed;
+  font-size: 0.8em;
 }
 table.timetable .hour {
   height: 60px;
@@ -7625,6 +7625,7 @@ table.timetable div.booking {
   background: black;
   padding: 5px 10px;
   margin: 2px;
+  opacity: 0.8;
 }
 table.timetable div.topic-0 {
   background: red;
