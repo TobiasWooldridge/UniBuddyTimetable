@@ -122,8 +122,8 @@
                 <tr>
                     <th class="times"><span class="timezone">GMT +9:30</span></th>
                 </tr>
-                <tr ng-repeat="hour in hours" class="hour">
-                    <th>{{ hour }}</th>
+                <tr ng-repeat="hour in hours">
+                    <th class="hour">{{ hour }}</th>
                 </tr>
             </table>
         </td>
@@ -134,10 +134,10 @@
                 </tr>
                 <tr rowspan="{{ hours.length }}">
                     <td class="hours">
-                        <div ng-repeat="booking in timetable[day]" class="booking">
+                        <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}" style="position: absolute; height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
                             {{ booking.topic.name }}
                             {{ booking.topic.code }}
-                            {{ booking.session }}
+                            <!--{{ booking.class_session }}-->
                         </div>
                     </td>
                 </tr>

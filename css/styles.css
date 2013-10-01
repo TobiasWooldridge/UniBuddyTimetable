@@ -7617,6 +7617,9 @@ table.timetable .hour {
   height: 60px;
   overflow: hidden !important;
 }
+table.timetable .hours {
+  position: relative;
+}
 table.timetable div.booking {
   color: #ffffff;
   background: black;
