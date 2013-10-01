@@ -1,27 +1,101 @@
 @import "../bootstrap/less/bootstrap.less";
 @import "../bootstrap/less/theme.less";
 
-
-.row-spaced {
-  margin-top: 15px;
+* {
+  transform: all 1s ease-in-out;
+}
+.timezone {
+  font-size: 0.9em;
 }
 
 a.list-group-item {
   cursor: pointer;
 }
 
-table.topics td {
-  vertical-align: middle !important;
+table.topics {
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  td {
+    vertical-align: middle !important;
+    border: 0px none !important;
+  }
+
+  .filter {
+    width: 150px;
+  }
+  .action {
+    width: 100px;
+  }
+
+}
+
+table.timetable {
+  table-layout: fixed;
+  border-collapse: collapse;
+
+  font-size: 0.9em;
+
+  .times {
+    width: 100px;
+  }
+
+  table {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-layout: fixed;
+
+  }
+
+  .hour {
+    height: 60px;
+    overflow: hidden !important;
+  }
+
+  div.booking {
+    color: #ffffff;
+    background: black;
+    padding: 5px 10px;
+    margin: 2px;
+  }
+
+  div.topic-0 {
+    background: red;
+  }
+  div.topic-1 {
+    background: green;
+  }
+  div.topic-2 {
+    background: blue;
+  }
+  div.topic-3 {
+    background: orange;
+  }
+  div.topic-4 {
+    background: purple;
+  }
+  div.topic-5 {
+    background: teal;
+  }
+  div.topic-6 {
+    background: mediumturquoise;
+  }
+  div.topic-7 {
+    background: brown;
+  }
+  div.topic-8 {
+    background: blueviolet;
+  }
+  div.topic-9 {
+    background: purple;
+  }
 }
 
 
-.booking {
-  background: #428bca;
-  text-shadow: 0 -1px 0 #3071a9;
-  color: #ffffff;
-  background-image: linear-gradient(to bottom, #428bca 0%, #3278b3 100%);
-  background-repeat: repeat-x;
-  border-color: #3278b3;
-  padding: 5px 10px;
-  margin: 5px;
+.ajax-loader {
+  margin: 0 auto;
+  text-align: center;
+  display: block;
 }

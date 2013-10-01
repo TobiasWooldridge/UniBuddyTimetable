@@ -7575,22 +7575,86 @@ td.visible-print {
   -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1);
 }
-.row-spaced {
-  margin-top: 15px;
+* {
+  transform: all 1s ease-in-out;
+}
+.timezone {
+  font-size: 0.9em;
 }
 a.list-group-item {
   cursor: pointer;
 }
+table.topics {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
 table.topics td {
   vertical-align: middle !important;
+  border: 0px none !important;
 }
-.booking {
-  background: #428bca;
-  text-shadow: 0 -1px 0 #3071a9;
+table.topics .filter {
+  width: 150px;
+}
+table.topics .action {
+  width: 100px;
+}
+table.timetable {
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+table.timetable .times {
+  width: 100px;
+}
+table.timetable table {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-layout: fixed;
+}
+table.timetable .hour {
+  height: 60px;
+  overflow: hidden !important;
+}
+table.timetable div.booking {
   color: #ffffff;
-  background-image: linear-gradient(to bottom, #428bca 0%, #3278b3 100%);
-  background-repeat: repeat-x;
-  border-color: #3278b3;
+  background: black;
   padding: 5px 10px;
-  margin: 5px;
+  margin: 2px;
+}
+table.timetable div.topic-0 {
+  background: red;
+}
+table.timetable div.topic-1 {
+  background: green;
+}
+table.timetable div.topic-2 {
+  background: blue;
+}
+table.timetable div.topic-3 {
+  background: orange;
+}
+table.timetable div.topic-4 {
+  background: purple;
+}
+table.timetable div.topic-5 {
+  background: teal;
+}
+table.timetable div.topic-6 {
+  background: mediumturquoise;
+}
+table.timetable div.topic-7 {
+  background: brown;
+}
+table.timetable div.topic-8 {
+  background: blueviolet;
+}
+table.timetable div.topic-9 {
+  background: purple;
+}
+.ajax-loader {
+  margin: 0 auto;
+  text-align: center;
+  display: block;
 }

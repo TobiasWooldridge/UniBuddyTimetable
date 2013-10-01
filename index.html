@@ -56,52 +56,38 @@
         <div class="page-header">
             <h2>Okay, now which topics are you planning to do?</h2>
         </div>
-        <table class="table table-bordered topics">
-            <tr>
-                <th>
-                    <label>Subject Area</label>
-                </th>
-                <th>
-                    <label>Topic Name</label>
-                </th>
-                <th>
-                    <label>Action</label>
-                </th>
-            </tr>
+        <table class="table topics">
 
 
-            <tr ng-repeat="topic in chosenTopics">
-                <td>
-                    {{ topic.subject_area }}
-                </td>
-                <td>
-                    {{ topic.name }} ({{ topic.code }})
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
-                </td>
-            </tr>
+            <tbody>
 
-            <tr>
-                <td>
-                    <select class="form-control" ng-model="activeSubjectArea"
-                            ng-change="updateTopics()"
-                            ng-options="s for s in subjectAreas">
-                    </select>
-                </td>
-                <td>
-                    <select class="form-control" ng-model="activeTopic"
-                            ng-options="t as t.code + ' ' + t.name + ' ' for t in topics">
-                    </select>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">Add</button>
-                </td>
-            </tr>
+                <tr ng-repeat="topic in chosenTopics">
+                    <td class="filter"></td>
+                    <td width="*">
+                        {{ topic.code }} {{ topic.name }}
+                    </td>
+                    <td class="action">
+                        <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="filter">
+                        <input class="form-control" ng-model="topicSearch" placeholder="Filter" />
+                    </td>
+                    <td width="*">
+                        <p ng-show="!topics.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader" /></p>
+                        <select ng-show="topics.length" class="form-control" ng-model="activeTopic"
+                                ng-options="t as t.code + ' ' + t.name + ' ' for t in topics | filter:topicSearch">
+                        </select>
+                    </td>
+                    <td class="action">
+                        <button type="submit" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">Add</button>
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </form>
-
-    <hr/>
 
     <div ng-show="chosenTopics.length">
         <div class="page-header">
@@ -125,23 +111,40 @@
             </div>
         </div>
 
-        <table class="timetable table table-bordered">
-            <tr>
-                <td></td>
-                <th ng-repeat="day in days" width="1">{{ day }}</th>
-            </tr>
-            <tr ng-repeat="hour in hours">
-                <th>{{ hour }}</th>
-                <td ng-repeat="day in days">
-                    <div ng-repeat="booking in timetable[hour][day]" class="booking">
-                        {{ booking }}
-                    </div>
-                </td>
-            </tr>
-        </table>
-
     </div>
 </div>
+
+
+<table class="timetable table" ng-show="chosenTopics.length">
+    <tr>
+        <td>
+            <table>
+                <tr>
+                    <th class="times"><span class="timezone">GMT +9:30</span></th>
+                </tr>
+                <tr ng-repeat="hour in hours" class="hour">
+                    <th>{{ hour }}</th>
+                </tr>
+            </table>
+        </td>
+        <td ng-repeat="day in days">
+            <table>
+                <tr>
+                    <th>{{ day }}</th>
+                </tr>
+                <tr rowspan="{{ hours.length }}">
+                    <td class="hours">
+                        <div ng-repeat="booking in timetable[day]" class="booking">
+                            {{ booking.topic.name }}
+                            {{ booking.topic.code }}
+                            {{ booking.session }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 
 <script>
     timetable({});

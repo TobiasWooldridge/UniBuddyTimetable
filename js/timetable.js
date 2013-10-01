@@ -30,17 +30,32 @@ function timetable(userConfig) {
                     callback(mutilated_data, status, headers, config);
                 });
             },
-            getTopicsAsync: function (subject_area, year, semester, callback) {
+            getTopicsAsync: function (year, semester, callback) {
                 var url = config.api_path + 'topics' + "?"
 
-                if (subject_area !== "Any")
-                    url += "&subject_area=" + subject_area;
                 if (year !== "Any")
                     url += "&year=" + year;
                 if (semester !== "Any")
                     url += "&semester=" + semester;
 
                 $http.get(url).success(function (data, status, headers, config) {
+                    function compareTopics(a, b) {
+                        var subject_difference = a.subject_area.localeCompare(b.subject_area);
+
+                        if (subject_difference !== 0)
+                            return subject_difference;
+
+                        var topic_difference = a.topic_number.localeCompare(b.topic_number);
+
+                        if (topic_difference !== 0)
+                            return topic_difference;
+
+                        return a.name.localeCompare(b.name);
+                    }
+
+                    data.sort(compareTopics);
+
+
                     callback(data, status, headers, config);
                 });
             },
@@ -66,14 +81,11 @@ function timetable(userConfig) {
     app.factory('timetableFactory', function ($http) {
         return {
             createEmptyTimetable: function () {
-                timetable = {}
+                timetable = {};
 
-                angular.forEach(hours, function (hour) {
-                    timetable[hour] = {}
-                    angular.forEach(days, function (day) {
-                        timetable[hour][day] = [];
-                    });
-                })
+                angular.forEach(days, function (day) {
+                    timetable[day] = [];
+                });
 
                 return timetable;
             }
@@ -82,7 +94,7 @@ function timetable(userConfig) {
 
 
 
-    app.controller('TimetableController', function ($scope, topicFactory, timetableFactory) {
+    app.controller('TimetableController', function ($scope, topicFactory, timetableFactory, filterFilter) {
         $scope.chosenTopics = []
 
         $scope.chosenTopicIds = function () {
@@ -95,7 +107,19 @@ function timetable(userConfig) {
             return ids;
         }
 
-        topicAlreadySelected = function (topicId) {
+        var applyTopicSearchFilter = function(newValue) {
+            filteredArray = filterFilter($scope.topics, newValue);
+
+            if (typeof filteredArray !== "undefined" && filteredArray.indexOf($scope.activeTopic) !== -1) {
+                // Keep the currently selected topic selected if it's relevant
+            }
+            else if (typeof filteredArray !== "undefined" && filteredArray.length) {
+                // Select the first topic
+                $scope.activeTopic = filteredArray[0];
+            }
+        }
+
+        var topicAlreadySelected = function (topicId) {
             return $scope.chosenTopicIds().indexOf(parseInt(topicId)) !== -1;
         }
 
@@ -112,9 +136,11 @@ function timetable(userConfig) {
         };
 
         $scope.updateTopics = function () {
-            topicFactory.getTopicsAsync($scope.activeSubjectArea, $scope.activeYear, $scope.activeSemester, function (data) {
+            $scope.topics = [];
+
+            topicFactory.getTopicsAsync($scope.activeYear, $scope.activeSemester, function (data) {
                 $scope.topics = data;
-                $scope.activeTopic = data[0];
+                applyTopicSearchFilter($scope.topicSearch);
             });
         }
 
@@ -133,7 +159,6 @@ function timetable(userConfig) {
                         class_type.active_class_group = class_type.class_groups[0];
                     });
 
-
                     topic.classes = class_types;
 
                     $scope.updateTimetable();
@@ -147,22 +172,14 @@ function timetable(userConfig) {
 
             $scope.updateTimetable();
         }
+        $scope.$watch('topicSearch',function(newValue){
+            applyTopicSearchFilter(newValue);
+        });
 
-
-        var hry = function() {
-            var active_class_groups = [];
-
-            angular.forEach($scope.chosenTopics, function(chosenTopic) {
-                angular.forEach(chosenTopic.classes, function(class_type) {
-                    active_class_groups.push(class_type.active_class_group);
-                });
-            });
-
-            return active_class_groups;
-        }
 
         $scope.updateTimetable = function() {
             var timetable = timetableFactory.createEmptyTimetable();
+
 
             angular.forEach($scope.chosenTopics, function(topic) {
                 angular.forEach(topic.classes, function(class_type) {
@@ -170,43 +187,34 @@ function timetable(userConfig) {
                         return;
                     }
 
+
                     angular.forEach(class_type.active_class_group.class_sessions, function(class_session) {
                         var day = class_session.day_of_week;
-                        var time = moment(class_session.time_starts_at, "h:mm:ss A").format("h A")
-                        var className = topic.name + " " + class_type.name;
 
-                        timetable[time][day].push(className);
+                        var booking = {};
 
+                        booking.topic = topic;
+                        booking.class_type = class_type;
+                        booking.class_group = class_type.active_class_group;
+                        booking.class_session = class_session
+
+                        timetable[day].push(booking);
                     });
                 });
             });
 
-
             $scope.timetable = timetable;
         }
-
-
-
-
-
-
-
-
-
 
         $scope.days = days;
         $scope.hours = hours;
         $scope.timetable = timetableFactory.createEmptyTimetable();
 
-        $scope.years = [new Date().getFullYear()];
+        $scope.years = [2013, 2014];
         $scope.activeYear = $scope.years[0];
 
         $scope.semesters = ["S1", "NS1", "S2", "NS2"];
         $scope.activeSemester = $scope.semesters[2];
-
-
-
-
 
 
 
