@@ -100,11 +100,11 @@
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="col-md-3">
+            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 10}}">
                 <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-repeat="class in topic.classes">
-                    <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration) / 60}}
+                    <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration || 0) / 60}}
                         minutes)</h4>
 
                     <div ng-show="class.class_groups" class="list-group">
@@ -139,6 +139,13 @@
             </table>
         </td>
         <td ng-repeat="day in days" class="hours">
+
+            <div class="bookings">
+                <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}"
+                     style="height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
+                    <p>{{ booking.topic.code }} {{ booking.class_type.name }}</p>
+                </div>
+            </div>
             <table class="grid">
                 <tr ng-repeat="hours in hours" class="hour">
                     <td>
@@ -146,11 +153,6 @@
                     </td>
                 </tr>
             </table>
-
-            <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}"
-                 style="height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
-                <p>{{ booking.topic.code }} {{ booking.class_type.name }}</p>
-            </div>
         </td>
     </tr>
 </table>

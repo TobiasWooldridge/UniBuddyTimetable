@@ -4,6 +4,55 @@
 * {
   transform: all 1s ease-in-out;
 }
+
+.booking-highlight(@color: blue) {
+  border-color: darken(@color, 5%);
+  background: darken(@color, 5%);
+  background-image: linear-gradient(to bottom, @color 0%, darken(@color, 5%) 100%);
+  color: #ffffff !important;
+  text-shadow: 0 -1px 0 darken(@color, 20%);
+}
+
+.booking.topic-0, .topic.topic-0 .active {
+  .booking-highlight(red);
+}
+
+.booking.topic-1, .topic.topic-1 .active {
+  .booking-highlight(green);
+}
+
+.booking.topic-2, .topic.topic-2 .active {
+  .booking-highlight(blue);
+}
+
+.booking.topic-3, .topic.topic-3 .active {
+  .booking-highlight(orange);
+}
+
+.booking.topic-4, .topic.topic-4 .active {
+  .booking-highlight(purple);
+}
+
+.booking.topic-5, .topic.topic-5 .active {
+  .booking-highlight(teal);
+}
+
+.booking.topic-6, .topic.topic-6 .active {
+  .booking-highlight(mediumturquoise);
+}
+
+.booking.topic-7, .topic.topic-7 .active {
+  .booking-highlight(brown);
+}
+
+.booking.topic-8, .topic.topic-8 .active {
+  .booking-highlight(blueviolet);
+}
+
+.booking.topic-9, .topic.topic-9 .active {
+  .booking-highlight(purple);
+}
+
 .timezone {
   font-size: 0.9em;
 }
@@ -65,57 +114,24 @@ table.timetable {
     border-top-width: 0;
   }
 
-  div.booking {
-    color: #ffffff;
-    background: black;
+  .bookings {
+    position: relative;
+    height: 0;
+  }
+
+  .bookings .booking {
     padding: 5px 0;
     margin: 0 0;
     border-radius: 4px;
-    width: 100%;
+    width: 80%;
     position: absolute;
+    opacity: 0.75;
   }
 
   div.booking p {
     margin: 5 10px;
   }
 
-  .booking-highlight(@color: blue)
-  {
-    background: fade(@color, 55%);
-    border: 1px solid @color;
-  }
-
-
-  div.topic-0 {
-    .booking-highlight(red);
-  }
-  div.topic-1 {
-    .booking-highlight(green);
-  }
-  div.topic-2 {
-    .booking-highlight(blue);
-  }
-  div.topic-3 {
-    .booking-highlight(orange);
-  }
-  div.topic-4 {
-    .booking-highlight(purple);
-  }
-  div.topic-5 {
-    .booking-highlight(teal);
-  }
-  div.topic-6 {
-    .booking-highlight(mediumturquoise);
-  }
-  div.topic-7 {
-    .booking-highlight(brown);
-  }
-  div.topic-8 {
-    .booking-highlight(blueviolet);
-  }
-  div.topic-9 {
-    .booking-highlight(purple);
-  }
 }
 
 
