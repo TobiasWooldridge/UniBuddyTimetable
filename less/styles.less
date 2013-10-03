@@ -50,6 +50,10 @@ table.timetable {
     font-size: 0.8em;
   }
 
+  table.grid {
+
+  }
+
   .hour {
     height: 60px;
     overflow: hidden !important;
@@ -57,46 +61,60 @@ table.timetable {
 
   .hours {
     position: relative;
+    padding: 0;
+    border-top-width: 0;
   }
 
   div.booking {
     color: #ffffff;
     background: black;
-    padding: 5px 10px;
-    margin: 2px;
-    opacity: 0.8;
+    padding: 5px 0;
+    margin: 0 0;
     border-radius: 4px;
+    width: 100%;
+    position: absolute;
   }
 
+  div.booking p {
+    margin: 5 10px;
+  }
+
+  .booking-highlight(@color: blue)
+  {
+    background: fade(@color, 55%);
+    border: 1px solid @color;
+  }
+
+
   div.topic-0 {
-    background: red;
+    .booking-highlight(red);
   }
   div.topic-1 {
-    background: green;
+    .booking-highlight(green);
   }
   div.topic-2 {
-    background: blue;
+    .booking-highlight(blue);
   }
   div.topic-3 {
-    background: orange;
+    .booking-highlight(orange);
   }
   div.topic-4 {
-    background: purple;
+    .booking-highlight(purple);
   }
   div.topic-5 {
-    background: teal;
+    .booking-highlight(teal);
   }
   div.topic-6 {
-    background: mediumturquoise;
+    .booking-highlight(mediumturquoise);
   }
   div.topic-7 {
-    background: brown;
+    .booking-highlight(brown);
   }
   div.topic-8 {
-    background: blueviolet;
+    .booking-highlight(blueviolet);
   }
   div.topic-9 {
-    background: purple;
+    .booking-highlight(purple);
   }
 }
 

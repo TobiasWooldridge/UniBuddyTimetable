@@ -1,4 +1,3 @@
-
 <html ng-app="timetable">
 <head>
     <title>Flinders Timetable Planner</title>
@@ -28,7 +27,9 @@
     <ol>
         <li>Choose which semester you're planning for</li>
         <li>Choose your topics</li>
-        <li>Specify your criteria for an ideal table (no clashes, maximum number of days free, minimum time spent at university, etc.)</li>
+        <li>Specify your criteria for an ideal table (no clashes, maximum number of days free, minimum time spent at
+            university, etc.)
+        </li>
     </ol>
 
     <form class="form" role="form">
@@ -62,30 +63,33 @@
 
             <tbody>
 
-                <tr ng-repeat="topic in chosenTopics">
-                    <td class="filter"></td>
-                    <td width="*">
-                        {{ topic.code }} {{ topic.name }}
-                    </td>
-                    <td class="action">
-                        <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
-                    </td>
-                </tr>
+            <tr ng-repeat="topic in chosenTopics">
+                <td class="filter"></td>
+                <td width="*">
+                    {{ topic.code }} {{ topic.name }}
+                </td>
+                <td class="action">
+                    <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
+                </td>
+            </tr>
 
-                <tr>
-                    <td class="filter">
-                        <input class="form-control" ng-model="topicSearch" placeholder="Filter" />
-                    </td>
-                    <td width="*">
-                        <p ng-show="!topics.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader" /></p>
-                        <select ng-show="topics.length" class="form-control" ng-model="activeTopic"
-                                ng-options="t as t.code + ' ' + t.name + ' ' for t in topics | filter:topicSearch">
-                        </select>
-                    </td>
-                    <td class="action">
-                        <button type="submit" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">Add</button>
-                    </td>
-                </tr>
+            <tr>
+                <td class="filter">
+                    <input class="form-control" ng-model="topicSearch" placeholder="Filter"/>
+                </td>
+                <td width="*">
+                    <p ng-show="!topics.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader"/>
+                    </p>
+                    <select ng-show="topics.length" class="form-control" ng-model="activeTopic"
+                            ng-options="t as t.code + ' ' + t.name + ' ' for t in topics | filter:topicSearch">
+                    </select>
+                </td>
+                <td class="action">
+                    <button type="submit" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">
+                        Add
+                    </button>
+                </td>
+            </tr>
             </tbody>
         </table>
     </form>
@@ -99,11 +103,14 @@
             <div ng-repeat="topic in chosenTopics" class="col-md-3">
                 <h3>{{ topic.code }} {{ topic.name }}</h3>
 
-                <div ng-repeat="class in topic.classes" >
-                    <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration) / 60}} minutes)</h4>
+                <div ng-repeat="class in topic.classes">
+                    <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration) / 60}}
+                        minutes)</h4>
 
-                        <div ng-show="class.class_groups" class="list-group">
-                        <a ng-repeat="class_group in class.class_groups" class="list-group-item" ng-class="{ active: (class_group == class.active_class_group) }" ng-click="(class.active_class_group = class_group) && updateTimetable()">
+                    <div ng-show="class.class_groups" class="list-group">
+                        <a ng-repeat="class_group in class.class_groups" class="list-group-item"
+                           ng-class="{ active: (class_group == class.active_class_group) }"
+                           ng-click="(class.active_class_group = class_group) && updateTimetable()">
                             <!-- <h5 ng-show="class.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5> -->
                             <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
                                 class_session.day_of_week }} {{ class_session.time_starts_at }}
@@ -131,28 +138,29 @@
                 </tr>
             </table>
         </td>
-        <td ng-repeat="day in days" class="hours" style="padding-top:0px; border-top-width: 0px;">
-            <table>
+        <td ng-repeat="day in days" class="hours">
+            <table class="grid">
                 <tr ng-repeat="hours in hours" class="hour">
-                    <!--<td class="hours">-->
                     <td>
                         &nbsp;
                     </td>
-                    <!--</td>-->
                 </tr>
-                <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}" style="position: absolute; height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
-                            {{ booking.topic.code }}
-                            {{ booking.class_type.name }}
-                        </div>
             </table>
+
+            <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}"
+                 style="height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
+                <p>{{ booking.topic.code }} {{ booking.class_type.name }}</p>
+            </div>
         </td>
     </tr>
 </table>
 
 <footer class="container">
-    <hr />
+    <hr/>
     <p>&copy; 2013 &ndash; Tobias Wooldridge and Russell Peake</p>
-    <p>Freely available under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache v2 License</p></footer>
+
+    <p>Freely available under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache v2 License</a></p>
+</footer>
 
 <script>
     timetable({});
