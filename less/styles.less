@@ -69,41 +69,52 @@ table.timetable {
     color: #ffffff;
     background: black;
     padding: 5px 0;
-    margin: 2px 0;
-    opacity: 0.8;
+    margin: 0 0;
     border-radius: 4px;
     width: 100%;
+    position: absolute;
   }
 
+  div.booking p {
+    margin: 5 10px;
+  }
+
+  .booking-highlight(@color: blue)
+  {
+    background: fade(@color, 55%);
+    border: 1px solid @color;
+  }
+
+
   div.topic-0 {
-    background: red;
+    .booking-highlight(red);
   }
   div.topic-1 {
-    background: green;
+    .booking-highlight(green);
   }
   div.topic-2 {
-    background: blue;
+    .booking-highlight(blue);
   }
   div.topic-3 {
-    background: orange;
+    .booking-highlight(orange);
   }
   div.topic-4 {
-    background: purple;
+    .booking-highlight(purple);
   }
   div.topic-5 {
-    background: teal;
+    .booking-highlight(teal);
   }
   div.topic-6 {
-    background: mediumturquoise;
+    .booking-highlight(mediumturquoise);
   }
   div.topic-7 {
-    background: brown;
+    .booking-highlight(brown);
   }
   div.topic-8 {
-    background: blueviolet;
+    .booking-highlight(blueviolet);
   }
   div.topic-9 {
-    background: purple;
+    .booking-highlight(purple);
   }
 }
 

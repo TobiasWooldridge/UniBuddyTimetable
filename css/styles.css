@@ -6299,40 +6299,53 @@ table.timetable div.booking {
   color: #ffffff;
   background: black;
   padding: 5px 0;
-  margin: 2px 0;
-  opacity: 0.8;
+  margin: 0 0;
   border-radius: 4px;
   width: 100%;
+  position: absolute;
+}
+table.timetable div.booking p {
+  margin: 5 10px;
 }
 table.timetable div.topic-0 {
-  background: red;
+  background: rgba(255, 0, 0, 0.55);
+  border: 1px solid #ff0000;
 }
 table.timetable div.topic-1 {
-  background: green;
+  background: rgba(0, 128, 0, 0.55);
+  border: 1px solid #008000;
 }
 table.timetable div.topic-2 {
-  background: blue;
+  background: rgba(0, 0, 255, 0.55);
+  border: 1px solid #0000ff;
 }
 table.timetable div.topic-3 {
-  background: orange;
+  background: rgba(255, 165, 0, 0.55);
+  border: 1px solid #ffa500;
 }
 table.timetable div.topic-4 {
-  background: purple;
+  background: rgba(128, 0, 128, 0.55);
+  border: 1px solid #800080;
 }
 table.timetable div.topic-5 {
-  background: teal;
+  background: rgba(0, 128, 128, 0.55);
+  border: 1px solid #008080;
 }
 table.timetable div.topic-6 {
-  background: mediumturquoise;
+  background: rgba(72, 209, 204, 0.55);
+  border: 1px solid #48d1cc;
 }
 table.timetable div.topic-7 {
-  background: brown;
+  background: rgba(165, 42, 42, 0.55);
+  border: 1px solid #a52a2a;
 }
 table.timetable div.topic-8 {
-  background: blueviolet;
+  background: rgba(138, 43, 226, 0.55);
+  border: 1px solid #8a2be2;
 }
 table.timetable div.topic-9 {
-  background: purple;
+  background: rgba(128, 0, 128, 0.55);
+  border: 1px solid #800080;
 }
 .ajax-loader {
   margin: 0 auto;
