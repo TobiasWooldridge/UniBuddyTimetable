@@ -1,3 +1,4 @@
+
 <html ng-app="timetable">
 <head>
     <title>Flinders Timetable Planner</title>
@@ -119,29 +120,30 @@
 
 <table class="timetable table" ng-show="chosenTopics.length">
     <tr>
-        <td>
+        <th class="times"><span class="timezone">GMT +9:30</span></th>
+        <th ng-repeat="day in days">{{ day }}</th>
+    </tr>
+    <tr>
+        <td style="padding-top:0px; border-top-width: 0px;">
             <table>
-                <tr>
-                    <th class="times"><span class="timezone">GMT +9:30</span></th>
-                </tr>
                 <tr ng-repeat="hour in hours">
                     <th class="hour">{{ hour }}</th>
                 </tr>
             </table>
         </td>
-        <td ng-repeat="day in days">
+        <td ng-repeat="day in days" class="hours" style="padding-top:0px; border-top-width: 0px;">
             <table>
-                <tr>
-                    <th>{{ day }}</th>
+                <tr ng-repeat="hours in hours" class="hour">
+                    <!--<td class="hours">-->
+                    <td>
+                        &nbsp;
+                    </td>
+                    <!--</td>-->
                 </tr>
-                <tr rowspan="{{ hours.length }}">
-                    <td class="hours">
-                        <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}" style="position: absolute; height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
+                <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}" style="position: absolute; height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
                             {{ booking.topic.code }}
                             {{ booking.class_type.name }}
                         </div>
-                    </td>
-                </tr>
             </table>
         </td>
     </tr>
