@@ -75,7 +75,7 @@
 
             <tr>
                 <td class="filter">
-                    <input class="form-control" ng-model="topicSearch" placeholder="Filter"/>
+                    <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
                 </td>
                 <td width="*">
                     <p ng-show="!topics.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader"/>
@@ -120,6 +120,8 @@
                 </div>
             </div>
         </div>
+
+        <p>{{ possibleTimetables }} possible timetables.</p>
 
     </div>
 </div>

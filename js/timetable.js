@@ -121,7 +121,26 @@ function timetable(userConfig) {
 
         var topicAlreadySelected = function (topicId) {
             return $scope.chosenTopicIds().indexOf(parseInt(topicId)) !== -1;
-        }
+        };
+
+        var updatePossibleTimetables = function () {
+            var possibleTimetables = 1;
+
+
+            angular.forEach($scope.chosenTopics, function (topic) {
+                angular.forEach(topic.classes, function (class_type) {
+                    console.log(class_type);
+                    var groups = class_type.class_groups.length;
+                    if (groups > 0) {
+                        possibleTimetables *= groups;
+                        console.log(possibleTimetables, groups);
+                    }
+                });
+            });
+
+            console.log(possibleTimetables + " possible timetables");
+            $scope.possibleTimetables = possibleTimetables;
+        };
 
         $scope.validateTopic = function() {
             if (typeof $scope.activeTopic === "undefined") {
@@ -204,13 +223,15 @@ function timetable(userConfig) {
             });
 
             $scope.timetable = timetable;
+
+            updatePossibleTimetables();
         }
 
         $scope.days = days;
         $scope.hours = hours;
         $scope.timetable = timetableFactory.createEmptyTimetable();
 
-        $scope.years = [2013, 2014];
+        $scope.years = [2013];
         $scope.activeYear = $scope.years[0];
 
         $scope.semesters = ["S1", "NS1", "S2", "NS2"];
