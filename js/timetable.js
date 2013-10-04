@@ -67,9 +67,8 @@ function timetable(userConfig) {
                     callback(data, status, headers, config);
                 });
             },
-            getTimetableAsync: function (topic_id, callback) {
+            getTopicTimetableAsync: function (topic_id, callback) {
                 var url = config.api_path + 'topics/' + topic_id + '/classes';
-
 
                 $http.get(url).success(function (data, status, headers, config) {
                     callback(data, status, headers, config);
@@ -173,7 +172,7 @@ function timetable(userConfig) {
             topicFactory.getTopicAsync(topicId, function (topic) {
                 $scope.chosenTopics.push(topic);
 
-                topicFactory.getTimetableAsync(topicId, function (class_types) {
+                topicFactory.getTopicTimetableAsync(topicId, function (class_types) {
                     angular.forEach(class_types, function(class_type) {
                         class_type.active_class_group = class_type.class_groups[0];
                     });
@@ -195,10 +194,61 @@ function timetable(userConfig) {
             applyTopicSearchFilter(newValue);
         });
 
+        var sessionsClash = function (a, b) {
+            var outcome = false;
+
+            // a's start is within b's interval
+            if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
+                outcome = true;
+            }
+
+            // a's end is within b's interval
+            else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
+                outcome = true;
+            }
+
+            // a wraps b
+            else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
+                outcome = true;
+            }
+
+            // b wraps a
+            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
+                outcome = true;
+            }
+
+            console.log(a.seconds_starts_at, a.seconds_ends_at, b.seconds_starts_at, b.seconds_ends_at, outcome);
+
+            return outcome;
+        }
+
+        var newClashGroup = function (firstBooking) {
+            var clashGroup = {
+                seconds_starts_at: firstBooking.class_session.seconds_starts_at,
+                seconds_ends_at: firstBooking.class_session.seconds_ends_at,
+
+                clashes: [],
+
+                addBooking: function (booking) {
+                    clashGroup.seconds_starts_at = Math.min(clashGroup.seconds_starts_at, booking.class_session.seconds_starts_at);
+                    clashGroup.seconds_ends_at = Math.max(clashGroup.seconds_ends_at, booking.class_session.seconds_ends_at);
+
+                    clashGroup.clashes.push({
+                        booking: booking
+                    });
+
+                    return true;
+                }
+            };
+
+            clashGroup.addBooking(firstBooking);
+
+            return clashGroup;
+        };
+
 
         $scope.updateTimetable = function() {
             var timetable = timetableFactory.createEmptyTimetable();
-
 
             angular.forEach($scope.chosenTopics, function(topic) {
                 angular.forEach(topic.classes, function(class_type) {
@@ -206,18 +256,39 @@ function timetable(userConfig) {
                         return;
                     }
 
+                    // TODO: copy all class types to array and sort chronologically before processing this
+                    // If we do that, we avoid an obscure bug where two two clash groups won't be merged if
+                    // there's a shared member, and we only need to check the immediately previous clash group
+                    // rather than EVERY previous clash group
 
                     angular.forEach(class_type.active_class_group.class_sessions, function(class_session) {
-                        var day = class_session.day_of_week;
-
                         var booking = {};
 
                         booking.topic = topic;
                         booking.class_type = class_type;
                         booking.class_group = class_type.active_class_group;
-                        booking.class_session = class_session
+                        booking.class_session = class_session;
 
-                        timetable[day].push(booking);
+                        var day = class_session.day_of_week;
+
+                        var clashGroups = timetable[day];
+                        var clashGroup = null;
+
+                        angular.forEach(clashGroups, function (group) {
+                            if (sessionsClash(group, class_session)) {
+                                clashGroup = group;
+                            }
+                        });
+
+                        if (clashGroup == null) {
+                            clashGroup = newClashGroup(booking);
+                            timetable[day].push(clashGroup);
+                        }
+                        else {
+                            console.log("Appending booking");
+                            clashGroup.addBooking(booking);
+                        }
+
                     });
                 });
             });

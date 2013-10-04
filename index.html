@@ -124,40 +124,47 @@
         <p>{{ possibleTimetables }} possible timetables.</p>
 
     </div>
-</div>
 
 
-<table class="timetable table" ng-show="chosenTopics.length">
-    <tr>
-        <th class="times"><span class="timezone">GMT +9:30</span></th>
-        <th ng-repeat="day in days">{{ day }}</th>
-    </tr>
-    <tr>
-        <td style="padding-top:0px; border-top-width: 0px;">
-            <table>
-                <tr ng-repeat="hour in hours">
-                    <th class="hour">{{ hour }}</th>
-                </tr>
-            </table>
-        </td>
-        <td ng-repeat="day in days" class="hours">
-
-            <div class="bookings">
-                <div ng-repeat="booking in timetable[day]" class="booking topic-{{booking.topic.id % 10}}"
-                     style="height: {{ booking.class_session.seconds_duration / 60 }}px; top: {{ (booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
-                    <p>{{ booking.topic.code }} {{ booking.class_type.name }}</p>
+    <table class="timetable table" ng-show="chosenTopics.length">
+        <tr>
+            <th class="times"><span class="timezone">GMT +9:30</span></th>
+            <th ng-repeat="day in days">{{ day }}</th>
+        </tr>
+        <tr>
+            <td style="padding-top:0px; border-top-width: 0px;">
+                <table>
+                    <tr ng-repeat="hour in hours">
+                        <th class="hour">{{ hour }}</th>
+                    </tr>
+                </table>
+            </td>
+            <td ng-repeat="day in days" class="hours">
+                <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
+                    <table style="top: 0px; height: 0px; position: relative;" width="100%">
+                        <tr>
+                            <td ng-repeat="clash in clashGroup.clashes">
+                                <div class="booking topic-{{clash.booking.topic.id % 10}}"
+                                     style="height: {{ clash.booking.class_session.seconds_duration / 60 }}px; top: {{ (clash.booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
+                                    <p>{{ clash.booking.topic.code }} {{ clash.booking.class_type.name }}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-            </div>
-            <table class="grid">
-                <tr ng-repeat="hours in hours" class="hour">
-                    <td>
-                        &nbsp;
-                    </td>
-                </tr>
-            </table>
+</div>
+<table class="grid">
+    <tr ng-repeat="hours in hours" class="hour">
+        <td>
+            &nbsp;
         </td>
     </tr>
 </table>
+</td>
+</tr>
+</table>
+</div>
+
 
 <footer class="container">
     <hr/>

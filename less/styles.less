@@ -8,9 +8,9 @@
 .booking-highlight(@color: blue) {
   border-color: darken(@color, 5%);
   background: darken(@color, 5%);
-  background-image: linear-gradient(to bottom, @color 0%, darken(@color, 5%) 100%);
+  background-image: linear-gradient(to bottom, lighten(@color, 5%) 0%, darken(@color, 5%) 100%);
   color: #ffffff !important;
-  text-shadow: 0 -1px 0 darken(@color, 20%);
+  text-shadow: 1px 1px 2px darken(@color, 20%);
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -83,6 +83,15 @@ table.topics {
 }
 
 table.timetable {
+  thead > tr > th,
+  tbody > tr > th,
+  tfoot > tr > th,
+  thead > tr > td,
+  tbody > tr > td,
+  tfoot > tr > td {
+    padding: 0;
+  }
+
   table-layout: fixed;
   border-collapse: collapse;
 
@@ -95,7 +104,8 @@ table.timetable {
     margin: 0;
     padding: 0;
     border: 0;
-    border-layout: fixed;
+    table-layout: fixed;
+    border-collapse: collapse;
     font-size: 0.8em;
   }
 
@@ -114,21 +124,21 @@ table.timetable {
     border-top-width: 0;
   }
 
-  .bookings {
+  .clashGroup {
     position: relative;
     height: 0;
   }
 
-  .bookings .booking {
+  .clashGroup .booking {
     padding: 5px 0;
-    margin: 0 0;
+    margin: 0 5px 0 0;
     border-radius: 4px;
-    width: 80%;
-    position: absolute;
+    position: relative;
     opacity: 0.75;
+    font-size: 0.8em;
   }
 
-  div.booking p {
+  .booking p {
     margin: 5 10px;
   }
 

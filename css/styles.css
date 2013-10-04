@@ -7583,90 +7583,90 @@ td.visible-print {
 .topic.topic-0 .active {
     border-color: #e60000;
     background: #e60000;
-    background-image: linear-gradient(to bottom, #ff0000 0%, #e60000 100%);
+    background-image: linear-gradient(to bottom, #ff1a1a 0%, #e60000 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #990000;
+    text-shadow: 1px 1px 2px #990000;
 }
 
 .booking.topic-1,
 .topic.topic-1 .active {
     border-color: #006700;
     background: #006700;
-    background-image: linear-gradient(to bottom, #008000 0%, #006700 100%);
+    background-image: linear-gradient(to bottom, #009a00 0%, #006700 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #001a00;
+    text-shadow: 1px 1px 2px #001a00;
 }
 
 .booking.topic-2,
 .topic.topic-2 .active {
     border-color: #0000e6;
     background: #0000e6;
-    background-image: linear-gradient(to bottom, #0000ff 0%, #0000e6 100%);
+    background-image: linear-gradient(to bottom, #1a1aff 0%, #0000e6 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #000099;
+    text-shadow: 1px 1px 2px #000099;
 }
 
 .booking.topic-3,
 .topic.topic-3 .active {
     border-color: #e69500;
     background: #e69500;
-    background-image: linear-gradient(to bottom, #ffa500 0%, #e69500 100%);
+    background-image: linear-gradient(to bottom, #ffae1a 0%, #e69500 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #996300;
+    text-shadow: 1px 1px 2px #996300;
 }
 
 .booking.topic-4,
 .topic.topic-4 .active {
     border-color: #670066;
     background: #670066;
-    background-image: linear-gradient(to bottom, #800080 0%, #670066 100%);
+    background-image: linear-gradient(to bottom, #9a0099 0%, #670066 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #1a001a;
+    text-shadow: 1px 1px 2px #1a001a;
 }
 
 .booking.topic-5,
 .topic.topic-5 .active {
     border-color: #006667;
     background: #006667;
-    background-image: linear-gradient(to bottom, #008080 0%, #006667 100%);
+    background-image: linear-gradient(to bottom, #00999a 0%, #006667 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #001a1a;
+    text-shadow: 1px 1px 2px #001a1a;
 }
 
 .booking.topic-6,
 .topic.topic-6 .active {
     border-color: #34ccc6;
     background: #34ccc6;
-    background-image: linear-gradient(to bottom, #48d1cc 0%, #34ccc6 100%);
+    background-image: linear-gradient(to bottom, #5cd6d2 0%, #34ccc6 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #248f8b;
+    text-shadow: 1px 1px 2px #248f8b;
 }
 
 .booking.topic-7,
 .topic.topic-7 .active {
     border-color: #912525;
     background: #912525;
-    background-image: linear-gradient(to bottom, #a52a2a 0%, #912525 100%);
+    background-image: linear-gradient(to bottom, #b92f2f 0%, #912525 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #541515;
+    text-shadow: 1px 1px 2px #541515;
 }
 
 .booking.topic-8,
 .topic.topic-8 .active {
     border-color: #7d1dd6;
     background: #7d1dd6;
-    background-image: linear-gradient(to bottom, #8a2be2 0%, #7d1dd6 100%);
+    background-image: linear-gradient(to bottom, #9641e5 0%, #7d1dd6 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #561493;
+    text-shadow: 1px 1px 2px #561493;
 }
 
 .booking.topic-9,
 .topic.topic-9 .active {
     border-color: #670066;
     background: #670066;
-    background-image: linear-gradient(to bottom, #800080 0%, #670066 100%);
+    background-image: linear-gradient(to bottom, #9a0099 0%, #670066 100%);
     color: #ffffff !important;
-    text-shadow: 0 -1px 0 #1a001a;
+    text-shadow: 1px 1px 2px #1a001a;
 }
 
 .timezone {
@@ -7700,6 +7700,15 @@ table.timetable {
     border-collapse: collapse;
 }
 
+table.timetable thead > tr > th,
+table.timetable tbody > tr > th,
+table.timetable tfoot > tr > th,
+table.timetable thead > tr > td,
+table.timetable tbody > tr > td,
+table.timetable tfoot > tr > td {
+    padding: 0;
+}
+
 table.timetable .times {
     width: 100px;
 }
@@ -7709,7 +7718,8 @@ table.timetable table {
     margin: 0;
     padding: 0;
     border: 0;
-    border-layout: fixed;
+    table-layout: fixed;
+    border-collapse: collapse;
     font-size: 0.8em;
 }
 
@@ -7724,21 +7734,21 @@ table.timetable .hours {
     border-top-width: 0;
 }
 
-table.timetable .bookings {
+table.timetable .clashGroup {
     position: relative;
     height: 0;
 }
 
-table.timetable .bookings .booking {
+table.timetable .clashGroup .booking {
     padding: 5px 0;
-    margin: 0 0;
+    margin: 0 5px 0 0;
     border-radius: 4px;
-    width: 80%;
-    position: absolute;
+    position: relative;
     opacity: 0.75;
+    font-size: 0.8em;
 }
 
-table.timetable div.booking p {
+table.timetable .booking p {
     margin: 5 10px;
 }
 
