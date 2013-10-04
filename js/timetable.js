@@ -92,21 +92,20 @@ function timetable(userConfig) {
     });
 
 
-
     app.controller('TimetableController', function ($scope, topicFactory, timetableFactory, filterFilter) {
         $scope.chosenTopics = []
 
         $scope.chosenTopicIds = function () {
             var ids = [];
 
-            angular.forEach($scope.chosenTopics, function(topic) {
+            angular.forEach($scope.chosenTopics, function (topic) {
                 ids.push(topic.id);
             });
 
             return ids;
         }
 
-        var applyTopicSearchFilter = function(newValue) {
+        var applyTopicSearchFilter = function (newValue) {
             filteredArray = filterFilter($scope.topics, newValue);
 
             if (typeof filteredArray !== "undefined" && filteredArray.indexOf($scope.activeTopic) !== -1) {
@@ -128,20 +127,17 @@ function timetable(userConfig) {
 
             angular.forEach($scope.chosenTopics, function (topic) {
                 angular.forEach(topic.classes, function (class_type) {
-                    console.log(class_type);
                     var groups = class_type.class_groups.length;
                     if (groups > 0) {
                         possibleTimetables *= groups;
-                        console.log(possibleTimetables, groups);
                     }
                 });
             });
 
-            console.log(possibleTimetables + " possible timetables");
             $scope.possibleTimetables = possibleTimetables;
         };
 
-        $scope.validateTopic = function() {
+        $scope.validateTopic = function () {
             if (typeof $scope.activeTopic === "undefined") {
                 return false;
             }
@@ -173,7 +169,7 @@ function timetable(userConfig) {
                 $scope.chosenTopics.push(topic);
 
                 topicFactory.getTopicTimetableAsync(topicId, function (class_types) {
-                    angular.forEach(class_types, function(class_type) {
+                    angular.forEach(class_types, function (class_type) {
                         class_type.active_class_group = class_type.class_groups[0];
                     });
 
@@ -190,7 +186,7 @@ function timetable(userConfig) {
 
             $scope.updateTimetable();
         }
-        $scope.$watch('topicSearch',function(newValue){
+        $scope.$watch('topicSearch', function (newValue) {
             applyTopicSearchFilter(newValue);
         });
 
@@ -216,8 +212,6 @@ function timetable(userConfig) {
             else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
                 outcome = true;
             }
-
-            console.log(a.seconds_starts_at, a.seconds_ends_at, b.seconds_starts_at, b.seconds_ends_at, outcome);
 
             return outcome;
         }
@@ -247,11 +241,11 @@ function timetable(userConfig) {
         };
 
 
-        $scope.updateTimetable = function() {
+        $scope.updateTimetable = function () {
             var timetable = timetableFactory.createEmptyTimetable();
 
-            angular.forEach($scope.chosenTopics, function(topic) {
-                angular.forEach(topic.classes, function(class_type) {
+            angular.forEach($scope.chosenTopics, function (topic) {
+                angular.forEach(topic.classes, function (class_type) {
                     if (typeof class_type.class_groups.length === 0 || typeof class_type.active_class_group === "undefined") {
                         return;
                     }
@@ -261,7 +255,7 @@ function timetable(userConfig) {
                     // there's a shared member, and we only need to check the immediately previous clash group
                     // rather than EVERY previous clash group
 
-                    angular.forEach(class_type.active_class_group.class_sessions, function(class_session) {
+                    angular.forEach(class_type.active_class_group.class_sessions, function (class_session) {
                         var booking = {};
 
                         booking.topic = topic;
@@ -285,7 +279,6 @@ function timetable(userConfig) {
                             timetable[day].push(clashGroup);
                         }
                         else {
-                            console.log("Appending booking");
                             clashGroup.addBooking(booking);
                         }
 
@@ -307,8 +300,6 @@ function timetable(userConfig) {
 
         $scope.semesters = ["S1", "NS1", "S2", "NS2"];
         $scope.activeSemester = $scope.semesters[2];
-
-
 
 
         topicFactory.getSubjectAreasAsync(function (data) {
