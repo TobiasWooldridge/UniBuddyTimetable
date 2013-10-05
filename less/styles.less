@@ -82,6 +82,7 @@ table.topics {
 .chosen-topics {
 }
 
+
 table.timetable {
   thead > tr > th,
   tbody > tr > th,
@@ -92,8 +93,16 @@ table.timetable {
     padding: 0;
   }
 
+  tr:first-of-type > th {
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid @table-border-color;
+  }
+
   table-layout: fixed;
   border-collapse: collapse;
+
+  border: 1px solid @table-border-color;
 
   .times {
     width: 100px;
@@ -110,7 +119,7 @@ table.timetable {
   }
 
   table.grid {
-
+    border-left: 1px solid @table-border-color;
   }
 
   .hour {
@@ -129,9 +138,15 @@ table.timetable {
     height: 0;
   }
 
+  .clashGroup td {
+    padding: 0 10px 0 0;
+  }
+  .clashGroup td:first-of-type {
+    padding: 0 10px;
+  }
+
   .clashGroup .booking {
     padding: 5px 0;
-    margin: 0 5px 0 0;
     border-radius: 4px;
     position: relative;
     opacity: 0.75;

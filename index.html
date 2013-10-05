@@ -111,7 +111,7 @@
                         <a ng-repeat="class_group in class.class_groups" class="list-group-item"
                            ng-class="{ active: (class_group == class.active_class_group) }"
                            ng-click="(class.active_class_group = class_group) && updateTimetable()">
-                            <!-- <h5 ng-show="class.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5> -->
+                            <!-- <h5 ng-show="cltiass.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5> -->
                             <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
                                 class_session.day_of_week }} {{ class_session.time_starts_at }}
                             </p>
@@ -127,51 +127,54 @@
 
 
     <table class="timetable table" ng-show="chosenTopics.length">
-        <tr>
-            <th class="times"><span class="timezone">GMT +9:30</span></th>
-            <th ng-repeat="day in days">{{ day }}</th>
-        </tr>
-        <tr>
-            <td style="padding-top:0px; border-top-width: 0px;">
-                <table>
-                    <tr ng-repeat="hour in hours">
-                        <th class="hour">{{ hour }}</th>
-                    </tr>
-                </table>
-            </td>
-            <td ng-repeat="day in days" class="hours">
-                <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
-                    <table style="top: 0px; height: 0px; position: relative;" width="100%">
-                        <tr>
-                            <td ng-repeat="clash_column in clashGroup.clash_columns">
-                                <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
-                                    <div class="booking topic-{{booking.topic_id % 10}}"
-                                         style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
-                                        <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
+        <thead>
+            <tr>
+                <th class="times"><span class="timezone">GMT +9:30</span></th>
+                <th ng-repeat="day in days">{{ day }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding-top:0px; border-top-width: 0px;">
+                    <table>
+                        <tr ng-repeat="hour in hours">
+                            <th class="hour">{{ hour }}</th>
+                        </tr>
+                    </table>
+                </td>
+                <td ng-repeat="day in days" class="hours">
+                    <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
+                        <table style="top: 0px; height: 0px; position: relative;" width="100%">
+                            <tr>
+                                <td ng-repeat="clash_column in clashGroup.clash_columns">
+                                    <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
+                                        <div class="booking topic-{{booking.topic_id % 10}}"
+                                             style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
+                                            <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
+                                        </div>
                                     </div>
-                                </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <table class="grid">
+                        <tr ng-repeat="hours in hours" class="hour">
+                            <td>
+                                &nbsp;
                             </td>
                         </tr>
                     </table>
-                </div>
-                <table class="grid">
-                    <tr ng-repeat="hours in hours" class="hour">
-                        <td>
-                            &nbsp;
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
+                </td>
+            </tr>
+        </tbody>
     </table>
 </div>
 
 
 <footer class="container">
     <hr/>
-    <p>&copy; 2013 &ndash; Tobias Wooldridge and Russell Peake</p>
-
-    <p>Freely available under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache v2 License</a></p>
+    <p>Made by Tobias Wooldridge and Russell Peake. </p>
+    <p>Timetable data &copy; 2013 Flinders University</p>
 </footer>
 
 <script>

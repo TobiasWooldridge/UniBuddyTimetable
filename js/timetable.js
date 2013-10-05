@@ -289,7 +289,7 @@ function timetable(userConfig) {
                         var latest_contestant_ends = 0;
                         angular.forEach(clashGroup.clash_columns, function(contestant_column) {
                             var contestant_column_ends = contestant_column[contestant_column.length - 1].seconds_ends_at;
-                            if (contestant_column_ends < booking.seconds_starts_at) {
+                            if (contestant_column_ends <= booking.seconds_starts_at && contestant_column_ends > latest_contestant_ends) {
                                 clash_column = contestant_column;
                                 latest_contestant_ends = contestant_column_ends;
                             }

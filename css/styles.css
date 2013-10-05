@@ -7681,6 +7681,7 @@ table.topics .action {
 table.timetable {
   table-layout: fixed;
   border-collapse: collapse;
+  border: 1px solid #dddddd;
 }
 table.timetable thead > tr > th,
 table.timetable tbody > tr > th,
@@ -7689,6 +7690,11 @@ table.timetable thead > tr > td,
 table.timetable tbody > tr > td,
 table.timetable tfoot > tr > td {
   padding: 0;
+}
+table.timetable tr:first-of-type > th {
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #dddddd;
 }
 table.timetable .times {
   width: 100px;
@@ -7701,6 +7707,9 @@ table.timetable table {
   table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.8em;
+}
+table.timetable table.grid {
+  border-left: 1px solid #dddddd;
 }
 table.timetable .hour {
   height: 60px;
@@ -7715,9 +7724,14 @@ table.timetable .clashGroup {
   position: relative;
   height: 0;
 }
+table.timetable .clashGroup td {
+  padding: 0 10px 0 0;
+}
+table.timetable .clashGroup td:first-of-type {
+  padding: 0 10px;
+}
 table.timetable .clashGroup .booking {
   padding: 5px 0;
-  margin: 0 5px 0 0;
   border-radius: 4px;
   position: relative;
   opacity: 0.75;
