@@ -143,26 +143,27 @@
                 <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
                     <table style="top: 0px; height: 0px; position: relative;" width="100%">
                         <tr>
-                            <td ng-repeat="clash in clashGroup.clashes">
-                                <div class="booking topic-{{clash.booking.topic.id % 10}}"
-                                     style="height: {{ clash.booking.class_session.seconds_duration / 60 }}px; top: {{ (clash.booking.class_session.seconds_starts_at - 28800) / 60 }}px;">
-                                    <p>{{ clash.booking.topic.code }} {{ clash.booking.class_type.name }}</p>
+                            <td ng-repeat="clash_column in clashGroup.clash_columns">
+                                <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
+                                    <div class="booking topic-{{booking.topic_id % 10}}"
+                                         style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
+                                        <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
                     </table>
                 </div>
-</div>
-<table class="grid">
-    <tr ng-repeat="hours in hours" class="hour">
-        <td>
-            &nbsp;
-        </td>
-    </tr>
-</table>
-</td>
-</tr>
-</table>
+                <table class="grid">
+                    <tr ng-repeat="hours in hours" class="hour">
+                        <td>
+                            &nbsp;
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </div>
 
 
