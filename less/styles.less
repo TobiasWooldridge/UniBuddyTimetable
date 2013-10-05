@@ -6,11 +6,11 @@
 }
 
 .booking-highlight(@color: blue) {
-  border-color: darken(@color, 5%);
-  background: darken(@color, 5%);
-  background-image: linear-gradient(to bottom, lighten(@color, 5%) 0%, darken(@color, 5%) 100%);
+  border-color: darken(@color, 10%);
+  background: darken(@color, 2%);
+  background-image: linear-gradient(to bottom, lighten(@color, 2%) 0%, darken(@color, 2%) 100%);
   color: #ffffff !important;
-  text-shadow: 1px 1px 2px darken(@color, 20%);
+  text-shadow: 0px 0px 3px darken(@color, 20%);
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -53,10 +53,6 @@
   .booking-highlight(purple);
 }
 
-.timezone {
-  font-size: 0.9em;
-}
-
 a.list-group-item {
   cursor: pointer;
 }
@@ -83,6 +79,14 @@ table.topics {
 }
 
 
+table.timetable > thead > tr:first-of-type > th {
+  border: 1px solid @table-border-color;
+  border-bottom: 0;
+  padding: 10px;
+  vertical-align: middle;
+  text-align: center;
+}
+
 table.timetable {
   thead > tr > th,
   tbody > tr > th,
@@ -93,10 +97,9 @@ table.timetable {
     padding: 0;
   }
 
-  tr:first-of-type > th {
+  thead > tr > td,
+  tbody > tr > th {
     text-align: center;
-    vertical-align: middle;
-    border: 1px solid @table-border-color;
   }
 
   table-layout: fixed;
@@ -124,10 +127,16 @@ table.timetable {
 
   .hour {
     height: 60px;
-    overflow: hidden !important;
+  }
+  .half-hour-marker {
+    height: 30px;
+  }
+  .half-hour-marker:nth-child(even) td {
+    height: 30px;
+    border-top: 1px solid lighten(@table-border-color, 5%) !important;
   }
 
-  .hours {
+  .timetable-column {
     position: relative;
     padding: 0;
     border-top-width: 0;
@@ -145,18 +154,25 @@ table.timetable {
     padding: 0 10px;
   }
 
-  .clashGroup .booking {
-    padding: 5px 0;
-    border-radius: 4px;
-    position: relative;
-    opacity: 0.75;
-    font-size: 0.8em;
-  }
+  .clashGroup {
 
-  .booking p {
-    margin: 5 10px;
-  }
+    .booking {
+      padding: 5px 0;
+      border-radius: 4px;
+      position: relative;
+      opacity: 0.75;
+      font-size: 0.8em;
+    }
 
+    .booking .glyphicon-lock {
+      float: right;
+      margin: 4px 10px;
+    }
+
+    .booking p {
+      margin: 5 10px;
+    }
+  }
 }
 
 

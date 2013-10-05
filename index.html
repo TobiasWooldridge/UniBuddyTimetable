@@ -1,11 +1,10 @@
 <html ng-app="timetable">
 <head>
     <title>Flinders Timetable Planner</title>
-    <script src="js/vendor/modernizr/modernizr.custom.90019.js"></script>
+    <script src="js/vendor/bower_components/angular/angular.js"></script>
+    <script src="js/vendor/bower_components/angular-ui-utils/modules/showhide/showhide.js"></script>
 
-    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.js"></script>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.1.0/moment.min.js"></script>
+    <script src="js/vendor/bower_components/moment/moment.js"></script>
 
     <script src="js/timetable.js"></script>
 
@@ -59,38 +58,36 @@
             <h2>Okay, now which topics are you planning to do?</h2>
         </div>
         <table class="table topics">
-
-
             <tbody>
-
-            <tr ng-repeat="topic in chosenTopics">
-                <td class="filter"></td>
-                <td width="*">
-                    {{ topic.code }} {{ topic.name }}
-                </td>
-                <td class="action">
-                    <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="filter">
-                    <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
-                </td>
-                <td width="*">
-                    <p ng-show="!topics.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader"/>
-                    </p>
-                    <select ng-show="topics.length" class="form-control" ng-model="activeTopic"
-                            ng-options="t as t.code + ' ' + t.name + ' ' for t in topics | filter:topicSearch">
-                    </select>
-                </td>
-                <td class="action">
-                    <button type="submit" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">
-                        Add
-                    </button>
-                </td>
-            </tr>
+                <tr ng-repeat="topic in chosenTopics">
+                    <td class="filter"></td>
+                    <td width="*">
+                        {{ topic.code }} {{ topic.name }}
+                    </td>
+                    <td class="action">
+                        <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
+                    </td>
+                </tr>
             </tbody>
+            <tfoot>
+                <tr>
+                    <td class="filter">
+                        <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
+                    </td>
+                    <td width="*">
+                        <p ng-show="!topics.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader"/>
+                        </p>
+                        <select ng-show="topics.length" class="form-control" ng-model="activeTopic"
+                                ng-options="t as t.code + ' ' + t.name + ' ' for t in topics | filter:topicSearch">
+                        </select>
+                    </td>
+                    <td class="action">
+                        <button type="submit" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">
+                            Add
+                        </button>
+                    </td>
+                </tr>
+            </tfoot>
         </table>
     </form>
 
@@ -129,20 +126,20 @@
     <table class="timetable table" ng-show="chosenTopics.length">
         <thead>
             <tr>
-                <th class="times"><span class="timezone">GMT +9:30</span></th>
+                <th class="times"></th>
                 <th ng-repeat="day in days">{{ day }}</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="padding-top:0px; border-top-width: 0px;">
+                <td class="timetable-column">
                     <table>
                         <tr ng-repeat="hour in hours">
-                            <th class="hour">{{ hour }}</th>
+                            <th class="hour"><span>{{ hour }}</span></th>
                         </tr>
                     </table>
                 </td>
-                <td ng-repeat="day in days" class="hours">
+                <td ng-repeat="day in days" class="timetable-column">
                     <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
                         <table style="top: 0px; height: 0px; position: relative;" width="100%">
                             <tr>
@@ -150,6 +147,7 @@
                                     <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
                                         <div class="booking topic-{{booking.topic_id % 10}}"
                                              style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
+                                            <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
                                             <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
                                         </div>
                                     </div>
@@ -158,10 +156,11 @@
                         </table>
                     </div>
                     <table class="grid">
-                        <tr ng-repeat="hours in hours" class="hour">
-                            <td>
-                                &nbsp;
-                            </td>
+                        <tr ng-repeat="hours in hours" class="half-hour-marker">
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr ng-repeat="hours in hours" class="half-hour-marker">
+                            <td>&nbsp;</td>
                         </tr>
                     </table>
                 </td>
@@ -173,7 +172,7 @@
 
 <footer class="container">
     <hr/>
-    <p>Made by Tobias Wooldridge and Russell Peake. </p>
+    <p>Made by <a href="http://tobias.wooldridge.id.au/">Tobias Wooldridge</a> and <a href="https://github.com/rdpeake">Russell Peake</a>.</p>
     <p>Timetable data &copy; 2013 Flinders University</p>
 </footer>
 

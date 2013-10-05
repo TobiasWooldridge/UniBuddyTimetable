@@ -15,23 +15,12 @@ function timetable(userConfig) {
     var hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
 
 
-    var app = angular.module('timetable', []);
+    var app = angular.module('timetable', ['ui.showhide']);
 
     app.factory('topicFactory', function ($http) {
         return {
-            getSubjectAreasAsync: function (callback) {
-                $http.get(config.api_path + 'subjects').success(function (data, status, headers, config) {
-                    mutilated_data = []
-
-                    angular.forEach(data, function (value) {
-                        mutilated_data.push(value.subject_area);
-                    });
-
-                    callback(mutilated_data, status, headers, config);
-                });
-            },
             getTopicsAsync: function (year, semester, callback) {
-                var url = config.api_path + 'topics' + "?"
+                var url = config.api_path + 'topics.json' + "?"
 
                 if (year !== "Any")
                     url += "&year=" + year;
@@ -60,7 +49,7 @@ function timetable(userConfig) {
                 });
             },
             getTopicAsync: function (topic_id, callback) {
-                var url = config.api_path + 'topics/' + topic_id;
+                var url = config.api_path + 'topics/' + topic_id + '.json';
 
 
                 $http.get(url).success(function (data, status, headers, config) {
@@ -68,7 +57,7 @@ function timetable(userConfig) {
                 });
             },
             getTopicTimetableAsync: function (topic_id, callback) {
-                var url = config.api_path + 'topics/' + topic_id + '/classes';
+                var url = config.api_path + 'topics/' + topic_id + '/classes.json';
 
                 $http.get(url).success(function (data, status, headers, config) {
                     callback(data, status, headers, config);
@@ -90,6 +79,129 @@ function timetable(userConfig) {
             }
         }
     });
+
+    var sessionsClash = function (a, b) {
+        var outcome = false;
+
+        if (a.seconds_starts_at == b.seconds_starts_at) {
+            outcome = true;
+        }
+
+        // a's start is within b's interval
+        else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
+            outcome = true;
+        }
+
+        // a's end is within b's interval
+        else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
+            outcome = true;
+        }
+
+        // a wraps b
+        else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
+            outcome = true;
+        }
+
+        // b wraps a
+        else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
+            outcome = true;
+        }
+
+        return outcome;
+    }
+
+    var newBooking = function(topic, class_type, class_group, class_session) {
+        var booking = {
+            topic_id             : topic.id,
+            topic_code           : topic.code,
+            class_name           : class_type.name,
+            day_of_week          : class_session.day_of_week,
+            seconds_starts_at    : class_session.seconds_starts_at,
+            seconds_ends_at      : class_session.seconds_ends_at,
+            seconds_duration     : class_session.seconds_duration,
+            locked               : class_type.class_groups.length === 1
+        };
+
+        return booking;
+    }
+
+    var listBookingsForTopics = function(topics) {
+        var bookings = [];
+
+        angular.forEach(topics, function (topic) {
+            angular.forEach(topic.classes, function (class_type) {
+                if (!class_type.active_class_group) {
+                    return;
+                }
+                angular.forEach(class_type.active_class_group.class_sessions, function (class_session) {
+                    bookings.push(newBooking(topic, class_type, class_type.active_class_group, class_session));
+                });
+            });
+        });
+
+        return bookings;
+    }
+
+    var sortSessions = function(sessions) {
+        var sessionSorter = function(a, b) {
+
+            // Sort by day
+            var daysDifference = days.indexOf(a.day_of_week) - days.indexOf(b.day_of_week);
+            if (daysDifference !== 0) {
+                return daysDifference;
+            }
+
+            // Sort by starting time of day
+            var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
+            if (secondsDifference !== 0) {
+                return secondsDifference;
+            }
+
+            return a.seconds_ends_at - b.seconds_ends_at;
+        }
+
+        return sessions.sort(sessionSorter);
+    }
+
+    var newClashGroup = function (firstBooking) {
+        var clashGroup = {
+            seconds_starts_at: firstBooking.seconds_starts_at,
+            seconds_ends_at: firstBooking.seconds_ends_at,
+
+            clash_columns: [],
+
+            addBooking: function (booking) {
+                clashGroup.seconds_starts_at = Math.min(clashGroup.seconds_starts_at, booking.seconds_starts_at);
+                clashGroup.seconds_ends_at = Math.max(clashGroup.seconds_ends_at, booking.seconds_ends_at);
+
+
+                var clash_column = null;
+                if (clashGroup.clash_columns.length > 0) {
+                    var latest_contestant_ends = 0;
+                    angular.forEach(clashGroup.clash_columns, function(contestant_column) {
+                        var contestant_column_ends = contestant_column[contestant_column.length - 1].seconds_ends_at;
+                        if (contestant_column_ends <= booking.seconds_starts_at && contestant_column_ends > latest_contestant_ends) {
+                            clash_column = contestant_column;
+                            latest_contestant_ends = contestant_column_ends;
+                        }
+                    });
+                }
+
+                if (clash_column === null) {
+                    clash_column = [];
+                    clashGroup.clash_columns.push(clash_column);
+                }
+
+                clash_column.push(booking);
+
+                return true;
+            }
+        };
+
+        clashGroup.addBooking(firstBooking);
+
+        return clashGroup;
+    };
 
 
     app.controller('TimetableController', function ($scope, topicFactory, timetableFactory, filterFilter) {
@@ -186,133 +298,10 @@ function timetable(userConfig) {
 
             $scope.updateTimetable();
         }
+
         $scope.$watch('topicSearch', function (newValue) {
             applyTopicSearchFilter(newValue);
         });
-
-        var sessionsClash = function (a, b) {
-            var outcome = false;
-
-            if (a.seconds_starts_at == b.seconds_starts_at) {
-                outcome = true;
-            }
-
-            // a's start is within b's interval
-            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
-                outcome = true;
-            }
-
-            // a's end is within b's interval
-            else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
-                outcome = true;
-            }
-
-            // a wraps b
-            else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
-                outcome = true;
-            }
-
-            // b wraps a
-            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
-                outcome = true;
-            }
-
-            return outcome;
-        }
-
-        var newBooking = function(topic, class_type, class_group, class_session) {
-            var booking = {
-                topic_id             : topic.id,
-                topic_code           : topic.code,
-                class_name           : class_type.name,
-                day_of_week          : class_session.day_of_week,
-                seconds_starts_at    : class_session.seconds_starts_at,
-                seconds_ends_at      : class_session.seconds_ends_at,
-                seconds_duration     : class_session.seconds_duration
-            };
-
-            return booking;
-        }
-
-        var listBookingsForTopics = function(topics) {
-            var bookings = [];
-
-            angular.forEach(topics, function (topic) {
-                angular.forEach(topic.classes, function (class_type) {
-                    if (!class_type.active_class_group) {
-                        return;
-                    }
-                    angular.forEach(class_type.active_class_group.class_sessions, function (class_session) {
-                        bookings.push(newBooking(topic, class_type, class_type.active_class_group, class_session));
-                    });
-                });
-            });
-
-            return bookings;
-        }
-
-        var sortSessions = function(sessions) {
-            var sessionSorter = function(a, b) {
-
-                // Sort by day
-                var daysDifference = days.indexOf(a.day_of_week) - days.indexOf(b.day_of_week);
-                if (daysDifference !== 0) {
-                    return daysDifference;
-                }
-
-                // Sort by starting time of day
-                var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
-                if (secondsDifference !== 0) {
-                    return secondsDifference;
-                }
-
-                return a.seconds_ends_at - b.seconds_ends_at;
-            }
-
-            return sessions.sort(sessionSorter);
-        }
-
-        var newClashGroup = function (firstBooking) {
-            var clashGroup = {
-                seconds_starts_at: firstBooking.seconds_starts_at,
-                seconds_ends_at: firstBooking.seconds_ends_at,
-
-                clash_columns: [],
-
-                addBooking: function (booking) {
-                    clashGroup.seconds_starts_at = Math.min(clashGroup.seconds_starts_at, booking.seconds_starts_at);
-                    clashGroup.seconds_ends_at = Math.max(clashGroup.seconds_ends_at, booking.seconds_ends_at);
-
-
-                    var clash_column = null;
-                    if (clashGroup.clash_columns.length > 0) {
-                        var latest_contestant_ends = 0;
-                        angular.forEach(clashGroup.clash_columns, function(contestant_column) {
-                            var contestant_column_ends = contestant_column[contestant_column.length - 1].seconds_ends_at;
-                            if (contestant_column_ends <= booking.seconds_starts_at && contestant_column_ends > latest_contestant_ends) {
-                                clash_column = contestant_column;
-                                latest_contestant_ends = contestant_column_ends;
-                            }
-                        });
-                    }
-
-                    if (clash_column === null) {
-                        clash_column = [];
-                        clashGroup.clash_columns.push(clash_column);
-                    }
-
-
-                    console.log(clash_column);
-                    clash_column.push(booking);
-
-                    return true;
-                }
-            };
-
-            clashGroup.addBooking(firstBooking);
-
-            return clashGroup;
-        };
 
 
         $scope.updateTimetable = function () {
@@ -353,10 +342,6 @@ function timetable(userConfig) {
         $scope.activeSemester = $scope.semesters[2];
 
 
-        topicFactory.getSubjectAreasAsync(function (data) {
-            $scope.subjectAreas = data;
-            $scope.activeSubjectArea = data[0];
-            $scope.updateTopics();
-        });
+        $scope.updateTopics();
     })
 }
