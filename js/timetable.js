@@ -315,10 +315,10 @@ function timetable(userConfig) {
 
             index = -1;
             angular.forEach(topicService.chosenTopics, function(chosenTopic, i) {
-               if (chosenTopic.id === topic.id) {
-                   index = i;
-                   return false;
-               }
+                if (chosenTopic.id === topic.id) {
+                    index = i;
+                    return false;
+                }
             });
 
             if (index !== -1) {
@@ -353,32 +353,57 @@ function timetable(userConfig) {
         };
 
         $scope.bruteForcePossibleTimetables = function() {
+            var recursiveCreate = function (set_bookings, variables) {
+                var currentClassType = variables.pop();
+                //var currentClassType = currentClassList.lclass_groups;
+                angular.forEach(currentClassType, function (group) {
+                    //add all bookings for this group
+                    angular.forEach(group.class_sessions, function (class_session) {
+                        //set_bookings.push(newBooking({id: 0, code: "undf0000"}, currentClassType, group, class_session))
+                    });
+                    if (variables.length > 0) {
+                        //more variable classes
+                        recursiveCreate(set_bookings, variables);
+                    } else {
+                        //add bookings to timetable
+                        $scope.btimetables.push(set_bookings);
+                    }
+                    //remove all bookings for this group
+                    angular.forEach(group.class_sessions.class_sessions, function (class_session) {
+                        //set_bookings.pop();
+                    });
+                });
+                variables.push(currentClassType);
+            }
             $scope.bruteForceStart = 0;
-            var completeClassTypes = []
+            var set = []
+            var variable = []
             //for each topic
             angular.forEach($scope.chosenTopics, function (topic) {
                 //for each class type
                 angular.forEach(topic.classes, function (class_type) {
-                   //and for each group
-                    completeClassTypes.push(class_type);
+                    //and for each group
                     if (class_type.class_groups.length > 1) {
-                        angular.forEach(class_type.class_groups, function (group) {
-                            //keep this one constant, then vary the others continuously...
+                        //need to keep track of topic and keep all relevant details about class_type as well!
 
-                            //build up all other timetables from here.
-                            angular.forEach($scope.chosenTopics, function (innerTopic) {
-                                angular.forEach(innerTopic.classes, function (inner_class_type) {
-                                    if (completeClassTypes.indexOf(inner_class_type) == -1 && inner_class_type.class_groups.length > 1) {
-                                        angular.forEach(inner_class_type.class_groups, function (innergroup) {
-                                            $scope.bruteForceStart++;
-                                        });
-                                    }
-                                });
-                            });
+                        //var class_group_list = {
+                        //   class_groups: class_type.class_groups,
+                        //    topic: topic
+                        //};
+
+                        variable.push(class_type.class_groups);
+                    }
+                    else if (class_type.class_groups.length == 1) {
+                        //convert to booking
+                        angular.forEach(class_type.class_groups[0].class_sessions, function (class_session) {
+                            set.push(newBooking(topic, class_type, class_type.class_groups[0], class_session))
                         });
                     }
                 });
             });
+            $scope.btimetables = []
+            recursiveCreate(set, variable);
+            $scope.bruteForceStart = $scope.btimetables.length;
         }
 
         $scope.updateTimetable = function () {
