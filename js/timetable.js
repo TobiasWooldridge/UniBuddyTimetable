@@ -335,7 +335,7 @@ function timetable(userConfig) {
         $scope.days = days;
         $scope.hours = hours;
         $scope.timetable = timetableFactory.createEmptyTimetable();
-
+        $scope.btimetables = []
 
         var updatePossibleTimetables = function () {
             var possibleTimetables = 1;
@@ -352,6 +352,34 @@ function timetable(userConfig) {
             $scope.possibleTimetables = possibleTimetables;
         };
 
+        $scope.bruteForcePossibleTimetables = function() {
+            $scope.bruteForceStart = 0;
+            var completeClassTypes = []
+            //for each topic
+            angular.forEach($scope.chosenTopics, function (topic) {
+                //for each class type
+                angular.forEach(topic.classes, function (class_type) {
+                   //and for each group
+                    completeClassTypes.push(class_type);
+                    if (class_type.class_groups.length > 1) {
+                        angular.forEach(class_type.class_groups, function (group) {
+                            //keep this one constant, then vary the others continuously...
+
+                            //build up all other timetables from here.
+                            angular.forEach($scope.chosenTopics, function (innerTopic) {
+                                angular.forEach(innerTopic.classes, function (inner_class_type) {
+                                    if (completeClassTypes.indexOf(inner_class_type) == -1 && inner_class_type.class_groups.length > 1) {
+                                        angular.forEach(inner_class_type.class_groups, function (innergroup) {
+                                            $scope.bruteForceStart++;
+                                        });
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
+            });
+        }
 
         $scope.updateTimetable = function () {
             var timetable = timetableFactory.createEmptyTimetable();
@@ -384,6 +412,7 @@ function timetable(userConfig) {
 
         $scope.$on('chosenTopicsUpdate', function() {
             $scope.updateTimetable();
+            $scope.bruteForcePossibleTimetables();
         });
     })
 }
