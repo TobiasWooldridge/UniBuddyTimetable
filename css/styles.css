@@ -6251,8 +6251,85 @@ td.visible-print {
 * {
   transform: all 1s ease-in-out;
 }
-.timezone {
-  font-size: 0.9em;
+.booking.topic-0,
+.topic.topic-0 .active {
+  border-color: #cc0000;
+  background: #f50000;
+  background-image: linear-gradient(to bottom, #ff0a0a 0%, #f50000 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #990000;
+}
+.booking.topic-1,
+.topic.topic-1 .active {
+  border-color: #004d00;
+  background: #007600;
+  background-image: linear-gradient(to bottom, #008a00 0%, #007600 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #001a00;
+}
+.booking.topic-2,
+.topic.topic-2 .active {
+  border-color: #0000cc;
+  background: #0000f5;
+  background-image: linear-gradient(to bottom, #0a0aff 0%, #0000f5 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #000099;
+}
+.booking.topic-3,
+.topic.topic-3 .active {
+  border-color: #cc8400;
+  background: #f59e00;
+  background-image: linear-gradient(to bottom, #ffa90a 0%, #f59e00 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #996300;
+}
+.booking.topic-4,
+.topic.topic-4 .active {
+  border-color: #4d004d;
+  background: #760076;
+  background-image: linear-gradient(to bottom, #8a008a 0%, #760076 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #1a001a;
+}
+.booking.topic-5,
+.topic.topic-5 .active {
+  border-color: #004d4d;
+  background: #007676;
+  background-image: linear-gradient(to bottom, #008a8a 0%, #007676 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #001a1a;
+}
+.booking.topic-6,
+.topic.topic-6 .active {
+  border-color: #2eb8b3;
+  background: #40cfca;
+  background-image: linear-gradient(to bottom, #50d3ce 0%, #40cfca 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #248f8b;
+}
+.booking.topic-7,
+.topic.topic-7 .active {
+  border-color: #7c2020;
+  background: #9d2828;
+  background-image: linear-gradient(to bottom, #ad2c2c 0%, #9d2828 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #541515;
+}
+.booking.topic-8,
+.topic.topic-8 .active {
+  border-color: #701ac0;
+  background: #8522e1;
+  background-image: linear-gradient(to bottom, #8f34e3 0%, #8522e1 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #561493;
+}
+.booking.topic-9,
+.topic.topic-9 .active {
+  border-color: #4d004d;
+  background: #760076;
+  background-image: linear-gradient(to bottom, #8a008a 0%, #760076 100%);
+  color: #ffffff !important;
+  text-shadow: 0px 0px 3px #1a001a;
 }
 a.list-group-item {
   cursor: pointer;
@@ -6271,9 +6348,29 @@ table.topics .filter {
 table.topics .action {
   width: 100px;
 }
+table.timetable > thead > tr:first-of-type > th {
+  border: 1px solid #dddddd;
+  border-bottom: 0;
+  padding: 10px;
+  vertical-align: middle;
+  text-align: center;
+}
 table.timetable {
   table-layout: fixed;
   border-collapse: collapse;
+  border: 1px solid #dddddd;
+}
+table.timetable thead > tr > th,
+table.timetable tbody > tr > th,
+table.timetable tfoot > tr > th,
+table.timetable thead > tr > td,
+table.timetable tbody > tr > td,
+table.timetable tfoot > tr > td {
+  padding: 0;
+}
+table.timetable thead > tr > td,
+table.timetable tbody > tr > th {
+  text-align: center;
 }
 table.timetable .times {
   width: 100px;
@@ -6283,69 +6380,51 @@ table.timetable table {
   margin: 0;
   padding: 0;
   border: 0;
-  border-layout: fixed;
+  table-layout: fixed;
+  border-collapse: collapse;
   font-size: 0.8em;
+}
+table.timetable table.grid {
+  border-left: 1px solid #dddddd;
 }
 table.timetable .hour {
   height: 60px;
-  overflow: hidden !important;
 }
-table.timetable .hours {
+table.timetable .half-hour-marker {
+  height: 30px;
+}
+table.timetable .half-hour-marker:nth-child(even) td {
+  height: 30px;
+  border-top: 1px solid #eaeaea !important;
+}
+table.timetable .timetable-column {
   position: relative;
   padding: 0;
   border-top-width: 0;
 }
-table.timetable div.booking {
-  color: #ffffff;
-  background: black;
+table.timetable .clashGroup {
+  position: relative;
+  height: 0;
+}
+table.timetable .clashGroup td {
+  padding: 0 10px 0 0;
+}
+table.timetable .clashGroup td:first-of-type {
+  padding: 0 10px;
+}
+table.timetable .clashGroup .booking {
   padding: 5px 0;
-  margin: 0 0;
   border-radius: 4px;
-  width: 100%;
-  position: absolute;
+  position: relative;
+  opacity: 0.75;
+  font-size: 0.8em;
 }
-table.timetable div.booking p {
+table.timetable .clashGroup .booking .glyphicon-lock {
+  float: right;
+  margin: 4px 10px;
+}
+table.timetable .clashGroup .booking p {
   margin: 5 10px;
-}
-table.timetable div.topic-0 {
-  background: rgba(255, 0, 0, 0.55);
-  border: 1px solid #ff0000;
-}
-table.timetable div.topic-1 {
-  background: rgba(0, 128, 0, 0.55);
-  border: 1px solid #008000;
-}
-table.timetable div.topic-2 {
-  background: rgba(0, 0, 255, 0.55);
-  border: 1px solid #0000ff;
-}
-table.timetable div.topic-3 {
-  background: rgba(255, 165, 0, 0.55);
-  border: 1px solid #ffa500;
-}
-table.timetable div.topic-4 {
-  background: rgba(128, 0, 128, 0.55);
-  border: 1px solid #800080;
-}
-table.timetable div.topic-5 {
-  background: rgba(0, 128, 128, 0.55);
-  border: 1px solid #008080;
-}
-table.timetable div.topic-6 {
-  background: rgba(72, 209, 204, 0.55);
-  border: 1px solid #48d1cc;
-}
-table.timetable div.topic-7 {
-  background: rgba(165, 42, 42, 0.55);
-  border: 1px solid #a52a2a;
-}
-table.timetable div.topic-8 {
-  background: rgba(138, 43, 226, 0.55);
-  border: 1px solid #8a2be2;
-}
-table.timetable div.topic-9 {
-  background: rgba(128, 0, 128, 0.55);
-  border: 1px solid #800080;
 }
 .ajax-loader {
   margin: 0 auto;
