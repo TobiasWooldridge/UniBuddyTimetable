@@ -138,7 +138,7 @@ function timetable(userConfig) {
     var app = angular.module('timetable', []);
 
     app.factory('topicFactory', function ($http) {
-        return {
+        var topicFactory = {
             getTopicsAsync : function (year, semester, callback) {
                 var url = config.api_path + 'topics.json' + "?"
 
@@ -186,8 +186,17 @@ function timetable(userConfig) {
 
                     callback(class_types, status, headers, config);
                 });
+            },
+            loadTimetableForTopicAsync : function (topic, callback) {
+                topicFactory.getTopicTimetableAsync(topic.id, function (class_types, status, headers, config) {
+                    topic.classes = class_types;
+
+                    callback(topic, status, headers, config)
+                });
             }
-        }
+        };
+
+        return topicFactory;
     });
 
     app.factory('timetableFactory', function ($http) {
@@ -267,35 +276,31 @@ function timetable(userConfig) {
             applyTopicSearchFilter(newValue);
         });
 
-        $scope.validateTopic = function () {
-            if (typeof $scope.activeTopic === "undefined")
+        $scope.validateTopic = function (topic) {
+            if (typeof topic === "undefined")
                 return false;
 
-            if (topicIdIsSelected($scope.activeTopic.id))
+            if (topicIdIsSelected(topic.id))
                 return false;
 
             return !$scope.formDisabled;
         };
 
-        $scope.addTopic = function () {
-            if (!$scope.validateTopic())
+        $scope.addTopic = function (topic) {
+            if (!$scope.validateTopic(topic))
                 return;
+
+            topic = angular.copy(topic);
 
             $scope.selectedTopics.push($scope.activeTopic);
 
-            topicId = $scope.activeTopic.id;
+            topicService.chosenTopics.push(topic);
 
-            topicFactory.getTopicAsync(topicId, function (fatTopic) {
-                topicFactory.getTopicTimetableAsync(topicId, function (class_types) {
-                    // Only add the topic if the topic is still selected
-                    if (!topicIdIsSelected(topicId))
-                        return false;
+            topicFactory.loadTimetableForTopicAsync(topic, function() {
+                if (!topicIdIsSelected(topic.id))
+                    return false;
 
-                    fatTopic.classes = class_types;
-                    topicService.chosenTopics.push(fatTopic);
-
-                    topicService.broadcast()
-                });
+                topicService.broadcast();
             });
 
             $scope.topicSearch = "";
@@ -305,11 +310,19 @@ function timetable(userConfig) {
             var index = $scope.selectedTopics.indexOf(topic)
             $scope.selectedTopics.splice(index, 1);
 
-            var index = topicService.chosenTopics.indexOf(topic)
-            topicService.chosenTopics.splice(index, 1);
 
+            index = -1;
+            angular.forEach(topicService.chosenTopics, function(chosenTopic, i) {
+               if (chosenTopic.id === topic.id) {
+                   index = i;
+                   return false;
+               }
+            });
 
-            topicService.broadcast()
+            if (index !== -1) {
+                topicService.chosenTopics.splice(index, 1);
+                topicService.broadcast()
+            }
         }
 
         $scope.loadTopicIndex();

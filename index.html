@@ -79,7 +79,7 @@
                         </select>
                     </td>
                     <td class="action">
-                        <button type="submit" class="btn btn-primary" ng-click="addTopic()" ng-disabled="!validateTopic()">
+                        <button type="submit" class="btn btn-primary" ng-click="addTopic(activeTopic)" ng-disabled="!validateTopic(activeTopic)">
                             Add
                         </button>
                     </td>
@@ -100,7 +100,11 @@
             <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 10}}">
                 <h3>{{ topic.code }} {{ topic.name }}</h3>
 
-                <div ng-repeat="class in topic.classes">
+                <div ng-show="!topic.classes">
+                    <p><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader"/></p>
+                </div>
+
+                <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration || 0) / 60}}
                         minutes)</h4>
 
