@@ -9,76 +9,9 @@ function timetable(userConfig) {
         }
     }
 
-
     // Hard-coding this for now #YOLO
     var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     var hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
-
-
-    var app = angular.module('timetable', ['ui.showhide']);
-
-    app.factory('topicFactory', function ($http) {
-        return {
-            getTopicsAsync: function (year, semester, callback) {
-                var url = config.api_path + 'topics.json' + "?"
-
-                if (year !== "Any")
-                    url += "&year=" + year;
-                if (semester !== "Any")
-                    url += "&semester=" + semester;
-
-                $http.get(url).success(function (data, status, headers, config) {
-                    function compareTopics(a, b) {
-                        var subject_difference = a.subject_area.localeCompare(b.subject_area);
-
-                        if (subject_difference !== 0)
-                            return subject_difference;
-
-                        var topic_difference = a.topic_number.localeCompare(b.topic_number);
-
-                        if (topic_difference !== 0)
-                            return topic_difference;
-
-                        return a.name.localeCompare(b.name);
-                    }
-
-                    data.sort(compareTopics);
-
-
-                    callback(data, status, headers, config);
-                });
-            },
-            getTopicAsync: function (topic_id, callback) {
-                var url = config.api_path + 'topics/' + topic_id + '.json';
-
-
-                $http.get(url).success(function (data, status, headers, config) {
-                    callback(data, status, headers, config);
-                });
-            },
-            getTopicTimetableAsync: function (topic_id, callback) {
-                var url = config.api_path + 'topics/' + topic_id + '/classes.json';
-
-                $http.get(url).success(function (data, status, headers, config) {
-                    callback(data, status, headers, config);
-                });
-            }
-        }
-    });
-
-    app.factory('timetableFactory', function ($http) {
-        return {
-            createEmptyTimetable: function () {
-                timetable = {};
-
-                angular.forEach(days, function (day) {
-                    timetable[day] = [];
-                });
-
-                return timetable;
-            }
-        }
-    });
 
     var sessionsClash = function (a, b) {
         var outcome = false;
@@ -147,15 +80,13 @@ function timetable(userConfig) {
 
             // Sort by day
             var daysDifference = days.indexOf(a.day_of_week) - days.indexOf(b.day_of_week);
-            if (daysDifference !== 0) {
+            if (daysDifference !== 0)
                 return daysDifference;
-            }
 
             // Sort by starting time of day
             var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
-            if (secondsDifference !== 0) {
+            if (secondsDifference !== 0)
                 return secondsDifference;
-            }
 
             return a.seconds_ends_at - b.seconds_ends_at;
         }
@@ -204,13 +135,103 @@ function timetable(userConfig) {
     };
 
 
-    app.controller('TimetableController', function ($scope, topicFactory, timetableFactory, filterFilter) {
-        $scope.chosenTopics = []
+    var app = angular.module('timetable', []);
 
-        $scope.chosenTopicIds = function () {
+    app.factory('topicFactory', function ($http) {
+        return {
+            getTopicsAsync : function (year, semester, callback) {
+                var url = config.api_path + 'topics.json' + "?"
+
+                if (year !== "Any")
+                    url += "&year=" + year;
+                if (semester !== "Any")
+                    url += "&semester=" + semester;
+
+                $http.get(url).success(function (data, status, headers, config) {
+                    function compareTopics(a, b) {
+                        var subject_difference = a.subject_area.localeCompare(b.subject_area);
+
+                        if (subject_difference !== 0) {
+                            return subject_difference;
+                        }
+
+                        var topic_difference = a.topic_number.localeCompare(b.topic_number);
+
+                        if (topic_difference !== 0) {
+                            return topic_difference;
+                        }
+
+                        return a.name.localeCompare(b.name);
+                    }
+
+                    data.sort(compareTopics);
+
+                    callback(data, status, headers, config);
+                });
+            },
+            getTopicAsync : function (topic_id, callback) {
+                var url = config.api_path + 'topics/' + topic_id + '.json';
+
+                $http.get(url).success(function (data, status, headers, config) {
+                    callback(data, status, headers, config);
+                });
+            },
+            getTopicTimetableAsync : function (topic_id, callback) {
+                var url = config.api_path + 'topics/' + topic_id + '/classes.json';
+
+                $http.get(url).success(function (class_types, status, headers, config) {
+                    angular.forEach(class_types, function (class_type) {
+                        class_type.active_class_group = class_type.class_groups[0];
+                    });
+
+                    callback(class_types, status, headers, config);
+                });
+            }
+        }
+    });
+
+    app.factory('timetableFactory', function ($http) {
+        return {
+            createEmptyTimetable: function () {
+                timetable = {};
+
+                angular.forEach(days, function (day) {
+                    timetable[day] = [];
+                });
+
+                return timetable;
+            }
+        }
+    });
+
+    app.factory('topicService', function ($rootScope) {
+        var topicService = {};
+
+        topicService.chosenTopics = [];
+
+        topicService.broadcast = function() {
+            $rootScope.$broadcast('chosenTopicsUpdate');
+        }
+
+
+        return topicService;
+    });
+
+    app.controller('TopicController', function($scope, topicService, topicFactory, filterFilter) {
+        $scope.years = [2013];
+        $scope.activeYear = $scope.years[0];
+
+        $scope.semesters = ["S1", "NS1", "S2", "NS2"];
+        $scope.activeSemester = $scope.semesters[2];
+
+        $scope.formDisabled = false;
+
+        $scope.selectedTopics = [];
+
+        var selectedTopicIds = function () {
             var ids = [];
 
-            angular.forEach($scope.chosenTopics, function (topic) {
+            angular.forEach($scope.selectedTopics, function (topic) {
                 ids.push(topic.id);
             });
 
@@ -218,24 +239,91 @@ function timetable(userConfig) {
         }
 
         var applyTopicSearchFilter = function (newValue) {
-            filteredArray = filterFilter($scope.topics, newValue);
+            var filteredArray = filterFilter($scope.topicIndex, newValue);
 
-            if (typeof filteredArray !== "undefined" && filteredArray.indexOf($scope.activeTopic) !== -1) {
+            if (filteredArray && filteredArray.indexOf($scope.activeTopic) !== -1) {
                 // Keep the currently selected topic selected if it's relevant
             }
-            else if (typeof filteredArray !== "undefined" && filteredArray.length) {
+            else if (filteredArray && filteredArray.length) {
                 // Select the first topic
                 $scope.activeTopic = filteredArray[0];
             }
         }
 
-        var topicAlreadySelected = function (topicId) {
-            return $scope.chosenTopicIds().indexOf(parseInt(topicId)) !== -1;
+        var topicIdIsSelected = function (topicId) {
+            return selectedTopicIds().indexOf(parseInt(topicId)) !== -1;
         };
+
+        $scope.loadTopicIndex = function () {
+            $scope.topicIndex = [];
+
+            topicFactory.getTopicsAsync($scope.activeYear, $scope.activeSemester, function (data) {
+                $scope.topicIndex = data;
+                applyTopicSearchFilter($scope.topicSearch);
+            });
+        }
+
+        $scope.$watch('topicSearch', function (newValue) {
+            applyTopicSearchFilter(newValue);
+        });
+
+        $scope.validateTopic = function () {
+            if (typeof $scope.activeTopic === "undefined")
+                return false;
+
+            if (topicIdIsSelected($scope.activeTopic.id))
+                return false;
+
+            return !$scope.formDisabled;
+        };
+
+        $scope.addTopic = function () {
+            if (!$scope.validateTopic())
+                return;
+
+            $scope.selectedTopics.push($scope.activeTopic);
+
+            topicId = $scope.activeTopic.id;
+
+            topicFactory.getTopicAsync(topicId, function (fatTopic) {
+                topicFactory.getTopicTimetableAsync(topicId, function (class_types) {
+                    // Only add the topic if the topic is still selected
+                    if (!topicIdIsSelected(topicId))
+                        return false;
+
+                    fatTopic.classes = class_types;
+                    topicService.chosenTopics.push(fatTopic);
+
+                    topicService.broadcast()
+                });
+            });
+
+            $scope.topicSearch = "";
+        }
+
+        $scope.removeTopic = function (topic) {
+            var index = $scope.selectedTopics.indexOf(topic)
+            $scope.selectedTopics.splice(index, 1);
+
+            var index = topicService.chosenTopics.indexOf(topic)
+            topicService.chosenTopics.splice(index, 1);
+
+
+            topicService.broadcast()
+        }
+
+        $scope.loadTopicIndex();
+    });
+
+    app.controller('TimetableController', function ($scope, topicService, topicFactory, timetableFactory) {
+        $scope.chosenTopics = []
+        $scope.days = days;
+        $scope.hours = hours;
+        $scope.timetable = timetableFactory.createEmptyTimetable();
+
 
         var updatePossibleTimetables = function () {
             var possibleTimetables = 1;
-
 
             angular.forEach($scope.chosenTopics, function (topic) {
                 angular.forEach(topic.classes, function (class_type) {
@@ -248,60 +336,6 @@ function timetable(userConfig) {
 
             $scope.possibleTimetables = possibleTimetables;
         };
-
-        $scope.validateTopic = function () {
-            if (typeof $scope.activeTopic === "undefined") {
-                return false;
-            }
-
-            if (topicAlreadySelected($scope.activeTopic.id)) {
-                return false;
-            }
-
-            return true;
-        };
-
-        $scope.updateTopics = function () {
-            $scope.topics = [];
-
-            topicFactory.getTopicsAsync($scope.activeYear, $scope.activeSemester, function (data) {
-                $scope.topics = data;
-                applyTopicSearchFilter($scope.topicSearch);
-            });
-        }
-
-        $scope.addTopic = function () {
-            if (!$scope.validateTopic()) {
-                return;
-            }
-
-            topicId = $scope.activeTopic.id;
-
-            topicFactory.getTopicAsync(topicId, function (topic) {
-                $scope.chosenTopics.push(topic);
-
-                topicFactory.getTopicTimetableAsync(topicId, function (class_types) {
-                    angular.forEach(class_types, function (class_type) {
-                        class_type.active_class_group = class_type.class_groups[0];
-                    });
-
-                    topic.classes = class_types;
-
-                    $scope.updateTimetable();
-                });
-            });
-        }
-
-        $scope.removeTopic = function (topic) {
-            var index = $scope.chosenTopics.indexOf(topic)
-            $scope.chosenTopics.splice(index, 1);
-
-            $scope.updateTimetable();
-        }
-
-        $scope.$watch('topicSearch', function (newValue) {
-            applyTopicSearchFilter(newValue);
-        });
 
 
         $scope.updateTimetable = function () {
@@ -331,17 +365,10 @@ function timetable(userConfig) {
             updatePossibleTimetables();
         }
 
-        $scope.days = days;
-        $scope.hours = hours;
-        $scope.timetable = timetableFactory.createEmptyTimetable();
+        $scope.chosenTopics = topicService.chosenTopics;
 
-        $scope.years = [2013];
-        $scope.activeYear = $scope.years[0];
-
-        $scope.semesters = ["S1", "NS1", "S2", "NS2"];
-        $scope.activeSemester = $scope.semesters[2];
-
-
-        $scope.updateTopics();
+        $scope.$on('chosenTopicsUpdate', function() {
+            $scope.updateTimetable();
+        });
     })
 }

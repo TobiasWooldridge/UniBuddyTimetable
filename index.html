@@ -1,17 +1,14 @@
-<html ng-app="timetable">
+<html>
 <head>
     <title>Flinders Timetable Planner</title>
     <script src="js/vendor/bower_components/angular/angular.js"></script>
-    <script src="js/vendor/bower_components/angular-ui-utils/modules/showhide/showhide.js"></script>
-
     <script src="js/vendor/bower_components/moment/moment.js"></script>
-
     <script src="js/timetable.js"></script>
 
     <link href="css/styles.css" rel="stylesheet"/>
 </head>
-<body ng-controller="TimetableController">
-<div class="container">
+<body ng-app="timetable">
+<div class="container" ng-controller="TopicController">
     <div class="page-header">
         <h1>Flinders Timetable Planner</h1>
     </div>
@@ -40,13 +37,13 @@
             <div class="row">
                 <div class="col-md-2">
                     <label>Year</label>
-                    <select class="form-control" ng-model="activeYear" ng-change="updateTopics()"
+                    <select class="form-control" ng-model="activeYear" ng-change="loadTopicIndex()"
                             ng-options="y for y in years">
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label>Semester</label>
-                    <select class="form-control" ng-model="activeSemester" ng-change="updateTopics()"
+                    <select class="form-control" ng-model="activeSemester" ng-change="loadTopicIndex()"
                             ng-options="s as s for s in semesters">
                     </select>
                 </div>
@@ -59,7 +56,7 @@
         </div>
         <table class="table topics">
             <tbody>
-                <tr ng-repeat="topic in chosenTopics">
+                <tr ng-repeat="topic in selectedTopics">
                     <td class="filter"></td>
                     <td width="*">
                         {{ topic.code }} {{ topic.name }}
@@ -75,10 +72,10 @@
                         <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
                     </td>
                     <td width="*">
-                        <p ng-show="!topics.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader"/>
+                        <p ng-show="!topicIndex.length"><img src="images/ajax-loader.gif" alt="Loading" class="ajax-loader"/>
                         </p>
-                        <select ng-show="topics.length" class="form-control" ng-model="activeTopic"
-                                ng-options="t as t.code + ' ' + t.name + ' ' for t in topics | filter:topicSearch">
+                        <select ng-show="topicIndex.length" class="form-control" ng-model="activeTopic"
+                                ng-options="t as t.code + ' ' + t.name + ' ' for t in topicIndex | filter:topicSearch">
                         </select>
                     </td>
                     <td class="action">
@@ -90,6 +87,9 @@
             </tfoot>
         </table>
     </form>
+
+</div>
+<div class="container" ng-controller="TimetableController">
 
     <div ng-show="chosenTopics.length" class="chosen-topics">
         <div class="page-header">
