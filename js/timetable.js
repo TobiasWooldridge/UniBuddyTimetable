@@ -237,6 +237,8 @@ function timetable(userConfig) {
 
         $scope.selectedTopics = [];
 
+        $scope.possibleTimetables = 1;
+
         var selectedTopicIds = function () {
             var ids = [];
 
