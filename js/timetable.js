@@ -137,7 +137,8 @@ function timetable(userConfig) {
         var class_groups = [];
 
         angular.forEach(class_types, function (class_type) {
-            class_groups.concat(class_type.class_groups);
+            if (class_type.class_groups)
+                class_groups = class_groups.concat(class_type.class_groups);
         });
 
         return class_groups;
@@ -401,41 +402,7 @@ function timetable(userConfig) {
 
         $scope.loadTopicIndex();
     });
-    var ClassGroupsClash = function (a, b) {
-        //start with the first class session for each
-        aindex = 0;
-        bindex = 0;
-        while (aindex < a.class_sessions.length && bindex < b.class_sessions.length) {
-            //check if we current index are at the same day
-            aday = dayNameToDayOfWeek(a.class_sessions[aindex].day_of_week);
-            bday = dayNameToDayOfWeek(b.class_sessions[aindex].day_of_week)
-            if (aday == bday) {
-                //same day, check for clashes
-                classclash = sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex]);
-                if (classclash < 0) {
-                    //a session is prior to b session -> advance a
-                    aindex++;
-                } else if (classclash > 0) {
-                    //b session is prior to a session -> advance b
-                    bindex++;
-                }
-                else {
-                    //a session and b session clash
-                    return true;
-                }
-            }
-            else if (aday < bday) {
-                //current a is before current b advance a
-                aindex++;
-            }
-            else {
-                //current b is before current a advance b
-                bindex++;
-            }
-        }
-        //iterated through all of 1 group without clashing with the other group
-        return false;
-    }
+
 
     app.controller('TimetableController', function ($scope, topicService, topicFactory, timetableFactory) {
         $scope.chosenTopics = []
@@ -466,11 +433,25 @@ function timetable(userConfig) {
                 }
             }
 
+
+            var all_class_groups = listClassGroupsForTopics($scope.chosenTopics);
+
             var group_clashes = {};
+            angular.forEach(all_class_groups, function (a) {
+                group_clashes[a.id] = {};
+
+                angular.forEach(all_class_groups, function (b) {
+                    if (a !== b) {
+                        group_clashes[a.id][b.id] = classGroupsClash(a, b);
+                    }
+                });
+            });
+
 
 
             var examineTimetable = function (class_group_selections) {
-                console.log(class_group_selections);
+                examinedTimetables++;
+//                console.log(class_group_selections);
             }
 
             var searchTimetables = function (chosen_class_groups, remaining_class_choices) {
@@ -478,13 +459,26 @@ function timetable(userConfig) {
 
 
                 angular.forEach(currentClassType.class_groups, function (group) {
+                    // Test that the new addition clashes with nobody
+                    var foundClashes = false;
+
+                    angular.forEach(chosen_class_groups, function (chosen_class_group) {
+                        if (group_clashes[group.id][chosen_class_group.class_group.id]) {
+                            foundClashes = true;
+                            return false;
+                        }
+                    })
+
+                    if (foundClashes) {
+                        return;
+                    }
+
                     // Work with this group for now
                     chosen_class_groups[group.id] = newClassGroupSelection(currentClassType, group);
 
                     if (remaining_class_choices.length === 0) {
                         // No more choices we can make, check if this timetable is good and move on
                         examineTimetable(chosen_class_groups);
-                        examinedTimetables++;
                     } else {
                         // Keep making choices until we find a working timetable
                         searchTimetables(chosen_class_groups, remaining_class_choices);
