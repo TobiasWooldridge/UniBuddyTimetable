@@ -356,10 +356,10 @@ function timetable(userConfig) {
             var recursiveCreate = function (set_bookings, variables) {
                 var currentClassType = variables.pop();
                 //var currentClassType = currentClassList.lclass_groups;
-                angular.forEach(currentClassType, function (group) {
+                angular.forEach(currentClassType.class_groups, function (group) {
                     //add all bookings for this group
                     angular.forEach(group.class_sessions, function (class_session) {
-                        //set_bookings.push(newBooking({id: 0, code: "undf0000"}, currentClassType, group, class_session))
+                        set_bookings.push(newBooking({id: 0, code: "undf0000"}, currentClassType, group, class_session))
                     });
                     if (variables.length > 0) {
                         //more variable classes
@@ -369,8 +369,8 @@ function timetable(userConfig) {
                         $scope.btimetables.push(set_bookings);
                     }
                     //remove all bookings for this group
-                    angular.forEach(group.class_sessions.class_sessions, function (class_session) {
-                        //set_bookings.pop();
+                    angular.forEach(group.class_sessions, function (class_session) {
+                        set_bookings.pop();
                     });
                 });
                 variables.push(currentClassType);
@@ -391,7 +391,7 @@ function timetable(userConfig) {
                         //    topic: topic
                         //};
 
-                        variable.push(class_type.class_groups);
+                        variable.push(angular.copy(class_type));
                     }
                     else if (class_type.class_groups.length == 1) {
                         //convert to booking
