@@ -13,10 +13,30 @@ function timetable(userConfig) {
     var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     var hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
 
+    var dayNameToDayOfWeek = function (dayName) {
+        if (typeof dayNameToDayOfWeek.hash === "undefined") {
+            dayNameToDayOfWeek.hash = {}
+
+            angular.forEach(days, function (name, index) {
+                dayNameToDayOfWeek.hash[name] = index;
+            });
+        }
+
+        return dayNameToDayOfWeek.hash[dayName];
+    }
+    var dayOfWeekToDayName = function (dayOfWeek) {
+        return days[dayOfWeek]
+    }
+
+
     var sessionsClash = function (a, b) {
         var outcome = false;
 
-        if (a.seconds_starts_at == b.seconds_starts_at) {
+        if (a.day_of_week !== b.day_of_week) {
+            outcome = false;
+        }
+
+        else if (a.seconds_starts_at == b.seconds_starts_at) {
             outcome = true;
         }
 
@@ -75,27 +95,50 @@ function timetable(userConfig) {
         return bookings;
     }
 
+    var listClassTypesForTopics = function(topics) {
+        var class_types = [];
+
+        angular.forEach(topics, function (topic) {
+            if (topic.classes)
+                class_types = class_types.concat(topic.classes);
+        });
+
+        return class_types;
+    }
+
+    var listClassGroupsForTopics = function(topics) {
+        var class_types = listClassTypesForTopics(topics);
+
+        var class_groups = [];
+
+        angular.forEach(class_types, function (class_type) {
+            class_groups.concat(class_type.class_groups);
+        });
+
+        return class_groups;
+    }
+
+    var compareSessions = function(a, b) {
+        // Sort by day
+        var daysDifference = dayNameToDayOfWeek(a.day_of_week) - dayNameToDayOfWeek(b.day_of_week);
+        if (daysDifference !== 0)
+            return daysDifference;
+
+        // Sort by starting time of day
+        var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
+        if (secondsDifference !== 0)
+            return secondsDifference;
+
+        return a.seconds_ends_at - b.seconds_ends_at;
+    }
+
     var sortSessions = function(sessions) {
-        var sessionSorter = function(a, b) {
-
-            // Sort by day
-            var daysDifference = days.indexOf(a.day_of_week) - days.indexOf(b.day_of_week);
-            if (daysDifference !== 0)
-                return daysDifference;
-
-            // Sort by starting time of day
-            var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
-            if (secondsDifference !== 0)
-                return secondsDifference;
-
-            return a.seconds_ends_at - b.seconds_ends_at;
-        }
-
-        return sessions.sort(sessionSorter);
+        return sessions.sort(compareSessions);
     }
 
     var newClashGroup = function (firstBooking) {
         var clashGroup = {
+            day_of_week: firstBooking.day_of_week,
             seconds_starts_at: firstBooking.seconds_starts_at,
             seconds_ends_at: firstBooking.seconds_ends_at,
 
@@ -182,6 +225,10 @@ function timetable(userConfig) {
                 $http.get(url).success(function (class_types, status, headers, config) {
                     angular.forEach(class_types, function (class_type) {
                         class_type.active_class_group = class_type.class_groups[0];
+
+                        angular.forEach(class_type.class_groups, function(class_group) {
+                            class_group.class_sessions = sortSessions(class_group.class_sessions);
+                        });
                     });
 
                     callback(class_types, status, headers, config);
@@ -329,13 +376,48 @@ function timetable(userConfig) {
 
         $scope.loadTopicIndex();
     });
+    var ClassGroupsClash = function (a, b) {
+        //start with the first class session for each
+        aindex = 0;
+        bindex = 0;
+        while (aindex < a.class_sessions.length && bindex < b.class_sessions.length) {
+            //check if we current index are at the same day
+            aday = dayNameToDayOfWeek(a.class_sessions[aindex].day_of_week);
+            bday = dayNameToDayOfWeek(b.class_sessions[aindex].day_of_week)
+            if (aday == bday)
+            {
+                //same day, check for clashes
+                classclash = sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex]);
+                if (classclash < 0) {
+                    //a session is prior to b session -> advance a
+                    aindex++;
+                } else if (classclash > 0) {
+                    //b session is prior to a session -> advance b
+                    bindex++;
+                }
+                else {
+                    //a session and b session clash
+                    return true;
+                }
+            }
+            else if (aday < bday) {
+                //current a is before current b advance a
+                aindex++;
+            }
+            else {
+                //current b is before current a advance b
+                bindex++;
+            }
+        }
+        //iterated through all of 1 group without clashing with the other group
+        return false;
+    }
 
     app.controller('TimetableController', function ($scope, topicService, topicFactory, timetableFactory) {
         $scope.chosenTopics = []
         $scope.days = days;
         $scope.hours = hours;
         $scope.timetable = timetableFactory.createEmptyTimetable();
-        allTimetables = []
 
         var updatePossibleTimetables = function () {
             var possibleTimetables = 1;
@@ -360,53 +442,57 @@ function timetable(userConfig) {
                 }
             }
 
-            var recursiveCreate = function (chosen_class_groups, remaining_class_choices) {
+            var group_clashes = {};
+
+
+            var examineTimetable = function (class_group_selections) {
+                console.log(class_group_selections);
+            }
+
+            var searchTimetables = function (chosen_class_groups, remaining_class_choices) {
                 var currentClassType = remaining_class_choices.pop();
+
 
                 angular.forEach(currentClassType.class_groups, function (group) {
                     // Work with this group for now
-                    chosen_class_groups.push(newClassGroupSelection(currentClassType, group))
+                    chosen_class_groups[group.id] = newClassGroupSelection(currentClassType, group);
 
                     if (remaining_class_choices.length === 0) {
                         // No more choices we can make, check if this timetable is good and move on
+                        examineTimetable(chosen_class_groups);
                         examinedTimetables++;
-
-                        console.log(chosen_class_groups.length);
                     } else {
                         // Keep making choices until we find a working timetable
-                        recursiveCreate(chosen_class_groups, remaining_class_choices);
+                        searchTimetables(chosen_class_groups, remaining_class_choices);
                     }
 
                     // Stop working with the current group
-                    chosen_class_groups.pop();
+                    delete(chosen_class_groups[group.id]);
                 });
 
                 remaining_class_choices.push(currentClassType);
             }
 
-            $scope.bruteForceStart = 0;
-
-
-
-            var chosen_class_groups = [];
+            var chosen_class_groups = {};
             var remaining_class_choices = [];
 
-            angular.forEach($scope.chosenTopics, function (topic) {
-                angular.forEach(topic.classes, function (class_type) {
-                    if (class_type.class_groups.length > 1) {
-                        remaining_class_choices.push(angular.copy(class_type));
-                    }
-                    else if (class_type.class_groups.length == 1) {
-                        chosen_class_groups.push(newClassGroupSelection(class_type, class_type.class_groups[0]))
-                    }
-                });
+            var class_types = listClassTypesForTopics($scope.chosenTopics);
+
+            angular.forEach(class_types, function (class_type) {
+                if (class_type.class_groups.length > 1) {
+                    remaining_class_choices.push(class_type);
+                }
+                else if (class_type.class_groups.length === 1) {
+                    var class_group = class_type.class_groups[0];
+                    chosen_class_groups[class_group.id] = newClassGroupSelection(class_type, class_group);
+                }
             });
 
             var examinedTimetables = 0;
 
             var startMillis = new Date().getTime();
 
-            recursiveCreate(chosen_class_groups, remaining_class_choices);
+            searchTimetables(chosen_class_groups, remaining_class_choices);
 
             $scope.examineDuration = (new Date().getTime() - startMillis)/1000;
 
