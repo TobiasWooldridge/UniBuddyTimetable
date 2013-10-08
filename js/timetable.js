@@ -63,22 +63,47 @@ function timetable(userConfig) {
         return outcome;
     }
 
-    var newBooking = function(topic, class_type, class_group, class_session) {
+
+    var classGroupsClash = function (a, b) {
+        //start with the first class session for each
+        aindex = 0;
+        bindex = 0;
+        while (aindex < a.class_sessions.length && bindex < b.class_sessions.length) {
+            //check if both session clash
+            if (sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex])) {
+                //there is a clash
+                return true;
+            } else {
+                //there is no clash find out which starts first
+                if (compareSessions(a.class_sessions[aindex], b.class_sessions[bindex]) < 0) {
+                    //a is before b, advance a
+                    aindex++;
+                } else {
+                    //b is before a, advance b
+                    bindex++;
+                }
+            }
+        }
+        //iterated through all of 1 group without clashing with the other group
+        return false;
+    }
+
+    var newBooking = function (topic, class_type, class_group, class_session) {
         var booking = {
-            topic_id             : topic.id,
-            topic_code           : topic.code,
-            class_name           : class_type.name,
-            day_of_week          : class_session.day_of_week,
-            seconds_starts_at    : class_session.seconds_starts_at,
-            seconds_ends_at      : class_session.seconds_ends_at,
-            seconds_duration     : class_session.seconds_duration,
-            locked               : class_type.class_groups.length === 1
+            topic_id: topic.id,
+            topic_code: topic.code,
+            class_name: class_type.name,
+            day_of_week: class_session.day_of_week,
+            seconds_starts_at: class_session.seconds_starts_at,
+            seconds_ends_at: class_session.seconds_ends_at,
+            seconds_duration: class_session.seconds_duration,
+            locked: class_type.class_groups.length === 1
         };
 
         return booking;
     }
 
-    var listBookingsForTopics = function(topics) {
+    var listBookingsForTopics = function (topics) {
         var bookings = [];
 
         angular.forEach(topics, function (topic) {
@@ -95,7 +120,7 @@ function timetable(userConfig) {
         return bookings;
     }
 
-    var listClassTypesForTopics = function(topics) {
+    var listClassTypesForTopics = function (topics) {
         var class_types = [];
 
         angular.forEach(topics, function (topic) {
@@ -106,7 +131,7 @@ function timetable(userConfig) {
         return class_types;
     }
 
-    var listClassGroupsForTopics = function(topics) {
+    var listClassGroupsForTopics = function (topics) {
         var class_types = listClassTypesForTopics(topics);
 
         var class_groups = [];
@@ -118,7 +143,7 @@ function timetable(userConfig) {
         return class_groups;
     }
 
-    var compareSessions = function(a, b) {
+    var compareSessions = function (a, b) {
         // Sort by day
         var daysDifference = dayNameToDayOfWeek(a.day_of_week) - dayNameToDayOfWeek(b.day_of_week);
         if (daysDifference !== 0)
@@ -132,7 +157,7 @@ function timetable(userConfig) {
         return a.seconds_ends_at - b.seconds_ends_at;
     }
 
-    var sortSessions = function(sessions) {
+    var sortSessions = function (sessions) {
         return sessions.sort(compareSessions);
     }
 
@@ -152,7 +177,7 @@ function timetable(userConfig) {
                 var clash_column = null;
                 if (clashGroup.clash_columns.length > 0) {
                     var latest_contestant_ends = 0;
-                    angular.forEach(clashGroup.clash_columns, function(contestant_column) {
+                    angular.forEach(clashGroup.clash_columns, function (contestant_column) {
                         var contestant_column_ends = contestant_column[contestant_column.length - 1].seconds_ends_at;
                         if (contestant_column_ends <= booking.seconds_starts_at && contestant_column_ends > latest_contestant_ends) {
                             clash_column = contestant_column;
@@ -182,7 +207,7 @@ function timetable(userConfig) {
 
     app.factory('topicFactory', function ($http) {
         var topicFactory = {
-            getTopicsAsync : function (year, semester, callback) {
+            getTopicsAsync: function (year, semester, callback) {
                 var url = config.api_path + 'topics.json' + "?"
 
                 if (year !== "Any")
@@ -212,21 +237,21 @@ function timetable(userConfig) {
                     callback(data, status, headers, config);
                 });
             },
-            getTopicAsync : function (topic_id, callback) {
+            getTopicAsync: function (topic_id, callback) {
                 var url = config.api_path + 'topics/' + topic_id + '.json';
 
                 $http.get(url).success(function (data, status, headers, config) {
                     callback(data, status, headers, config);
                 });
             },
-            getTopicTimetableAsync : function (topic_id, callback) {
+            getTopicTimetableAsync: function (topic_id, callback) {
                 var url = config.api_path + 'topics/' + topic_id + '/classes.json';
 
                 $http.get(url).success(function (class_types, status, headers, config) {
                     angular.forEach(class_types, function (class_type) {
                         class_type.active_class_group = class_type.class_groups[0];
 
-                        angular.forEach(class_type.class_groups, function(class_group) {
+                        angular.forEach(class_type.class_groups, function (class_group) {
                             class_group.class_sessions = sortSessions(class_group.class_sessions);
                         });
                     });
@@ -234,7 +259,7 @@ function timetable(userConfig) {
                     callback(class_types, status, headers, config);
                 });
             },
-            loadTimetableForTopicAsync : function (topic, callback) {
+            loadTimetableForTopicAsync: function (topic, callback) {
                 topicFactory.getTopicTimetableAsync(topic.id, function (class_types, status, headers, config) {
                     topic.classes = class_types;
 
@@ -265,7 +290,7 @@ function timetable(userConfig) {
 
         topicService.chosenTopics = [];
 
-        topicService.broadcast = function() {
+        topicService.broadcast = function () {
             $rootScope.$broadcast('chosenTopicsUpdate');
         }
 
@@ -273,7 +298,7 @@ function timetable(userConfig) {
         return topicService;
     });
 
-    app.controller('TopicController', function($scope, topicService, topicFactory, filterFilter) {
+    app.controller('TopicController', function ($scope, topicService, topicFactory, filterFilter) {
         $scope.years = [2013];
         $scope.activeYear = $scope.years[0];
 
@@ -345,7 +370,7 @@ function timetable(userConfig) {
 
             topicService.chosenTopics.push(topic);
 
-            topicFactory.loadTimetableForTopicAsync(topic, function() {
+            topicFactory.loadTimetableForTopicAsync(topic, function () {
                 if (!topicIdIsSelected(topic.id))
                     return false;
 
@@ -361,7 +386,7 @@ function timetable(userConfig) {
 
 
             index = -1;
-            angular.forEach(topicService.chosenTopics, function(chosenTopic, i) {
+            angular.forEach(topicService.chosenTopics, function (chosenTopic, i) {
                 if (chosenTopic.id === topic.id) {
                     index = i;
                     return false;
@@ -384,8 +409,7 @@ function timetable(userConfig) {
             //check if we current index are at the same day
             aday = dayNameToDayOfWeek(a.class_sessions[aindex].day_of_week);
             bday = dayNameToDayOfWeek(b.class_sessions[aindex].day_of_week)
-            if (aday == bday)
-            {
+            if (aday == bday) {
                 //same day, check for clashes
                 classclash = sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex]);
                 if (classclash < 0) {
@@ -434,36 +458,12 @@ function timetable(userConfig) {
             $scope.possibleTimetables = possibleTimetables;
         };
 
-        $scope.bruteForcePossibleTimetables = function() {
+        $scope.bruteForcePossibleTimetables = function () {
             var newClassGroupSelection = function (class_type, class_group) {
                 return {
-                    class_type : class_type,
-                    class_group : class_group
+                    class_type: class_type,
+                    class_group: class_group
                 }
-            }
-
-            var ClassGroupsClash = function (a, b) {
-                //start with the first class session for each
-                aindex = 0;
-                bindex = 0;
-                while (aindex < a.class_sessions.length && bindex < b.class_sessions.length) {
-                    //check if both session clash
-                    if (sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex])) {
-                        //there is a clash
-                        return true;
-                    } else {
-                        //there is no clash find out which starts first
-                        if (compareSessions(a.class_sessions[aindex], b.class_sessions[bindex]) < 0) {
-                            //a is before b, advance a
-                            aindex++;
-                        } else {
-                            //b is before a, advance b
-                            bindex++;
-                        }
-                    }
-                }
-                //iterated through all of 1 group without clashing with the other group
-                return false;
             }
 
             var group_clashes = {};
@@ -518,7 +518,7 @@ function timetable(userConfig) {
 
             searchTimetables(chosen_class_groups, remaining_class_choices);
 
-            $scope.examineDuration = (new Date().getTime() - startMillis)/1000;
+            $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
 
             $scope.examinedTimetables = examinedTimetables;
         }
@@ -552,7 +552,7 @@ function timetable(userConfig) {
 
         $scope.chosenTopics = topicService.chosenTopics;
 
-        $scope.$on('chosenTopicsUpdate', function() {
+        $scope.$on('chosenTopicsUpdate', function () {
             $scope.updateTimetable();
             $scope.bruteForcePossibleTimetables();
         });
