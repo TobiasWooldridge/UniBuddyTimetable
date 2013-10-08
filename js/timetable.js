@@ -13,10 +13,30 @@ function timetable(userConfig) {
     var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     var hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
 
+    var dayNameToDayOfWeek = function (dayName) {
+        if (typeof dayNameToDayOfWeek.hash === "undefined") {
+            dayNameToDayOfWeek.hash = {}
+
+            angular.forEach(days, function (name, index) {
+                dayNameToDayOfWeek.hash[name] = index;
+            });
+        }
+
+        return dayNameToDayOfWeek.hash[dayName];
+    }
+    var dayOfWeekToDayName = function (dayOfWeek) {
+        return days[dayOfWeek]
+    }
+
+
     var sessionsClash = function (a, b) {
         var outcome = false;
 
-        if (a.seconds_starts_at == b.seconds_starts_at) {
+        if (a.day_of_week !== b.day_of_week) {
+            outcome = false;
+        }
+
+        else if (a.seconds_starts_at == b.seconds_starts_at) {
             outcome = true;
         }
 
@@ -75,27 +95,50 @@ function timetable(userConfig) {
         return bookings;
     }
 
+    var listClassTypesForTopics = function(topics) {
+        var class_types = [];
+
+        angular.forEach(topics, function (topic) {
+            if (topic.classes)
+                class_types = class_types.concat(topic.classes);
+        });
+
+        return class_types;
+    }
+
+    var listClassGroupsForTopics = function(topics) {
+        var class_types = listClassTypesForTopics(topics);
+
+        var class_groups = [];
+
+        angular.forEach(class_types, function (class_type) {
+            class_groups.concat(class_type.class_groups);
+        });
+
+        return class_groups;
+    }
+
+    var compareSessions = function(a, b) {
+        // Sort by day
+        var daysDifference = dayNameToDayOfWeek(a.day_of_week) - dayNameToDayOfWeek(b.day_of_week);
+        if (daysDifference !== 0)
+            return daysDifference;
+
+        // Sort by starting time of day
+        var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
+        if (secondsDifference !== 0)
+            return secondsDifference;
+
+        return a.seconds_ends_at - b.seconds_ends_at;
+    }
+
     var sortSessions = function(sessions) {
-        var sessionSorter = function(a, b) {
-
-            // Sort by day
-            var daysDifference = days.indexOf(a.day_of_week) - days.indexOf(b.day_of_week);
-            if (daysDifference !== 0)
-                return daysDifference;
-
-            // Sort by starting time of day
-            var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
-            if (secondsDifference !== 0)
-                return secondsDifference;
-
-            return a.seconds_ends_at - b.seconds_ends_at;
-        }
-
-        return sessions.sort(sessionSorter);
+        return sessions.sort(compareSessions);
     }
 
     var newClashGroup = function (firstBooking) {
         var clashGroup = {
+            day_of_week: firstBooking.day_of_week,
             seconds_starts_at: firstBooking.seconds_starts_at,
             seconds_ends_at: firstBooking.seconds_ends_at,
 
@@ -182,6 +225,10 @@ function timetable(userConfig) {
                 $http.get(url).success(function (class_types, status, headers, config) {
                     angular.forEach(class_types, function (class_type) {
                         class_type.active_class_group = class_type.class_groups[0];
+
+                        angular.forEach(class_type.class_groups, function(class_group) {
+                            class_group.class_sessions = sortSessions(class_group.class_sessions);
+                        });
                     });
 
                     callback(class_types, status, headers, config);
@@ -329,13 +376,48 @@ function timetable(userConfig) {
 
         $scope.loadTopicIndex();
     });
+    var ClassGroupsClash = function (a, b) {
+        //start with the first class session for each
+        aindex = 0;
+        bindex = 0;
+        while (aindex < a.class_sessions.length && bindex < b.class_sessions.length) {
+            //check if we current index are at the same day
+            aday = dayNameToDayOfWeek(a.class_sessions[aindex].day_of_week);
+            bday = dayNameToDayOfWeek(b.class_sessions[aindex].day_of_week)
+            if (aday == bday)
+            {
+                //same day, check for clashes
+                classclash = sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex]);
+                if (classclash < 0) {
+                    //a session is prior to b session -> advance a
+                    aindex++;
+                } else if (classclash > 0) {
+                    //b session is prior to a session -> advance b
+                    bindex++;
+                }
+                else {
+                    //a session and b session clash
+                    return true;
+                }
+            }
+            else if (aday < bday) {
+                //current a is before current b advance a
+                aindex++;
+            }
+            else {
+                //current b is before current a advance b
+                bindex++;
+            }
+        }
+        //iterated through all of 1 group without clashing with the other group
+        return false;
+    }
 
     app.controller('TimetableController', function ($scope, topicService, topicFactory, timetableFactory) {
         $scope.chosenTopics = []
         $scope.days = days;
         $scope.hours = hours;
         $scope.timetable = timetableFactory.createEmptyTimetable();
-        $scope.btimetables = []
 
         var updatePossibleTimetables = function () {
             var possibleTimetables = 1;
@@ -353,57 +435,68 @@ function timetable(userConfig) {
         };
 
         $scope.bruteForcePossibleTimetables = function() {
-            var recursiveCreate = function (set_bookings, variables) {
-                var currentClassType = variables.pop();
-                //var currentClassType = currentClassList.lclass_groups;
-                angular.forEach(currentClassType.class_groups, function (group) {
-                    //add all bookings for this group
-                    angular.forEach(group.class_sessions, function (class_session) {
-                        set_bookings.push(newBooking({id: 0, code: "undf0000"}, currentClassType, group, class_session))
-                    });
-                    if (variables.length > 0) {
-                        //more variable classes
-                        recursiveCreate(set_bookings, variables);
-                    } else {
-                        //add bookings to timetable
-                        $scope.btimetables.push(set_bookings);
-                    }
-                    //remove all bookings for this group
-                    angular.forEach(group.class_sessions, function (class_session) {
-                        set_bookings.pop();
-                    });
-                });
-                variables.push(currentClassType);
+            var newClassGroupSelection = function (class_type, class_group) {
+                return {
+                    class_type : class_type,
+                    class_group : class_group
+                }
             }
-            $scope.bruteForceStart = 0;
-            var set = []
-            var variable = []
-            //for each topic
-            angular.forEach($scope.chosenTopics, function (topic) {
-                //for each class type
-                angular.forEach(topic.classes, function (class_type) {
-                    //and for each group
-                    if (class_type.class_groups.length > 1) {
-                        //need to keep track of topic and keep all relevant details about class_type as well!
 
-                        //var class_group_list = {
-                        //   class_groups: class_type.class_groups,
-                        //    topic: topic
-                        //};
+            var group_clashes = {};
 
-                        variable.push(angular.copy(class_type));
+
+            var examineTimetable = function (class_group_selections) {
+                console.log(class_group_selections);
+            }
+
+            var searchTimetables = function (chosen_class_groups, remaining_class_choices) {
+                var currentClassType = remaining_class_choices.pop();
+
+
+                angular.forEach(currentClassType.class_groups, function (group) {
+                    // Work with this group for now
+                    chosen_class_groups[group.id] = newClassGroupSelection(currentClassType, group);
+
+                    if (remaining_class_choices.length === 0) {
+                        // No more choices we can make, check if this timetable is good and move on
+                        examineTimetable(chosen_class_groups);
+                        examinedTimetables++;
+                    } else {
+                        // Keep making choices until we find a working timetable
+                        searchTimetables(chosen_class_groups, remaining_class_choices);
                     }
-                    else if (class_type.class_groups.length == 1) {
-                        //convert to booking
-                        angular.forEach(class_type.class_groups[0].class_sessions, function (class_session) {
-                            set.push(newBooking(topic, class_type, class_type.class_groups[0], class_session))
-                        });
-                    }
+
+                    // Stop working with the current group
+                    delete(chosen_class_groups[group.id]);
                 });
+
+                remaining_class_choices.push(currentClassType);
+            }
+
+            var chosen_class_groups = {};
+            var remaining_class_choices = [];
+
+            var class_types = listClassTypesForTopics($scope.chosenTopics);
+
+            angular.forEach(class_types, function (class_type) {
+                if (class_type.class_groups.length > 1) {
+                    remaining_class_choices.push(class_type);
+                }
+                else if (class_type.class_groups.length === 1) {
+                    var class_group = class_type.class_groups[0];
+                    chosen_class_groups[class_group.id] = newClassGroupSelection(class_type, class_group);
+                }
             });
-            $scope.btimetables = []
-            recursiveCreate(set, variable);
-            $scope.bruteForceStart = $scope.btimetables.length;
+
+            var examinedTimetables = 0;
+
+            var startMillis = new Date().getTime();
+
+            searchTimetables(chosen_class_groups, remaining_class_choices);
+
+            $scope.examineDuration = (new Date().getTime() - startMillis)/1000;
+
+            $scope.examinedTimetables = examinedTimetables;
         }
 
         $scope.updateTimetable = function () {

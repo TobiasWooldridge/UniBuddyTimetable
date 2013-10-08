@@ -87,10 +87,9 @@
             </tfoot>
         </table>
     </form>
-
 </div>
-<div class="container" ng-controller="TimetableController">
 
+<div class="container" ng-controller="TimetableController">
     <div ng-show="chosenTopics.length" class="chosen-topics">
         <div class="page-header">
             <h3>Ready? Let's find the ideal timetable</h3>
@@ -118,7 +117,9 @@
             </div>
         </div>
 
-        <p>{{ possibleTimetables }} possible timetables. ( {{ bruteForceStart}} )</p>
+        <p>You have {{ possibleTimetables }} possible timetables.</p>
+
+        <p>Auto generation examined {{ examinedTimetables / possibleTimetables * 100 }}% of those possible timetables in {{ examineDuration }} seconds.</p>
 
     </div>
 
