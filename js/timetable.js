@@ -97,7 +97,7 @@ function timetable(userConfig) {
             seconds_starts_at: class_session.seconds_starts_at,
             seconds_ends_at: class_session.seconds_ends_at,
             seconds_duration: class_session.seconds_duration,
-            locked: class_type.class_groups.length === 1
+            locked: class_group.locked
         };
 
         return booking;
@@ -254,6 +254,7 @@ function timetable(userConfig) {
 
                         angular.forEach(class_type.class_groups, function (class_group) {
                             class_group.class_sessions = sortSessions(class_group.class_sessions);
+                            class_group.locked = class_type.class_groups.length === 1;
                         });
                     });
 
@@ -443,7 +444,6 @@ function timetable(userConfig) {
             }
 
             $scope.applyClassGroupSelection = function(classGroupSelection) {
-                console.log(classGroupSelection);
                 angular.forEach(classGroupSelection, function(entry) {
                    entry.class_type.active_class_group = entry.class_group;
                 });
@@ -498,6 +498,7 @@ function timetable(userConfig) {
                     })
 
                     if (foundClashes) {
+                        console.log("asdf")
                         return;
                     }
 
@@ -525,7 +526,7 @@ function timetable(userConfig) {
             var class_types = listClassTypesForTopics($scope.chosenTopics);
 
             angular.forEach(class_types, function (class_type) {
-                if (class_type.class_groups.locked) {
+                if (class_type.active_class_group.locked) {
                     var class_group = class_type.class_groups[0];
                     chosen_class_groups[class_group.id] = newClassGroupSelection(class_type, class_group);
                 }
@@ -545,7 +546,7 @@ function timetable(userConfig) {
             $scope.examinedTimetables = examinedTimetables;
 
             if ($scope.timetablePossibilities.length > 0)
-                $scope.applyClassGroupSelection = $scope.timetablePossibilities[0];
+                $scope.applyClassGroupSelection($scope.timetablePossibilities[0]);
         }
 
         $scope.updateTimetable = function () {
