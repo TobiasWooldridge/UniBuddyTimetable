@@ -432,6 +432,24 @@ function timetable(userConfig) {
                     class_group: class_group
                 }
             }
+            var shallowCopyClassGroupSelections = function (classGroupSelections) {
+                var selections = []
+
+                angular.forEach(classGroupSelections, function(selection) {
+                    selections.push(selection);
+                })
+
+                return selections;
+            }
+
+            $scope.applyClassGroupSelection = function(classGroupSelection) {
+                console.log(classGroupSelection);
+                angular.forEach(classGroupSelection, function(entry) {
+                   entry.class_type.active_class_group = entry.class_group;
+                });
+
+                $scope.updateTimetable();
+            }
 
 
             var all_class_groups = listClassGroupsForTopics($scope.chosenTopics);
@@ -448,13 +466,23 @@ function timetable(userConfig) {
             });
 
 
+            var max_clashes = 1337;
+
+            $scope.timetablePossibilities = [];
 
             var examineTimetable = function (class_group_selections) {
                 examinedTimetables++;
-//                console.log(class_group_selections);
+                $scope.timetablePossibilities.push(shallowCopyClassGroupSelections(class_group_selections))
             }
 
-            var searchTimetables = function (chosen_class_groups, remaining_class_choices) {
+
+
+            var searchTimetables = function (chosen_class_groups, remaining_class_choices, current_clashes) {
+                if (typeof current_clashes === "undefined") {
+                    current_clashes = 0;
+                }
+
+
                 var currentClassType = remaining_class_choices.pop();
 
 
