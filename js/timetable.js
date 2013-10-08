@@ -65,26 +65,25 @@ function timetable(userConfig) {
 
 
     var classGroupsClash = function (a, b) {
-        //start with the first class session for each
-        aindex = 0;
-        bindex = 0;
-        while (aindex < a.class_sessions.length && bindex < b.class_sessions.length) {
+        aIndex = 0;
+        bIndex = 0;
+
+        // Assumption: a.class_sessions and b.class_sessions are sorted
+        while (aIndex < a.class_sessions.length && bIndex < b.class_sessions.length) {
             //check if both session clash
-            if (sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex])) {
+            if (sessionsClash(a.class_sessions[aIndex], b.class_sessions[bIndex])) {
                 //there is a clash
                 return true;
             } else {
-                //there is no clash find out which starts first
-                if (compareSessions(a.class_sessions[aindex], b.class_sessions[bindex]) < 0) {
-                    //a is before b, advance a
-                    aindex++;
-                } else {
-                    //b is before a, advance b
-                    bindex++;
-                }
+                // Advance the pointer to whichever class group starts first
+                if (compareSessions(a.class_sessions[aIndex], b.class_sessions[bIndex]) < 0)
+                    aIndex++;
+                else
+                    bIndex++;
             }
         }
-        //iterated through all of 1 group without clashing with the other group
+
+        // No clashes were found
         return false;
     }
 
@@ -436,16 +435,16 @@ function timetable(userConfig) {
             var shallowCopyClassGroupSelections = function (classGroupSelections) {
                 var selections = []
 
-                angular.forEach(classGroupSelections, function(selection) {
+                angular.forEach(classGroupSelections, function (selection) {
                     selections.push(selection);
                 })
 
                 return selections;
             }
 
-            $scope.applyClassGroupSelection = function(classGroupSelection) {
-                angular.forEach(classGroupSelection, function(entry) {
-                   entry.class_type.active_class_group = entry.class_group;
+            $scope.applyClassGroupSelection = function (classGroupSelection) {
+                angular.forEach(classGroupSelection, function (entry) {
+                    entry.class_type.active_class_group = entry.class_group;
                 });
 
                 $scope.updateTimetable();
@@ -474,7 +473,6 @@ function timetable(userConfig) {
                 examinedTimetables++;
                 $scope.timetablePossibilities.push(shallowCopyClassGroupSelections(class_group_selections))
             }
-
 
 
             var searchTimetables = function (chosen_class_groups, remaining_class_choices, current_clashes) {
