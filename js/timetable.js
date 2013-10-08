@@ -525,12 +525,12 @@ function timetable(userConfig) {
             var class_types = listClassTypesForTopics($scope.chosenTopics);
 
             angular.forEach(class_types, function (class_type) {
-                if (class_type.class_groups.length > 1) {
-                    remaining_class_choices.push(class_type);
-                }
-                else if (class_type.class_groups.length === 1) {
+                if (class_type.class_groups.locked) {
                     var class_group = class_type.class_groups[0];
                     chosen_class_groups[class_group.id] = newClassGroupSelection(class_type, class_group);
+                }
+                else if (class_type.class_groups.length > 1) {
+                    remaining_class_choices.push(class_type);
                 }
             });
 
