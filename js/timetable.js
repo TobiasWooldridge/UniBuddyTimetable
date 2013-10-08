@@ -442,6 +442,30 @@ function timetable(userConfig) {
                 }
             }
 
+            var ClassGroupsClash = function (a, b) {
+                //start with the first class session for each
+                aindex = 0;
+                bindex = 0;
+                while (aindex < a.class_sessions.length && bindex < b.class_sessions.length) {
+                    //check if both session clash
+                    if (sessionsClash(a.class_sessions[aindex], b.class_sessions[bindex])) {
+                        //there is a clash
+                        return true;
+                    } else {
+                        //there is no clash find out which starts first
+                        if (compareSessions(a.class_sessions[aindex], b.class_sessions[bindex]) < 0) {
+                            //a is before b, advance a
+                            aindex++;
+                        } else {
+                            //b is before a, advance b
+                            bindex++;
+                        }
+                    }
+                }
+                //iterated through all of 1 group without clashing with the other group
+                return false;
+            }
+
             var group_clashes = {};
 
 
