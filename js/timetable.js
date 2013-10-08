@@ -543,6 +543,9 @@ function timetable(userConfig) {
             $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
 
             $scope.examinedTimetables = examinedTimetables;
+
+            if ($scope.timetablePossibilities.length > 0)
+                $scope.applyClassGroupSelection = $scope.timetablePossibilities[0];
         }
 
         $scope.updateTimetable = function () {
