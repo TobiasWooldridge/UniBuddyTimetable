@@ -119,10 +119,12 @@
 
         <p>You have {{ possibleTimetables }} possible timetables.</p>
 
-        <p>Auto generation examined {{ (examinedTimetables / possibleTimetables * 100) | number:0 }}% of those possible timetables in {{ examineDuration }} seconds.</p>
+        <p>Auto generation found {{ generatedTimetables.length }} possible timetables, suffering {{ maxClashes }} unavoidable clashes.</p>
+
+        <p>This took {{ examineDuration }} seconds.</p>
 
         <!-- <ul>
-            <li style="display: inline-block;" ng-repeat="possibleTimetable in timetablePossibilities"><button class="btn" ng-click="applyClassGroupSelection(possibleTimetable)">Apply timetable</button></li>
+            <li style="display: inline-block;" ng-repeat="possibleTimetable in generatedTimetables"><button class="btn" ng-click="applyClassGroupSelection(possibleTimetable)">Apply timetable</button></li>
         </ul> -->
     </div>
 

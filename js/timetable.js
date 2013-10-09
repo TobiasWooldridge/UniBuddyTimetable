@@ -451,71 +451,73 @@ function timetable(userConfig) {
             }
 
 
-            var all_class_groups = listClassGroupsForTopics($scope.chosenTopics);
+            var allClassGroups = listClassGroupsForTopics($scope.chosenTopics);
 
-            var group_clashes = {};
-            angular.forEach(all_class_groups, function (a) {
-                group_clashes[a.id] = {};
+            var groupsClash = {};
+            angular.forEach(allClassGroups, function (a) {
+                groupsClash[a.id] = {};
 
-                angular.forEach(all_class_groups, function (b) {
+                angular.forEach(allClassGroups, function (b) {
                     if (a !== b) {
-                        group_clashes[a.id][b.id] = classGroupsClash(a, b);
+                        groupsClash[a.id][b.id] = classGroupsClash(a, b);
                     }
                 });
             });
 
+            console.log(groupsClash);
 
-            var max_clashes = 1337;
 
-            $scope.timetablePossibilities = [];
+            $scope.maxClashes = 9001; // It's over nine thousaaaaaaaaaaaaaand!
 
-            var examineTimetable = function (class_group_selections) {
-                examinedTimetables++;
-                $scope.timetablePossibilities.push(shallowCopyClassGroupSelections(class_group_selections))
+            $scope.generatedTimetables = [];
+
+            var examineTimetable = function (class_group_selections, clashes) {
+                console.log(clashes);
+                if (clashes < $scope.maxClashes) {
+                    $scope.maxClashes = clashes;
+                    $scope.generatedTimetables = [];
+                }
+
+                $scope.generatedTimetables.push(shallowCopyClassGroupSelections(class_group_selections))
             }
 
 
-            var searchTimetables = function (chosen_class_groups, remaining_class_choices, current_clashes) {
-                if (typeof current_clashes === "undefined") {
-                    current_clashes = 0;
-                }
+            var searchTimetables = function (previouslyChosenClassGroups, remainingClassChoices, currentClashes) {
+                var currentClassType = remainingClassChoices.pop();
 
-
-                var currentClassType = remaining_class_choices.pop();
-
-
-                angular.forEach(currentClassType.class_groups, function (group) {
+                angular.forEach(currentClassType.class_groups, function (currentGroup) {
                     // Test that the new addition clashes with nobody
                     var foundClashes = false;
 
-                    angular.forEach(chosen_class_groups, function (chosen_class_group) {
-                        if (group_clashes[group.id][chosen_class_group.class_group.id]) {
-                            foundClashes = true;
-                            return false;
+                    var selectionClashes = currentClashes;
+
+                    angular.forEach(previouslyChosenClassGroups, function (previouslyChosenGroup) {
+                        if (groupsClash[currentGroup.id][previouslyChosenGroup.class_group.id]) {
+                            selectionClashes++;
                         }
                     })
 
-                    if (foundClashes) {
-                        console.log("asdf")
-                        return;
+                    if (selectionClashes > $scope.maxClashes) {
+                        // To many clashes! Skip this timetable.
+                        return true;
                     }
 
                     // Work with this group for now
-                    chosen_class_groups[group.id] = newClassGroupSelection(currentClassType, group);
+                    previouslyChosenClassGroups[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
 
-                    if (remaining_class_choices.length === 0) {
+                    if (remainingClassChoices.length === 0) {
                         // No more choices we can make, check if this timetable is good and move on
-                        examineTimetable(chosen_class_groups);
+                        examineTimetable(previouslyChosenClassGroups, selectionClashes);
                     } else {
                         // Keep making choices until we find a working timetable
-                        searchTimetables(chosen_class_groups, remaining_class_choices);
+                        searchTimetables(previouslyChosenClassGroups, remainingClassChoices, selectionClashes);
                     }
 
                     // Stop working with the current group
-                    delete(chosen_class_groups[group.id]);
+                    delete(previouslyChosenClassGroups[currentGroup.id]);
                 });
 
-                remaining_class_choices.push(currentClassType);
+                remainingClassChoices.push(currentClassType);
             }
 
             var chosen_class_groups = {};
@@ -524,7 +526,7 @@ function timetable(userConfig) {
             var class_types = listClassTypesForTopics($scope.chosenTopics);
 
             angular.forEach(class_types, function (class_type) {
-                if (class_type.active_class_group.locked) {
+                if (class_type.class_groups.length >= 1 && class_type.active_class_group.locked) {
                     var class_group = class_type.class_groups[0];
                     chosen_class_groups[class_group.id] = newClassGroupSelection(class_type, class_group);
                 }
@@ -533,18 +535,15 @@ function timetable(userConfig) {
                 }
             });
 
-            var examinedTimetables = 0;
 
             var startMillis = new Date().getTime();
 
-            searchTimetables(chosen_class_groups, remaining_class_choices);
+            searchTimetables(chosen_class_groups, remaining_class_choices, 0);
 
             $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
 
-            $scope.examinedTimetables = examinedTimetables;
-
-            if ($scope.timetablePossibilities.length > 0)
-                $scope.applyClassGroupSelection($scope.timetablePossibilities[0]);
+            if ($scope.generatedTimetables.length > 0)
+                $scope.applyClassGroupSelection($scope.generatedTimetables[0]);
         }
 
         $scope.updateTimetable = function () {
