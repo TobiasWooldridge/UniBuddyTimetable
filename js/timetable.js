@@ -310,7 +310,7 @@ function timetable(userConfig) {
 
         $scope.selectedTopics = [];
 
-        $scope.possibleTimetables = 1;
+        $scope.numTimetableCombinations = 1;
 
         var selectedTopicIds = function () {
             var ids = [];
@@ -422,10 +422,10 @@ function timetable(userConfig) {
                 });
             });
 
-            $scope.possibleTimetables = possibleTimetables;
+            $scope.numTimetableCombinations = possibleTimetables;
         };
 
-        $scope.bruteForcePossibleTimetables = function () {
+        var bruteForcePossibleTimetables = function () {
             var newClassGroupSelection = function (class_type, class_group) {
                 return {
                     class_type: class_type,
@@ -464,21 +464,17 @@ function timetable(userConfig) {
                 });
             });
 
-            console.log(groupsClash);
-
-
             $scope.maxClashes = 9001; // It's over nine thousaaaaaaaaaaaaaand!
 
-            $scope.generatedTimetables = [];
+            var generatedTimetables = [];
 
             var examineTimetable = function (class_group_selections, clashes) {
-                console.log(clashes);
                 if (clashes < $scope.maxClashes) {
                     $scope.maxClashes = clashes;
-                    $scope.generatedTimetables = [];
+                    generatedTimetables = [];
                 }
 
-                $scope.generatedTimetables.push(shallowCopyClassGroupSelections(class_group_selections))
+                generatedTimetables.push(shallowCopyClassGroupSelections(class_group_selections))
             }
 
 
@@ -542,9 +538,85 @@ function timetable(userConfig) {
 
             $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
 
-            if ($scope.generatedTimetables.length > 0)
-                $scope.applyClassGroupSelection($scope.generatedTimetables[0]);
+            $scope.numRefinedPossibleTimetables = generatedTimetables.length;
+
+            if (generatedTimetables.length > 0) {
+                cherryPickIdealTimetables(generatedTimetables);
+            }
         }
+        
+        var cherryPickIdealTimetables = function(rawGeneratedTimetables) {
+
+            var classSessionsForClassPicks = function(classPicks) {
+                var classSessions = [];
+
+                angular.forEach(classPicks, function (classPick) {
+                    classSessions = classSessions.concat(classPick.class_group.class_sessions);
+                })
+
+                return classSessions;
+            }
+
+            var calculateTimeMetrics = function(timetable) {
+                var days = { };
+
+                angular.forEach(timetable.class_sessions, function(session) {
+                    if (typeof days[session.day_of_week] === "undefined") {
+                        days[session.day_of_week] = {
+                            seconds_starts_at : session.seconds_starts_at,
+                            seconds_ends_at : session.seconds_ends_at
+                        }
+                    }
+                    else {
+                        days[session.day_of_week].seconds_starts_at = Math.min(days[session.day_of_week].seconds_starts_at, session.seconds_starts_at)
+                        days[session.day_of_week].seconds_ends_at = Math.max(days[session.day_of_week].seconds_ends_at, session.seconds_ends_at)
+                    }
+                });
+
+                timetable.daysAtUni = 0;
+                timetable.secondsAtUni = 0;
+
+                angular.forEach(days, function(day) {
+                    timetable.daysAtUni++;
+                    timetable.secondsAtUni += (day.seconds_ends_at - day.seconds_starts_at);
+                });
+
+                return timetable;
+            }
+
+            var timetables = [];
+
+            // Wrap each timetable and calculate statistics and stuff
+            angular.forEach(rawGeneratedTimetables, function(generatedTimetable) {
+                var timetable = {};
+
+                timetable.classPicks = generatedTimetable;
+                timetable.class_sessions = classSessionsForClassPicks(generatedTimetable);
+
+                calculateTimeMetrics(timetable);
+
+                timetables.push(timetable)
+            });
+
+            timetables.sort(function(a, b) {
+                var daysDifference = a.daysAtUni - b.daysAtUni;
+
+                if (daysDifference !== 0) {
+                    return daysDifference;
+                }
+
+                var secondsDifference = a.secondsAtUni - b.secondsAtUni;
+
+                return secondsDifference;
+            });
+
+
+            $scope.topTimetableCandidates = timetables.slice(0, 10);
+
+            $scope.applyClassGroupSelection(timetables[0].classPicks);
+        }
+
+
 
         $scope.updateTimetable = function () {
             var timetable = timetableFactory.createEmptyTimetable();
@@ -577,7 +649,7 @@ function timetable(userConfig) {
 
         $scope.$on('chosenTopicsUpdate', function () {
             $scope.updateTimetable();
-            $scope.bruteForcePossibleTimetables();
+            bruteForcePossibleTimetables();
         });
     })
 }
