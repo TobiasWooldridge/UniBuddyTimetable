@@ -1,35 +1,23 @@
-function timetable(userConfig) {
-    var config = {
-        api_path: "http://flindersapi.tobias.pw/api/v1/"
-    };
+var DayUtility = {
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    dayNameToDayOfWeek: function (dayName) {
+        if (typeof DayUtility.dayNameToDayOfWeek.hash === "undefined") {
+            DayUtility.dayNameToDayOfWeek.hash = {}
 
-    for (var key in userConfig) {
-        if (userConfig.hasOwnProperty(key)) {
-            config[key] = userConfig[key];
-        }
-    }
-
-    // Hard-coding this for now #YOLO
-    var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-    var hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
-
-    var dayNameToDayOfWeek = function (dayName) {
-        if (typeof dayNameToDayOfWeek.hash === "undefined") {
-            dayNameToDayOfWeek.hash = {}
-
-            angular.forEach(days, function (name, index) {
-                dayNameToDayOfWeek.hash[name] = index;
+            angular.forEach(DayUtility.days, function (name, index) {
+                DayUtility.dayNameToDayOfWeek.hash[name] = index;
             });
         }
 
-        return dayNameToDayOfWeek.hash[dayName];
-    }
-    var dayOfWeekToDayName = function (dayOfWeek) {
+        return DayUtility.dayNameToDayOfWeek.hash[dayName];
+    },
+    dayOfWeekToDayName: function (dayOfWeek) {
         return days[dayOfWeek]
     }
+}
 
-
-    var sessionsClash = function (a, b) {
+var ClashUtility = {
+    sessionsClash: function (a, b) {
         var outcome = false;
 
         if (a.day_of_week !== b.day_of_week) {
@@ -40,43 +28,41 @@ function timetable(userConfig) {
             outcome = true;
         }
 
-        // a's start is within b's interval
+            // a's start is within b's interval
         else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
             outcome = true;
         }
 
-        // a's end is within b's interval
+            // a's end is within b's interval
         else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
             outcome = true;
         }
 
-        // a wraps b
+            // a wraps b
         else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
             outcome = true;
         }
 
-        // b wraps a
+            // b wraps a
         else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
             outcome = true;
         }
 
         return outcome;
-    }
-
-
-    var classGroupsClash = function (a, b) {
+    },
+    ClassGroupsClash: function (a, b) {
         aIndex = 0;
         bIndex = 0;
 
         // Assumption: a.class_sessions and b.class_sessions are sorted
         while (aIndex < a.class_sessions.length && bIndex < b.class_sessions.length) {
             //check if both session clash
-            if (sessionsClash(a.class_sessions[aIndex], b.class_sessions[bIndex])) {
+            if (ClashUtility.sessionsClash(a.class_sessions[aIndex], b.class_sessions[bIndex])) {
                 //there is a clash
                 return true;
             } else {
                 // Advance the pointer to whichever class group starts first
-                if (compareSessions(a.class_sessions[aIndex], b.class_sessions[bIndex]) < 0)
+                if (SessionsUtility.compareSessions(a.class_sessions[aIndex], b.class_sessions[bIndex]) < 0)
                     aIndex++;
                 else
                     bIndex++;
@@ -86,8 +72,10 @@ function timetable(userConfig) {
         // No clashes were found
         return false;
     }
+}
 
-    var newBooking = function (topic, class_type, class_group, class_session) {
+var Booking = {
+    newBooking: function (topic, class_type, class_group, class_session) {
         var booking = {
             topic_id: topic.id,
             topic_code: topic.code,
@@ -101,8 +89,10 @@ function timetable(userConfig) {
 
         return booking;
     }
+}
 
-    var listBookingsForTopics = function (topics) {
+var TopicsUtility = {
+    listBookingsForTopics: function (topics) {
         var bookings = [];
 
         angular.forEach(topics, function (topic) {
@@ -111,15 +101,14 @@ function timetable(userConfig) {
                     return;
                 }
                 angular.forEach(class_type.active_class_group.class_sessions, function (class_session) {
-                    bookings.push(newBooking(topic, class_type, class_type.active_class_group, class_session));
+                    bookings.push(Booking.newBooking(topic, class_type, class_type.active_class_group, class_session));
                 });
             });
         });
 
         return bookings;
-    }
-
-    var listClassTypesForTopics = function (topics) {
+    },
+    listClassTypesForTopics: function (topics) {
         var class_types = [];
 
         angular.forEach(topics, function (topic) {
@@ -128,10 +117,9 @@ function timetable(userConfig) {
         });
 
         return class_types;
-    }
-
-    var listClassGroupsForTopics = function (topics) {
-        var class_types = listClassTypesForTopics(topics);
+    },
+    listClassGroupsForTopics: function (topics) {
+        var class_types = TopicsUtility.listClassTypesForTopics(topics);
 
         var class_groups = [];
 
@@ -142,10 +130,12 @@ function timetable(userConfig) {
 
         return class_groups;
     }
+}
 
-    var compareSessions = function (a, b) {
+var SessionsUtility = {
+    compareSessions: function (a, b) {
         // Sort by day
-        var daysDifference = dayNameToDayOfWeek(a.day_of_week) - dayNameToDayOfWeek(b.day_of_week);
+        var daysDifference = DayUtility.dayNameToDayOfWeek(a.day_of_week) - DayUtility.dayNameToDayOfWeek(b.day_of_week);
         if (daysDifference !== 0)
             return daysDifference;
 
@@ -155,13 +145,14 @@ function timetable(userConfig) {
             return secondsDifference;
 
         return a.seconds_ends_at - b.seconds_ends_at;
-    }
+    },
+    sortSessions: function (sessions) {
+        return sessions.sort(SessionsUtility.compareSessions);
+}
+}
 
-    var sortSessions = function (sessions) {
-        return sessions.sort(compareSessions);
-    }
-
-    var newClashGroup = function (firstBooking) {
+var ClashGroup = {
+    newClashGroup: function (firstBooking) {
         var clashGroup = {
             day_of_week: firstBooking.day_of_week,
             seconds_starts_at: firstBooking.seconds_starts_at,
@@ -200,8 +191,22 @@ function timetable(userConfig) {
         clashGroup.addBooking(firstBooking);
 
         return clashGroup;
+    }
+}
+
+function timetable(userConfig) {
+    var config = {
+        api_path: "http://flindersapi.tobias.pw/api/v1/"
     };
 
+    for (var key in userConfig) {
+        if (userConfig.hasOwnProperty(key)) {
+            config[key] = userConfig[key];
+        }
+    }
+
+    // Hard-coding this for now #YOLO
+    var hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
 
     var app = angular.module('timetable', []);
 
@@ -252,7 +257,7 @@ function timetable(userConfig) {
                         class_type.active_class_group = class_type.class_groups[0];
 
                         angular.forEach(class_type.class_groups, function (class_group) {
-                            class_group.class_sessions = sortSessions(class_group.class_sessions);
+                            class_group.class_sessions = SessionsUtility.sortSessions(class_group.class_sessions);
                             class_group.locked = class_type.class_groups.length === 1;
                         });
                     });
@@ -277,7 +282,7 @@ function timetable(userConfig) {
             createEmptyTimetable: function () {
                 timetable = {};
 
-                angular.forEach(days, function (day) {
+                angular.forEach(DayUtility.days, function (day) {
                     timetable[day] = [];
                 });
 
@@ -406,7 +411,7 @@ function timetable(userConfig) {
 
     app.controller('TimetableController', function ($scope, topicService, topicFactory, timetableFactory) {
         $scope.chosenTopics = []
-        $scope.days = days;
+        $scope.days = DayUtility.days;
         $scope.hours = hours;
         $scope.timetable = timetableFactory.createEmptyTimetable();
 
@@ -451,7 +456,7 @@ function timetable(userConfig) {
             }
 
 
-            var allClassGroups = listClassGroupsForTopics($scope.chosenTopics);
+            var allClassGroups = TopicsUtility.listClassGroupsForTopics($scope.chosenTopics);
 
             var groupsClash = {};
             angular.forEach(allClassGroups, function (a) {
@@ -459,7 +464,7 @@ function timetable(userConfig) {
 
                 angular.forEach(allClassGroups, function (b) {
                     if (a !== b) {
-                        groupsClash[a.id][b.id] = classGroupsClash(a, b);
+                        groupsClash[a.id][b.id] = ClashUtility.ClassGroupsClash(a, b);
                     }
                 });
             });
@@ -519,7 +524,7 @@ function timetable(userConfig) {
             var chosen_class_groups = {};
             var remaining_class_choices = [];
 
-            var class_types = listClassTypesForTopics($scope.chosenTopics);
+            var class_types = TopicsUtility.listClassTypesForTopics($scope.chosenTopics);
 
             angular.forEach(class_types, function (class_type) {
                 if (class_type.class_groups.length >= 1 && class_type.active_class_group.locked) {
@@ -621,8 +626,8 @@ function timetable(userConfig) {
         $scope.updateTimetable = function () {
             var timetable = timetableFactory.createEmptyTimetable();
 
-            var bookings = listBookingsForTopics($scope.chosenTopics);
-            bookings = sortSessions(bookings);
+            var bookings = TopicsUtility.listBookingsForTopics($scope.chosenTopics);
+            bookings = SessionsUtility.sortSessions(bookings);
 
             angular.forEach(bookings, function (booking) {
                 var day = booking.day_of_week;
@@ -630,8 +635,8 @@ function timetable(userConfig) {
                 var clashGroups = timetable[day];
                 var clashGroup = clashGroups[clashGroups.length - 1];
 
-                if (typeof clashGroup === "undefined" || !sessionsClash(clashGroup, booking)) {
-                    clashGroup = newClashGroup(booking);
+                if (typeof clashGroup === "undefined" || !ClashUtility.sessionsClash(clashGroup, booking)) {
+                    clashGroup = ClashGroup.newClashGroup(booking);
                     timetable[day].push(clashGroup);
                 }
                 else {
