@@ -1,8 +1,11 @@
-var DayUtility = {
-    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    dayNameToDayOfWeek: function (dayName) {
+var DayUtility = function () {
+    var that = {};
+
+    that.days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+    that.dayNameToDayOfWeek = function (dayName) {
         if (typeof DayUtility.dayNameToDayOfWeek.hash === "undefined") {
-            DayUtility.dayNameToDayOfWeek.hash = {}
+            DayUtility.dayNameToDayOfWeek.hash = {};
 
             angular.forEach(DayUtility.days, function (name, index) {
                 DayUtility.dayNameToDayOfWeek.hash[name] = index;
@@ -10,47 +13,45 @@ var DayUtility = {
         }
 
         return DayUtility.dayNameToDayOfWeek.hash[dayName];
-    },
-    dayOfWeekToDayName: function (dayOfWeek) {
+    };
+
+    that.dayOfWeekToDayName = function (dayOfWeek) {
         return days[dayOfWeek]
-    }
+    };
+
+    return that;
 }
 
-var ClashUtility = {
-    sessionsClash: function (a, b) {
-        var outcome = false;
+var ClashUtility = function () {
+    var that = {};
 
-        if (a.day_of_week !== b.day_of_week) {
-            outcome = false;
-        }
+    that.sessionsClash = function (a, b) {
+        if (a.day_of_week !== b.day_of_week)
+            return false;
 
-        else if (a.seconds_starts_at == b.seconds_starts_at) {
-            outcome = true;
-        }
+        else if (a.seconds_starts_at == b.seconds_starts_at)
+            return true;
 
         // a's start is within b's interval
-        else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
-            outcome = true;
-        }
+        else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at)
+            return true;
 
         // a's end is within b's interval
-        else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
-            outcome = true;
-        }
+        else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at)
+            return true;
 
         // a wraps b
-        else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
-            outcome = true;
-        }
+        else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at)
+            return true;
 
         // b wraps a
-        else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
-            outcome = true;
-        }
+        else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at)
+            return true;
 
-        return outcome;
-    },
-    ClassGroupsClash: function (a, b) {
+        return false;
+    };
+
+    that.ClassGroupsClash = function (a, b) {
         aIndex = 0;
         bIndex = 0;
 
@@ -71,11 +72,15 @@ var ClashUtility = {
 
         // No clashes were found
         return false;
-    }
+    };
+
+    return that;
 }
 
-var Booking = {
-    newBooking: function (topic, class_type, class_group, class_session) {
+var Booking = function () {
+    var that = {};
+
+    var newBooking = function (topic, class_type, class_group, class_session) {
         var booking = {
             topic_id: topic.id,
             topic_code: topic.code,
@@ -89,9 +94,14 @@ var Booking = {
 
         return booking;
     }
+
+    return that;
 }
 
-var TopicsUtility = {
+/**
+ * Contains methods for interacting with arrays of topics
+ */
+var TopicsPeer = {
     listBookingsForTopics: function (topics) {
         var bookings = [];
 
@@ -119,7 +129,7 @@ var TopicsUtility = {
         return class_types;
     },
     listClassGroupsForTopics: function (topics) {
-        var class_types = TopicsUtility.listClassTypesForTopics(topics);
+        var class_types = TopicsPeer.listClassTypesForTopics(topics);
 
         var class_groups = [];
 
@@ -132,8 +142,10 @@ var TopicsUtility = {
     }
 }
 
-var SessionsUtility = {
-    compareSessions: function (a, b) {
+var SessionsUtility = function () {
+    var that = {};
+
+    that.compareSessions = function (a, b) {
         // Sort by day
         var daysDifference = DayUtility.dayNameToDayOfWeek(a.day_of_week) - DayUtility.dayNameToDayOfWeek(b.day_of_week);
         if (daysDifference !== 0)
@@ -145,20 +157,24 @@ var SessionsUtility = {
             return secondsDifference;
 
         return a.seconds_ends_at - b.seconds_ends_at;
-    },
-    sortSessions: function (sessions) {
+    };
+    that.sortSessions = function (sessions) {
         return sessions.sort(SessionsUtility.compareSessions);
-    }
+    };
+
+    return that;
 }
 
-var ClashGroup = {
-    newClashGroup: function (firstBooking) {
+var ClashGroup = function () {
+    var that = {};
+
+    that.newClashGroup = function (firstBooking) {
         var clashGroup = {
             day_of_week: firstBooking.day_of_week,
             seconds_starts_at: firstBooking.seconds_starts_at,
             seconds_ends_at: firstBooking.seconds_ends_at,
 
-            clash_columns: [],
+            clashColumns: [],
 
             addBooking: function (booking) {
                 clashGroup.seconds_starts_at = Math.min(clashGroup.seconds_starts_at, booking.seconds_starts_at);
@@ -166,9 +182,9 @@ var ClashGroup = {
 
 
                 var clash_column = null;
-                if (clashGroup.clash_columns.length > 0) {
+                if (clashGroup.clashColumns.length > 0) {
                     var latest_contestant_ends = 0;
-                    angular.forEach(clashGroup.clash_columns, function (contestant_column) {
+                    angular.forEach(clashGroup.clashColumns, function (contestant_column) {
                         var contestant_column_ends = contestant_column[contestant_column.length - 1].seconds_ends_at;
                         if (contestant_column_ends <= booking.seconds_starts_at && contestant_column_ends > latest_contestant_ends) {
                             clash_column = contestant_column;
@@ -179,7 +195,7 @@ var ClashGroup = {
 
                 if (clash_column === null) {
                     clash_column = [];
-                    clashGroup.clash_columns.push(clash_column);
+                    clashGroup.clashColumns.push(clash_column);
                 }
 
                 clash_column.push(booking);
@@ -192,18 +208,16 @@ var ClashGroup = {
 
         return clashGroup;
     }
+
+    return that;
 }
 
 function timetable(userConfig) {
     var config = {
-        api_path: "http://flindersapi.tobias.pw/api/v1/"
+        apiPath: "http://flindersapi.tobias.pw/api/v1/"
     };
 
-    for (var key in userConfig) {
-        if (userConfig.hasOwnProperty(key)) {
-            config[key] = userConfig[key];
-        }
-    }
+    angular.extend(config, userConfig);
 
     // Hard-coding this for now #YOLO
     var hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
@@ -211,68 +225,69 @@ function timetable(userConfig) {
     var app = angular.module('timetable', []);
 
     app.factory('topicFactory', function ($http) {
-        var topicFactory = {
-            getTopicsAsync: function (year, semester, callback) {
-                var url = config.api_path + 'topics.json' + "?"
+        var topicFactory = {};
 
-                if (year !== "Any")
-                    url += "&year=" + year;
-                if (semester !== "Any")
-                    url += "&semester=" + semester;
+        topicFactory.getTopicsAsync = function (year, semester, callback) {
+            var url = config.apiPath + 'topics.json' + "?"
 
-                $http.get(url).success(function (data, status, headers, config) {
-                    function compareTopics(a, b) {
-                        var subject_difference = a.subject_area.localeCompare(b.subject_area);
+            if (year !== "Any")
+                url += "&year=" + year;
+            if (semester !== "Any")
+                url += "&semester=" + semester;
 
-                        if (subject_difference !== 0) {
-                            return subject_difference;
-                        }
+            $http.get(url).success(function (data, status, headers, config) {
+                function compareTopics(a, b) {
+                    var subject_difference = a.subject_area.localeCompare(b.subject_area);
 
-                        var topic_difference = a.topic_number.localeCompare(b.topic_number);
-
-                        if (topic_difference !== 0) {
-                            return topic_difference;
-                        }
-
-                        return a.name.localeCompare(b.name);
+                    if (subject_difference !== 0) {
+                        return subject_difference;
                     }
 
-                    data.sort(compareTopics);
+                    var topic_difference = a.topic_number.localeCompare(b.topic_number);
 
-                    callback(data, status, headers, config);
-                });
-            },
-            getTopicAsync: function (topic_id, callback) {
-                var url = config.api_path + 'topics/' + topic_id + '.json';
+                    if (topic_difference !== 0) {
+                        return topic_difference;
+                    }
 
-                $http.get(url).success(function (data, status, headers, config) {
-                    callback(data, status, headers, config);
-                });
-            },
-            getTopicTimetableAsync: function (topic_id, callback) {
-                var url = config.api_path + 'topics/' + topic_id + '/classes.json';
+                    return a.name.localeCompare(b.name);
+                }
 
-                $http.get(url).success(function (class_types, status, headers, config) {
-                    angular.forEach(class_types, function (class_type) {
-                        class_type.active_class_group = class_type.class_groups[0];
+                data.sort(compareTopics);
 
-                        angular.forEach(class_type.class_groups, function (class_group) {
-                            class_group.class_sessions = SessionsUtility.sortSessions(class_group.class_sessions);
-                            class_group.locked = class_type.class_groups.length === 1;
-                        });
-                    });
-
-                    callback(class_types, status, headers, config);
-                });
-            },
-            loadTimetableForTopicAsync: function (topic, callback) {
-                topicFactory.getTopicTimetableAsync(topic.id, function (class_types, status, headers, config) {
-                    topic.classes = class_types;
-
-                    callback(topic, status, headers, config)
-                });
-            }
+                callback(data, status, headers, config);
+            });
         };
+
+        topicFactory.getTopicAsync = function (topic_id, callback) {
+            var url = config.apiPath + 'topics/' + topic_id + '.json';
+
+            $http.get(url).success(function (data, status, headers, config) {
+                callback(data, status, headers, config);
+            });
+        }
+        topicFactory.getTopicTimetableAsync = function (topic_id, callback) {
+            var url = config.apiPath + 'topics/' + topic_id + '/classes.json';
+
+            $http.get(url).success(function (class_types, status, headers, config) {
+                angular.forEach(class_types, function (class_type) {
+                    class_type.active_class_group = class_type.class_groups[0];
+
+                    angular.forEach(class_type.class_groups, function (class_group) {
+                        class_group.class_sessions = SessionsUtility.sortSessions(class_group.class_sessions);
+                        class_group.locked = class_type.class_groups.length === 1;
+                    });
+                });
+
+                callback(class_types, status, headers, config);
+            });
+        };
+        topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
+            topicFactory.getTopicTimetableAsync(topic.id, function (class_types, status, headers, config) {
+                topic.classes = class_types;
+
+                callback(topic, status, headers, config)
+            });
+        }
 
         return topicFactory;
     });
@@ -280,7 +295,7 @@ function timetable(userConfig) {
     app.factory('timetableFactory', function ($http) {
         return {
             createEmptyTimetable: function () {
-                timetable = {};
+                var timetable = {};
 
                 angular.forEach(DayUtility.days, function (day) {
                     timetable[day] = [];
@@ -456,7 +471,7 @@ function timetable(userConfig) {
             }
 
 
-            var allClassGroups = TopicsUtility.listClassGroupsForTopics($scope.chosenTopics);
+            var allClassGroups = TopicsPeer.listClassGroupsForTopics($scope.chosenTopics);
 
             var groupsClash = {};
             angular.forEach(allClassGroups, function (a) {
@@ -524,7 +539,7 @@ function timetable(userConfig) {
             var chosen_class_groups = {};
             var remaining_class_choices = [];
 
-            var class_types = TopicsUtility.listClassTypesForTopics($scope.chosenTopics);
+            var class_types = TopicsPeer.listClassTypesForTopics($scope.chosenTopics);
 
             angular.forEach(class_types, function (class_type) {
                 if (class_type.class_groups.length >= 1 && class_type.active_class_group.locked) {
@@ -625,7 +640,7 @@ function timetable(userConfig) {
         $scope.updateTimetable = function () {
             var timetable = timetableFactory.createEmptyTimetable();
 
-            var bookings = TopicsUtility.listBookingsForTopics($scope.chosenTopics);
+            var bookings = TopicsPeer.listBookingsForTopics($scope.chosenTopics);
             bookings = SessionsUtility.sortSessions(bookings);
 
             angular.forEach(bookings, function (booking) {
