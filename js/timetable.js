@@ -216,7 +216,6 @@ app.factory('chosenTopicService', function ($rootScope) {
         $rootScope.$broadcast('chosenTopicsUpdate');
     }
 
-
     return that;
 });
 
