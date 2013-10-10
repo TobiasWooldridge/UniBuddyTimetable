@@ -28,22 +28,22 @@ var ClashUtility = {
             outcome = true;
         }
 
-            // a's start is within b's interval
+        // a's start is within b's interval
         else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
             outcome = true;
         }
 
-            // a's end is within b's interval
+        // a's end is within b's interval
         else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
             outcome = true;
         }
 
-            // a wraps b
+        // a wraps b
         else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
             outcome = true;
         }
 
-            // b wraps a
+        // b wraps a
         else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
             outcome = true;
         }
@@ -148,7 +148,7 @@ var SessionsUtility = {
     },
     sortSessions: function (sessions) {
         return sessions.sort(SessionsUtility.compareSessions);
-}
+    }
 }
 
 var ClashGroup = {
@@ -549,10 +549,10 @@ function timetable(userConfig) {
                 cherryPickIdealTimetables(generatedTimetables);
             }
         }
-        
-        var cherryPickIdealTimetables = function(rawGeneratedTimetables) {
 
-            var classSessionsForClassPicks = function(classPicks) {
+        var cherryPickIdealTimetables = function (rawGeneratedTimetables) {
+
+            var classSessionsForClassPicks = function (classPicks) {
                 var classSessions = [];
 
                 angular.forEach(classPicks, function (classPick) {
@@ -562,14 +562,14 @@ function timetable(userConfig) {
                 return classSessions;
             }
 
-            var calculateTimeMetrics = function(timetable) {
+            var calculateTimeMetrics = function (timetable) {
                 var days = { };
 
-                angular.forEach(timetable.class_sessions, function(session) {
+                angular.forEach(timetable.class_sessions, function (session) {
                     if (typeof days[session.day_of_week] === "undefined") {
                         days[session.day_of_week] = {
-                            seconds_starts_at : session.seconds_starts_at,
-                            seconds_ends_at : session.seconds_ends_at
+                            seconds_starts_at: session.seconds_starts_at,
+                            seconds_ends_at: session.seconds_ends_at
                         }
                     }
                     else {
@@ -581,7 +581,7 @@ function timetable(userConfig) {
                 timetable.daysAtUni = 0;
                 timetable.secondsAtUni = 0;
 
-                angular.forEach(days, function(day) {
+                angular.forEach(days, function (day) {
                     timetable.daysAtUni++;
                     timetable.secondsAtUni += (day.seconds_ends_at - day.seconds_starts_at);
                 });
@@ -592,7 +592,7 @@ function timetable(userConfig) {
             var timetables = [];
 
             // Wrap each timetable and calculate statistics and stuff
-            angular.forEach(rawGeneratedTimetables, function(generatedTimetable) {
+            angular.forEach(rawGeneratedTimetables, function (generatedTimetable) {
                 var timetable = {};
 
                 timetable.classPicks = generatedTimetable;
@@ -603,7 +603,7 @@ function timetable(userConfig) {
                 timetables.push(timetable)
             });
 
-            timetables.sort(function(a, b) {
+            timetables.sort(function (a, b) {
                 var daysDifference = a.daysAtUni - b.daysAtUni;
 
                 if (daysDifference !== 0) {
@@ -620,7 +620,6 @@ function timetable(userConfig) {
 
             $scope.applyClassGroupSelection(timetables[0].classPicks);
         }
-
 
 
         $scope.updateTimetable = function () {
