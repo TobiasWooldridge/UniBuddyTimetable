@@ -129,15 +129,17 @@
                 <th>Seconds at uni</th>
                 <th>Apply</th>
             </tr>
-            <tr ng-repeat="timetable in topTimetableCandidates">
+            <tr ng-repeat="candidate in topTimetableCandidates">
                 <td>
-                    {{ timetable.daysAtUni }}
+                    {{ candidate.daysAtUni }}
                 </td>
                 <td>
-                    {{ timetable.secondsAtUni }}
+                    {{ candidate.secondsAtUni }}
                 </td>
                 <td>
-                    <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(timetable.classPicks)">Apply</button>
+                    <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
+                        Apply
+                    </button>
                 </td>
             </tr>
         </table>
@@ -164,8 +166,8 @@
                     <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
                         <table style="top: 0px; height: 0px; position: relative;" width="100%">
                             <tr>
-                                <td ng-repeat="clash_column in clashGroup.clash_columns">
-                                    <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
+                                <td ng-repeat="clash_column in clashGroup.clashColumns">
+                                <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
                                         <div class="booking topic-{{booking.topic_id % 10}}"
                                              style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
                                             <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
@@ -197,8 +199,5 @@
     <p>Timetable data &copy; 2013 Flinders University</p>
 </footer>
 
-<script>
-    timetable({});
-</script>
 </body>
 </html>
