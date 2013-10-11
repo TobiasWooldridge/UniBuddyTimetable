@@ -223,25 +223,30 @@ app.factory('chosenTopicService', function ($rootScope) {
         return index;
     }
 
-    var broadcast = function () {
-        $rootScope.$broadcast('chosenTopicsUpdate');
-    };
 
     var that = {};
+
+    that.broadcast = function () {
+        $rootScope.$broadcast('chosenTopicsUpdate');
+    };
 
     that.addTopic = function (topic) {
         if (getTopicIndex(topic) === -1) {
             chosenTopics.push(topic)
-            broadcast();
+            that.broadcast();
         }
     }
+
 
     that.removeTopic = function (topic) {
         var index = getTopicIndex(topic);
 
         if (index !== -1) {
-            chosenTopics = chosenTopics.splice(index, 1);
-            broadcast();
+            console.log("Removing topic ", topic);
+            console.log(chosenTopics);
+            chosenTopics.splice(index, 1);
+            console.log(chosenTopics);
+            that.broadcast();
         }
     }
 
@@ -433,9 +438,11 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
         $scope.selectedTopics.push($scope.activeTopic);
 
 
+        chosenTopicService.addTopic(topic);
+
         topicFactory.loadTimetableForTopicAsync(topic, function () {
             if (topicIdIsSelected(topic.id)) {
-                chosenTopicService.addTopic(topic);
+                chosenTopicService.broadcast();
             }
         });
 
@@ -624,10 +631,21 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
             timetable.daysAtUni = 0;
             timetable.secondsAtUni = 0;
 
+            var startTimeSum = 0;
+            var endTimeSum = 0;
+            var endTimeSum = 0;
+
             angular.forEach(days, function (day) {
                 timetable.daysAtUni++;
                 timetable.secondsAtUni += (day.seconds_ends_at - day.seconds_starts_at);
+
+                startTimeSum += day.seconds_starts_at;
+                endTimeSum += day.seconds_ends_at;
             });
+
+            timetable.averageStartTime = startTimeSum / timetable.daysAtUni;
+            timetable.averageEndTime = endTimeSum / timetable.daysAtUni;
+
 
             var duration = moment.duration(timetable.secondsAtUni * 1000);
             timetable.hoursAtUni = Math.floor(duration.asHours()) + ":" + Math.floor(duration.asMinutes() % 60);
@@ -695,12 +713,13 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
     $scope.chosenTopics = [];
 
     $scope.$on('chosenTopicsUpdate', function () {
-        updatePossibleTimetables();
-
-
         $scope.chosenTopics = chosenTopicService.getTopics();
 
-        $scope.updateTimetable();
+        updatePossibleTimetables();
+
         bruteForcePossibleTimetables();
+
+
+        $scope.updateTimetable();
     });
 });

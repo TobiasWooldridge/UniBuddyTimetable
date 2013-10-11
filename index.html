@@ -96,8 +96,8 @@
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 10}}">
-                <h3>{{ topic.code }} {{ topic.name }}</h3>
+            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 16}}">
+            <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration || 0) / 60}}
@@ -127,6 +127,8 @@
             <tr>
                 <th>Days at uni</th>
                 <th>Time at uni</th>
+                <th>Average start time</th>
+                <th>Average end time</th>
                 <th>Apply</th>
             </tr>
             <tr ng-repeat="candidate in topTimetableCandidates">
@@ -137,8 +139,14 @@
                     {{ candidate.hoursAtUni }}
                 </td>
                 <td>
+                    {{ candidate.averageStartTime }}
+                </td>
+                <td>
+                    {{ candidate.averageEndTime }}
+                </td>
+                <td>
                     <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
-                        Apply
+                        Apply Classes
                     </button>
                 </td>
             </tr>
@@ -168,8 +176,8 @@
                             <tr>
                                 <td ng-repeat="clash_column in clashGroup.clashColumns">
                                 <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
-                                        <div class="booking topic-{{booking.topic_id % 10}}"
-                                             style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
+                                    <div class="booking topic-{{booking.topic_id % 16}}"
+                                         style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
                                             <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
                                             <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
                                         </div>
