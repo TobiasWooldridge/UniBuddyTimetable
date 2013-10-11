@@ -12,7 +12,7 @@ app.factory('topicFactory', function ($http, sessionsService) {
     var topicFactory = {};
 
     topicFactory.getTopicsAsync = function (year, semester, callback) {
-        var url = appConfig.apiPath + 'topics.json' + "?"
+        var url = appConfig.apiPath + 'topics.json' + "?";
 
         if (year !== "Any")
             url += "&year=" + year;
@@ -48,7 +48,7 @@ app.factory('topicFactory', function ($http, sessionsService) {
         $http.get(url).success(function (data, status, headers, config) {
             callback(data, status, headers, config);
         });
-    }
+    };
     topicFactory.getTopicTimetableAsync = function (topic_id, callback) {
         var url = appConfig.apiPath + 'topics/' + topic_id + '/classes.json';
 
@@ -71,7 +71,7 @@ app.factory('topicFactory', function ($http, sessionsService) {
 
             callback(topic, status, headers, config)
         });
-    }
+    };
 
     return topicFactory;
 });
@@ -121,9 +121,9 @@ app.factory('topicService', function (bookingFactory) {
     };
 
     return that;
-})
+});
 
-app.factory('timetableFactory', function ($http, dayService) {
+app.factory('timetableFactory', function (dayService) {
     var that = {};
 
     that.createEmptyTimetable = function () {
@@ -143,19 +143,19 @@ app.factory('bookingFactory', function () {
     var that = {};
 
     that.newBooking = function (topic, class_type, class_group, class_session) {
-        var booking = {
-            topic_id: topic.id,
-            topic_code: topic.code,
-            class_name: class_type.name,
-            day_of_week: class_session.day_of_week,
-            seconds_starts_at: class_session.seconds_starts_at,
-            seconds_ends_at: class_session.seconds_ends_at,
-            seconds_duration: class_session.seconds_duration,
-            locked: class_group.locked
-        };
+        var booking = {};
+
+        booking.topic_id = topic.id;
+        booking.topic_code = topic.code;
+        booking.class_name = class_type.name;
+        booking.day_of_week = class_session.day_of_week;
+        booking.seconds_starts_at = class_session.seconds_starts_at;
+        booking.seconds_ends_at = class_session.seconds_ends_at;
+        booking.seconds_duration = class_session.seconds_duration;
+        booking.locked = class_group.locked;
 
         return booking;
-    }
+    };
 
     return that;
 });
@@ -202,18 +202,51 @@ app.factory('clashGroupFactory', function () {
         clashGroup.addBooking(firstBooking);
 
         return clashGroup;
-    }
+    };
 
     return that;
 });
 
 app.factory('chosenTopicService', function ($rootScope) {
+    var chosenTopics = [];
+
+    var getTopicIndex = function (topic) {
+        var index = -1;
+
+        angular.forEach(chosenTopics, function (chosenTopic, i) {
+            if (chosenTopic.id === topic.id) {
+                index = i;
+                return false; // break
+            }
+        });
+
+        return index;
+    }
+
+    var broadcast = function () {
+        $rootScope.$broadcast('chosenTopicsUpdate');
+    };
+
     var that = {};
 
-    that.chosenTopics = [];
+    that.addTopic = function (topic) {
+        if (getTopicIndex(topic) === -1) {
+            chosenTopics.push(topic)
+            broadcast();
+        }
+    }
 
-    that.broadcast = function () {
-        $rootScope.$broadcast('chosenTopicsUpdate');
+    that.removeTopic = function (topic) {
+        var index = getTopicIndex(topic);
+
+        if (index !== -1) {
+            chosenTopics = chosenTopics.splice(index, 1);
+            broadcast();
+        }
+    }
+
+    that.getTopics = function () {
+        return chosenTopics.slice(0);
     }
 
     return that;
@@ -272,7 +305,7 @@ app.factory('clashService', function (sessionsService) {
         return false;
     };
 
-    that.ClassGroupsClash = function (a, b) {
+    that.classGroupsClash = function (a, b) {
         aIndex = 0;
         bIndex = 0;
 
@@ -320,11 +353,11 @@ app.factory('dayService', function () {
     that.days = function () {
         // Copy the array so malicious Russells can't manipulate our internal one
         return dayNames.slice(0);
-    }
+    };
 
     that.compareDays = function (a, b) {
         return that.dayNameToDayOfWeek(a) - that.dayNameToDayOfWeek(b);
-    }
+    };
 
     return that;
 });
@@ -350,7 +383,7 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
         });
 
         return ids;
-    }
+    };
 
     var applyTopicSearchFilter = function (newValue) {
         var filteredArray = filterFilter($scope.topicIndex, newValue);
@@ -362,7 +395,7 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
             // Select the first topic
             $scope.activeTopic = filteredArray[0];
         }
-    }
+    };
 
     var topicIdIsSelected = function (topicId) {
         return selectedTopicIds().indexOf(parseInt(topicId)) !== -1;
@@ -375,7 +408,7 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
             $scope.topicIndex = data;
             applyTopicSearchFilter($scope.topicSearch);
         });
-    }
+    };
 
     $scope.$watch('topicSearch', function (newValue) {
         applyTopicSearchFilter(newValue);
@@ -399,43 +432,29 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
 
         $scope.selectedTopics.push($scope.activeTopic);
 
-        chosenTopicService.chosenTopics.push(topic);
 
         topicFactory.loadTimetableForTopicAsync(topic, function () {
-            if (!topicIdIsSelected(topic.id))
-                return false;
-
-            chosenTopicService.broadcast();
-        });
-
-        $scope.topicSearch = "";
-    }
-
-    $scope.removeTopic = function (topic) {
-        var index = $scope.selectedTopics.indexOf(topic)
-        $scope.selectedTopics.splice(index, 1);
-
-
-        index = -1;
-        angular.forEach(chosenTopicService.chosenTopics, function (chosenTopic, i) {
-            if (chosenTopic.id === topic.id) {
-                index = i;
-                return false;
+            if (topicIdIsSelected(topic.id)) {
+                chosenTopicService.addTopic(topic);
             }
         });
 
-        if (index !== -1) {
-            chosenTopicService.chosenTopics.splice(index, 1);
-            chosenTopicService.broadcast()
-        }
-    }
+        $scope.topicSearch = "";
+    };
+
+    $scope.removeTopic = function (topic) {
+        var index = $scope.selectedTopics.indexOf(topic);
+        $scope.selectedTopics.splice(index, 1);
+
+        chosenTopicService.removeTopic(topic);
+    };
 
     $scope.loadTopicIndex();
 });
 
 
 app.controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory) {
-    $scope.chosenTopics = []
+    $scope.chosenTopics = [];
     $scope.days = dayService.days();
     $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
     $scope.timetable = timetableFactory.createEmptyTimetable();
@@ -465,16 +484,16 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
                 class_type: class_type,
                 class_group: class_group
             }
-        }
+        };
         var shallowCopyClassGroupSelections = function (classGroupSelections) {
-            var selections = []
+            var selections = [];
 
             angular.forEach(classGroupSelections, function (selection) {
                 selections.push(selection);
-            })
+            });
 
             return selections;
-        }
+        };
 
         $scope.applyClassGroupSelection = function (classGroupSelection) {
             angular.forEach(classGroupSelection, function (entry) {
@@ -482,7 +501,7 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
             });
 
             $scope.updateTimetable();
-        }
+        };
 
 
         var allClassGroups = topicService.listClassGroupsForTopics($scope.chosenTopics);
@@ -493,62 +512,57 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
 
             angular.forEach(allClassGroups, function (b) {
                 if (a !== b) {
-                    groupsClash[a.id][b.id] = clashService.ClassGroupsClash(a, b);
+                    groupsClash[a.id][b.id] = clashService.classGroupsClash(a, b);
                 }
             });
         });
 
-        $scope.maxClashes = 9001; // It's over nine thousaaaaaaaaaaaaaand!
+        $scope.clashLimit = 9001; // It's over nine thousaaaaaaaaaaaaaand!
 
         var generatedTimetables = [];
 
         var examineTimetable = function (class_group_selections, clashes) {
-            if (clashes < $scope.maxClashes) {
-                $scope.maxClashes = clashes;
+            if (clashes < $scope.clashLimit) {
+                $scope.clashLimit = clashes;
                 generatedTimetables = [];
             }
 
             generatedTimetables.push(shallowCopyClassGroupSelections(class_group_selections))
-        }
+        };
 
 
         var searchTimetables = function (previouslyChosenClassGroups, remainingClassChoices, currentClashes) {
             var currentClassType = remainingClassChoices.pop();
 
             angular.forEach(currentClassType.class_groups, function (currentGroup) {
-                // Test that the new addition clashes with nobody
-                var foundClashes = false;
-
                 var selectionClashes = currentClashes;
 
                 angular.forEach(previouslyChosenClassGroups, function (previouslyChosenGroup) {
                     if (groupsClash[currentGroup.id][previouslyChosenGroup.class_group.id]) {
                         selectionClashes++;
                     }
-                })
+                });
 
-                if (selectionClashes > $scope.maxClashes) {
-                    // To many clashes! Skip this timetable.
-                    return true;
+                // Make sure we're not exceeding our clash limit
+                if (selectionClashes <= $scope.clashLimit) {
+                    // Work with this group for now
+                    previouslyChosenClassGroups[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
+
+                    if (remainingClassChoices.length === 0) {
+                        // No more choices we can make, check if this timetable is good and move on
+                        examineTimetable(previouslyChosenClassGroups, selectionClashes);
+                    } else {
+                        // Keep making choices until we find a working timetable
+                        searchTimetables(previouslyChosenClassGroups, remainingClassChoices, selectionClashes);
+                    }
+
+                    // Stop working with the current group
+                    delete(previouslyChosenClassGroups[currentGroup.id]);
                 }
-
-                // Work with this group for now
-                previouslyChosenClassGroups[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
-
-                if (remainingClassChoices.length === 0) {
-                    // No more choices we can make, check if this timetable is good and move on
-                    examineTimetable(previouslyChosenClassGroups, selectionClashes);
-                } else {
-                    // Keep making choices until we find a working timetable
-                    searchTimetables(previouslyChosenClassGroups, remainingClassChoices, selectionClashes);
-                }
-
-                // Stop working with the current group
-                delete(previouslyChosenClassGroups[currentGroup.id]);
             });
 
             remainingClassChoices.push(currentClassType);
-        }
+        };
 
         var chosen_class_groups = {};
         var remaining_class_choices = [];
@@ -577,7 +591,7 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
         if (generatedTimetables.length > 0) {
             cherryPickIdealTimetables(generatedTimetables);
         }
-    }
+    };
 
     var cherryPickIdealTimetables = function (rawGeneratedTimetables) {
 
@@ -586,10 +600,10 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
 
             angular.forEach(classPicks, function (classPick) {
                 classSessions = classSessions.concat(classPick.class_group.class_sessions);
-            })
+            });
 
             return classSessions;
-        }
+        };
 
         var calculateTimeMetrics = function (timetable) {
             var days = { };
@@ -602,7 +616,7 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
                     }
                 }
                 else {
-                    days[session.day_of_week].seconds_starts_at = Math.min(days[session.day_of_week].seconds_starts_at, session.seconds_starts_at)
+                    days[session.day_of_week].seconds_starts_at = Math.min(days[session.day_of_week].seconds_starts_at, session.seconds_starts_at);
                     days[session.day_of_week].seconds_ends_at = Math.max(days[session.day_of_week].seconds_ends_at, session.seconds_ends_at)
                 }
             });
@@ -615,8 +629,11 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
                 timetable.secondsAtUni += (day.seconds_ends_at - day.seconds_starts_at);
             });
 
+            var duration = moment.duration(timetable.secondsAtUni * 1000);
+            timetable.hoursAtUni = Math.floor(duration.asHours()) + ":" + Math.floor(duration.asMinutes() % 60);
+
             return timetable;
-        }
+        };
 
         var timetables = [];
 
@@ -648,7 +665,7 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
         $scope.topTimetableCandidates = timetables.slice(0, 10);
 
         $scope.applyClassGroupSelection(timetables[0].classPicks);
-    }
+    };
 
 
     $scope.updateTimetable = function () {
@@ -673,13 +690,17 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
         });
 
         $scope.timetable = timetable;
-    }
+    };
 
-    $scope.chosenTopics = chosenTopicService.chosenTopics;
+    $scope.chosenTopics = [];
 
     $scope.$on('chosenTopicsUpdate', function () {
         updatePossibleTimetables();
+
+
+        $scope.chosenTopics = chosenTopicService.getTopics();
+
         $scope.updateTimetable();
         bruteForcePossibleTimetables();
     });
-})
+});

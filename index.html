@@ -126,7 +126,7 @@
         <table class="table table-condensed">
             <tr>
                 <th>Days at uni</th>
-                <th>Seconds at uni</th>
+                <th>Time at uni</th>
                 <th>Apply</th>
             </tr>
             <tr ng-repeat="candidate in topTimetableCandidates">
@@ -134,7 +134,7 @@
                     {{ candidate.daysAtUni }}
                 </td>
                 <td>
-                    {{ candidate.secondsAtUni }}
+                    {{ candidate.hoursAtUni }}
                 </td>
                 <td>
                     <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
