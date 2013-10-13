@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html ng-app="flindersTimetable" ng-controller="AppCtrl">
+<head>
+    <title ng-bind="pageTitle"></title>
+
+    <!-- font awesome from BootstrapCDN -->
+    <link href="http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+
+    <!-- compiled CSS --><% styles.forEach( function ( file ) { %>
+    <link rel="stylesheet" type="text/css" href="<%= file %>"/>
+    <% }); %>
+
+    <!-- compiled JavaScript --><% scripts.forEach( function ( file ) { %>
+    <script type="text/javascript" src="<%= file %>"></script>
+    <% }); %>
+
+</head>
+
+
+<div class="container" ui-view="main"></div>
+
+<footer class="container">
+    <hr/>
+    <p>Made by <a href="http://tobias.wooldridge.id.au/">Tobias Wooldridge</a> and <a href="https://github.com/rdpeake">Russell
+        Peake</a>.</p>
+
+    <p>Timetable data &copy; 2013 Flinders University</p>
+</footer>
+
+</body>
+</html>
