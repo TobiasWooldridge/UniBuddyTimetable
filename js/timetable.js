@@ -8,6 +8,10 @@ var appConfig = {
 
 var app = angular.module('timetable', []);
 
+app.filter('toTime', function() {return function(number) {
+    return moment.unix(number).utc().format('h:mm a');
+}});
+
 app.factory('topicFactory', function ($http, sessionsService) {
     var topicFactory = {};
 
