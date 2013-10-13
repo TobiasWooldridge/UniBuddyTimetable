@@ -8,6 +8,20 @@ var appConfig = {
 
 var app = angular.module('timetable', []);
 
+app.filter('toTime', function() {return function(number) {
+    var hour = parseInt(number / 3600);
+    if (hour > 12) {
+        hour = hour - 12;
+    }
+    var val = hour + ":";
+    var minute = parseInt((number % 3600) / 60);
+    if (minute < 10) {
+        val += "0";
+    }
+    val = val + minute + " " + (number >= (12*3600) ? "PM" : "AM");
+    return val;
+}});
+
 app.factory('topicFactory', function ($http, sessionsService) {
     var topicFactory = {};
 
