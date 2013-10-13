@@ -221,38 +221,40 @@ app.factory('chosenTopicService', function ($rootScope) {
         });
 
         return index;
-    }
+    };
 
 
     var that = {};
 
-    that.broadcast = function () {
+    that.broadcastTopicsUpdate = function () {
         $rootScope.$broadcast('chosenTopicsUpdate');
+        that.broadcastClassesUpdate();
+    };
+
+    that.broadcastClassesUpdate = function () {
+        $rootScope.$broadcast('chosenClassesUpdate');
     };
 
     that.addTopic = function (topic) {
         if (getTopicIndex(topic) === -1) {
-            chosenTopics.push(topic)
-            that.broadcast();
+            chosenTopics.push(topic);
+            that.broadcastTopicsUpdate();
         }
-    }
+    };
 
 
     that.removeTopic = function (topic) {
         var index = getTopicIndex(topic);
 
         if (index !== -1) {
-            console.log("Removing topic ", topic);
-            console.log(chosenTopics);
             chosenTopics.splice(index, 1);
-            console.log(chosenTopics);
-            that.broadcast();
+            that.broadcastTopicsUpdate();
         }
-    }
+    };
 
     that.getTopics = function () {
-        return chosenTopics.slice(0);
-    }
+        return chosenTopics;
+    };
 
     return that;
 });
@@ -273,6 +275,7 @@ app.factory('sessionsService', function (dayService) {
 
         return a.seconds_ends_at - b.seconds_ends_at;
     };
+
     that.sortSessions = function (sessions) {
         return sessions.sort(that.compareSessions);
     };
@@ -311,8 +314,8 @@ app.factory('clashService', function (sessionsService) {
     };
 
     that.classGroupsClash = function (a, b) {
-        aIndex = 0;
-        bIndex = 0;
+        var aIndex = 0;
+        var bIndex = 0;
 
         // Assumption: a.class_sessions and b.class_sessions are sorted
         while (aIndex < a.class_sessions.length && bIndex < b.class_sessions.length) {
@@ -339,9 +342,9 @@ app.factory('clashService', function (sessionsService) {
 app.factory('dayService', function () {
     var that = {};
 
-    dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    var dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
-    dayIndexes = {};
+    var dayIndexes = {};
 
     angular.forEach(dayNames, function (name, index) {
         dayIndexes[name] = index;
@@ -459,6 +462,10 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
     $scope.loadTopicIndex();
 });
 
+app.controller('ManualClassChooserController', function ($scope, chosenTopicService) {
+    $scope.broadcastClassUpdate = chosenTopicService.broadcastClassesUpdate();
+    $scope.chosenTopics = chosenTopicService.getTopics();
+});
 
 app.controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory) {
     $scope.chosenTopics = [];
@@ -466,10 +473,47 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
     $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
     $scope.timetable = timetableFactory.createEmptyTimetable();
 
-    var updatePossibleTimetables = function () {
+
+    $scope.updateTimetable = function () {
+        var timetable = timetableFactory.createEmptyTimetable();
+
+        var bookings = topicService.listBookingsForTopics($scope.chosenTopics);
+        bookings = sessionsService.sortSessions(bookings);
+
+        angular.forEach(bookings, function (booking) {
+            var day = booking.day_of_week;
+
+            var clashGroups = timetable[day];
+            var clashGroup = clashGroups[clashGroups.length - 1];
+
+            if (typeof clashGroup === "undefined" || !clashService.sessionsClash(clashGroup, booking)) {
+                clashGroup = clashGroupFactory.newClashGroup(booking);
+                timetable[day].push(clashGroup);
+            }
+            else {
+                clashGroup.addBooking(booking);
+            }
+        });
+
+        $scope.timetable = timetable;
+    };
+
+    $scope.chosenTopics = [];
+
+    $scope.$on('chosenClassesUpdate', function () {
+        $scope.chosenTopics = chosenTopicService.getTopics();
+
+        $scope.updateTimetable();
+    });
+});
+
+app.controller('TimetableGeneratorController', function ($scope, chosenTopicService, topicService, clashService) {
+    var chosenTopics = chosenTopicService.getTopics();
+
+    var countPossibleTimetables = function (topics) {
         var possibleTimetables = 1;
 
-        angular.forEach($scope.chosenTopics, function (topic) {
+        angular.forEach(topics, function (topic) {
             angular.forEach(topic.classes, function (class_type) {
                 var groups = class_type.class_groups.length;
                 if (groups > 0) {
@@ -478,11 +522,20 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
             });
         });
 
-        $scope.numTimetableCombinations = possibleTimetables;
+        return possibleTimetables;
     };
 
-    var bruteForcePossibleTimetables = function () {
-        if ($scope.chosenTopics.length === 0) {
+
+    $scope.applyClassGroupSelection = function (classGroupSelection) {
+        angular.forEach(classGroupSelection, function (entry) {
+            entry.class_type.active_class_group = entry.class_group;
+        });
+
+        chosenTopicService.broadcastClassesUpdate();
+    };
+
+    var findTimetablesWithMinimumClashes = function (topics) {
+        if (topics.length === 0) {
             return;
         }
 
@@ -492,26 +545,8 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
                 class_group: class_group
             }
         };
-        var shallowCopyClassGroupSelections = function (classGroupSelections) {
-            var selections = [];
 
-            angular.forEach(classGroupSelections, function (selection) {
-                selections.push(selection);
-            });
-
-            return selections;
-        };
-
-        $scope.applyClassGroupSelection = function (classGroupSelection) {
-            angular.forEach(classGroupSelection, function (entry) {
-                entry.class_type.active_class_group = entry.class_group;
-            });
-
-            $scope.updateTimetable();
-        };
-
-
-        var allClassGroups = topicService.listClassGroupsForTopics($scope.chosenTopics);
+        var allClassGroups = topicService.listClassGroupsForTopics(topics);
 
         var groupsClash = {};
         angular.forEach(allClassGroups, function (a) {
@@ -528,13 +563,15 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
 
         var generatedTimetables = [];
 
-        var examineTimetable = function (class_group_selections, clashes) {
-            if (clashes < $scope.clashLimit) {
-                $scope.clashLimit = clashes;
+        var examineTimetable = function (class_group_selections, numClashes) {
+            if (numClashes < $scope.clashLimit) {
+                $scope.clashLimit = numClashes;
                 generatedTimetables = [];
             }
 
-            generatedTimetables.push(shallowCopyClassGroupSelections(class_group_selections))
+            if (numClashes <= $scope.clashLimit) {
+                generatedTimetables.push(angular.extend({}, class_group_selections));
+            }
         };
 
 
@@ -574,7 +611,7 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
         var chosen_class_groups = {};
         var remaining_class_choices = [];
 
-        var class_types = topicService.listClassTypesForTopics($scope.chosenTopics);
+        var class_types = topicService.listClassTypesForTopics(topics);
 
         angular.forEach(class_types, function (class_type) {
             if (class_type.class_groups.length >= 1 && class_type.active_class_group.locked) {
@@ -595,9 +632,7 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
 
         $scope.numRefinedPossibleTimetables = generatedTimetables.length;
 
-        if (generatedTimetables.length > 0) {
-            cherryPickIdealTimetables(generatedTimetables);
-        }
+        return generatedTimetables;
     };
 
     var cherryPickIdealTimetables = function (rawGeneratedTimetables) {
@@ -632,7 +667,6 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
             timetable.secondsAtUni = 0;
 
             var startTimeSum = 0;
-            var endTimeSum = 0;
             var endTimeSum = 0;
 
             angular.forEach(days, function (day) {
@@ -676,50 +710,29 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
 
             var secondsDifference = a.secondsAtUni - b.secondsAtUni;
 
-            return secondsDifference;
+            return a.secondsAtUni - b.secondsAtUni;
         });
 
-
-        $scope.topTimetableCandidates = timetables.slice(0, 10);
-
-        $scope.applyClassGroupSelection(timetables[0].classPicks);
+        return timetables;
     };
 
+    $scope.generateTimetables = function () {
+        var timetables = findTimetablesWithMinimumClashes(chosenTopics);
 
-    $scope.updateTimetable = function () {
-        var timetable = timetableFactory.createEmptyTimetable();
+        timetables = cherryPickIdealTimetables(timetables);
 
-        var bookings = topicService.listBookingsForTopics($scope.chosenTopics);
-        bookings = sessionsService.sortSessions(bookings);
+        $scope.topTimetableCandidates = timetables.slice(0, 5);
 
-        angular.forEach(bookings, function (booking) {
-            var day = booking.day_of_week;
-
-            var clashGroups = timetable[day];
-            var clashGroup = clashGroups[clashGroups.length - 1];
-
-            if (typeof clashGroup === "undefined" || !clashService.sessionsClash(clashGroup, booking)) {
-                clashGroup = clashGroupFactory.newClashGroup(booking);
-                timetable[day].push(clashGroup);
-            }
-            else {
-                clashGroup.addBooking(booking);
-            }
-        });
-
-        $scope.timetable = timetable;
+        $scope.hasGeneratedTimetables = true;
     };
 
-    $scope.chosenTopics = [];
 
     $scope.$on('chosenTopicsUpdate', function () {
-        $scope.chosenTopics = chosenTopicService.getTopics();
+        chosenTopics = chosenTopicService.getTopics();
+        $scope.hasChosenTopics = (chosenTopics.length > 0);
 
-        updatePossibleTimetables();
+        $scope.possibleTimetables = countPossibleTimetables(chosenTopics);
 
-        bruteForcePossibleTimetables();
-
-
-        $scope.updateTimetable();
+        $scope.hasGeneratedTimetables = false;
     });
 });
