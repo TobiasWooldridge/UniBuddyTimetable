@@ -1,6 +1,6 @@
 <div class="container" ng-controller="TopicController">
     <div class="page-header">
-        <h1>Flinders Timetable Planner</h1>
+        <h1>Flinders University Timetable Planner</h1>
     </div>
 
     <div class="alert alert-warning">
@@ -56,13 +56,13 @@
             <tfoot ng-show="selectedTopics.length <= 6">
             <tr>
                 <td class="filter">
-                    <input class="input-medium" ng-model="topicSearch" placeholder="Search"/>
+                    <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
                 </td>
                 <td width="*">
                     <p ng-show="!topicIndex.length"><img src="images/ajax-loader.gif" alt="Loading"
                                                          class="ajax-loader"/>
                     </p>
-                    <select ng-show="topicIndex.length" class="input-large" ng-model="activeTopic"
+                    <select ng-show="topicIndex.length" class="form-control" ng-model="activeTopic"
                             ng-options="t as t.code + ' ' + t.name + ' ' for t in topicIndex | filter:topicSearch">
                     </select>
                 </td>
@@ -135,8 +135,8 @@
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="span3 topic topic-{{topic.id % 16}}">
-                <h3>{{ topic.code }} {{ topic.name }}</h3>
+            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 16}}">
+            <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration || 0) / 60}}
