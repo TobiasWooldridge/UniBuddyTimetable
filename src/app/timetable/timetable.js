@@ -23,7 +23,6 @@ var appConfig = {
 angular.module('flindersTimetable.timetable', [
         'ui.state'
     ])
-
 /**
  * Each section or module of the site can also have its own routes. AngularJS
  * will handle ensuring they are all available at run-time, but splitting it
@@ -52,16 +51,24 @@ angular.module('flindersTimetable.timetable', [
         ];
     })
 
+    .filter('toTime', function () {
+        return function (number) {
+            return moment.unix(number).utc().format('h:mm a');
+        };
+    })
+
     .factory('topicFactory', function ($http, sessionsService) {
         var topicFactory = {};
 
         topicFactory.getTopicsAsync = function (year, semester, callback) {
             var url = appConfig.apiPath + 'topics.json' + "?";
 
-            if (year !== "Any")
+            if (year !== "Any") {
                 url += "&year=" + year;
-            if (semester !== "Any")
+            }
+            if (semester !== "Any") {
                 url += "&semester=" + semester;
+            }
 
             $http.get(url).success(function (data, status, headers, config) {
                 function compareTopics(a, b) {
@@ -113,7 +120,7 @@ angular.module('flindersTimetable.timetable', [
             topicFactory.getTopicTimetableAsync(topic.id, function (class_types, status, headers, config) {
                 topic.classes = class_types;
 
-                callback(topic, status, headers, config)
+                callback(topic, status, headers, config);
             });
         };
 
@@ -144,8 +151,10 @@ angular.module('flindersTimetable.timetable', [
             var class_types = [];
 
             angular.forEach(topics, function (topic) {
-                if (topic.classes)
-                    class_types = class_types.concat(topic.classes);
+                var classes = topic.classes;
+                if (classes) {
+                    class_types = class_types.concat(classes);
+                }
             });
 
             return class_types;
@@ -157,8 +166,9 @@ angular.module('flindersTimetable.timetable', [
             var class_groups = [];
 
             angular.forEach(class_types, function (class_type) {
-                if (class_type.class_groups)
+                if (class_type.class_groups) {
                     class_groups = class_groups.concat(class_type.class_groups);
+                }
             });
 
             return class_groups;
@@ -309,13 +319,15 @@ angular.module('flindersTimetable.timetable', [
         that.compareSessions = function (a, b) {
             // Sort by day
             var daysDifference = dayService.compareDays(a.day_of_week, b.day_of_week);
-            if (daysDifference !== 0)
+            if (daysDifference !== 0) {
                 return daysDifference;
+            }
 
             // Sort by starting time of day
             var secondsStartsDifference = a.seconds_starts_at - b.seconds_starts_at;
-            if (secondsStartsDifference !== 0)
+            if (secondsStartsDifference !== 0) {
                 return secondsStartsDifference;
+            }
 
 
             return a.seconds_ends_at - b.seconds_ends_at;
@@ -332,27 +344,28 @@ angular.module('flindersTimetable.timetable', [
         var that = {};
 
         that.sessionsClash = function (a, b) {
-            if (a.day_of_week !== b.day_of_week)
+            if (a.day_of_week !== b.day_of_week) {
                 return false;
-
-            else if (a.seconds_starts_at == b.seconds_starts_at)
+            }
+            else if (a.seconds_starts_at == b.seconds_starts_at) {
                 return true;
-
+            }
             // a's start is within b's interval
-            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at)
+            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
                 return true;
-
+            }
             // a's end is within b's interval
-            else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at)
+            else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
                 return true;
-
+            }
             // a wraps b
-            else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at)
+            else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
                 return true;
-
+            }
             // b wraps a
-            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at)
+            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
                 return true;
+            }
 
 
             return false;
@@ -370,10 +383,12 @@ angular.module('flindersTimetable.timetable', [
                     return true;
                 } else {
                     // Advance the pointer to whichever class group starts first
-                    if (sessionsService.compareSessions(a.class_sessions[aIndex], b.class_sessions[bIndex]) < 0)
+                    if (sessionsService.compareSessions(a.class_sessions[aIndex], b.class_sessions[bIndex]) < 0) {
                         aIndex++;
-                    else
+                    }
+                    else {
                         bIndex++;
+                    }
                 }
             }
 
@@ -400,7 +415,7 @@ angular.module('flindersTimetable.timetable', [
         };
 
         that.dayOfWeekToDayName = function (dayOfWeek) {
-            return days[dayOfWeek]
+            return days[dayOfWeek];
         };
 
         that.days = function () {
@@ -451,7 +466,7 @@ angular.module('flindersTimetable.timetable', [
         };
 
         var topicIdIsSelected = function (topicId) {
-            return selectedTopicIds().indexOf(parseInt(topicId)) !== -1;
+            return selectedTopicIds().indexOf(parseInt(topicId, 10)) !== -1;
         };
 
         $scope.loadTopicIndex = function () {
@@ -468,18 +483,20 @@ angular.module('flindersTimetable.timetable', [
         });
 
         $scope.validateTopic = function (topic) {
-            if (typeof topic === "undefined")
+            if (typeof topic === "undefined") {
                 return false;
-
-            if (topicIdIsSelected(topic.id))
+            }
+            else if (topicIdIsSelected(topic.id)) {
                 return false;
+            }
 
             return !$scope.formDisabled;
         };
 
         $scope.addTopic = function (topic) {
-            if (!$scope.validateTopic(topic))
+            if (!$scope.validateTopic(topic)) {
                 return;
+            }
 
             $scope.topicSearch = "";
 
@@ -584,7 +601,7 @@ angular.module('flindersTimetable.timetable', [
                 return {
                     class_type: class_type,
                     class_group: class_group
-                }
+                };
             };
 
             var allClassGroups = topicService.listClassGroupsForTopics(topics);
@@ -696,11 +713,11 @@ angular.module('flindersTimetable.timetable', [
                         days[session.day_of_week] = {
                             seconds_starts_at: session.seconds_starts_at,
                             seconds_ends_at: session.seconds_ends_at
-                        }
+                        };
                     }
                     else {
                         days[session.day_of_week].seconds_starts_at = Math.min(days[session.day_of_week].seconds_starts_at, session.seconds_starts_at);
-                        days[session.day_of_week].seconds_ends_at = Math.max(days[session.day_of_week].seconds_ends_at, session.seconds_ends_at)
+                        days[session.day_of_week].seconds_ends_at = Math.max(days[session.day_of_week].seconds_ends_at, session.seconds_ends_at);
                     }
                 });
 
@@ -739,7 +756,7 @@ angular.module('flindersTimetable.timetable', [
 
                 calculateTimeMetrics(timetable);
 
-                timetables.push(timetable)
+                timetables.push(timetable);
             });
 
             timetables.sort(function (a, b) {
