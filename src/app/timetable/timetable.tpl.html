@@ -18,10 +18,9 @@
         </li>
     </ol>
 
-
-    <tabset>
-        <tab ng-controller="TopicController">
-            <form class="form-inline">
+    <div>
+        <div ng-controller="TopicController">
+        <form class="form-inline">
                 <div class="page-header">
                     <h2>When are we planning for?</h2>
                 </div>
@@ -79,10 +78,10 @@
                     </tfoot>
                 </table>
             </form>
-        </tab>
+        </div>
 
-        <tab class="container" ng-controller="TimetableGeneratorController" ng-show="hasChosenTopics">
-            <div class="page-header">
+        <div class="container" ng-controller="TimetableGeneratorController" ng-show="hasChosenTopics">
+        <div class="page-header">
                 <h3>Timetable Generator</h3>
             </div>
 
@@ -130,10 +129,10 @@
                     </tr>
                 </table>
             </div>
-        </tab>
+        </div>
 
-        <tab class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
-            <div class="chosen-topics">
+        <div class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
+        <div class="chosen-topics">
                 <div class="page-header">
                     <h3>Manual Class Selector</h3>
                 </div>
@@ -161,9 +160,9 @@
                     </div>
                 </div>
             </div>
-        </tab>
-    </tabset>
-</div>
+        </div>
+        </divset>
+    </div>
 
 <div class="container" ng-controller="TimetableController" ng-show="chosenTopics.length">
     <table class="timetable table">
