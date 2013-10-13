@@ -9,8 +9,7 @@ var appConfig = {
 var app = angular.module('timetable', []);
 
 app.filter('toTime', function() {return function(number) {
-    number = number - (10.5 * 3600);
-    return moment.unix(number).format('h:mm a');
+    return moment.unix(number).utc().format('h:mm a');
 }});
 
 app.factory('topicFactory', function ($http, sessionsService) {
