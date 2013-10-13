@@ -142,17 +142,17 @@
                         <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                         <div ng-show="topic.classes" ng-repeat="class in topic.classes">
-                            <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration || 0) /
+                            <h4>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) /
                                 60}}
                                 minutes)</h4>
 
-                            <div ng-show="class.class_groups" class="list-group">
-                                <a ng-repeat="class_group in class.class_groups" class="list-group-item"
-                                   ng-class="{ active: (class_group == class.active_class_group) }"
-                                   ng-click="(class.active_class_group = class_group) && broadcastClassesUpdate()">
+                            <div ng-show="class.classGroups" class="list-group">
+                                <a ng-repeat="classGroup in class.classGroups" class="list-group-item"
+                                   ng-class="{ active: (classGroup == class.activeClassGroup) }"
+                                   ng-click="(class.activeClassGroup = classGroup) && broadcastClassesUpdate()">
                                     <p class="list-group-item-text"
-                                       ng-repeat="class_session in class_group.class_sessions">{{
-                                        class_session.day_of_week }} {{ class_session.time_starts_at }}
+                                       ng-repeat="classSession in classGroup.classSessions">{{
+                                        classSession.dayOfWeek }} {{ classSession.timeStartsAt }}
                                     </p>
                                 </a>
                             </div>
@@ -185,13 +185,13 @@
                 <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
                     <table style="top: 0px; height: 0px; position: relative;" width="100%">
                         <tr>
-                            <td ng-repeat="clash_column in clashGroup.clashColumns">
-                                <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
-                                    <div class="booking topic-{{booking.topic_id % 16}}"
-                                         style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
+                            <td ng-repeat="clashColumn in clashGroup.clashColumns">
+                                <div ng-repeat="booking in clashColumn" style="position: relative; height: 0px;">
+                                    <div class="booking topic-{{booking.topicId % 16}}"
+                                         style="height: {{ booking.secondsDuration / 60 }}px; top: {{ (booking.secondsStartsAt - 28800) / 60 }}px;">
                                         <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
 
-                                        <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
+                                        <p>{{ booking.topicCode }} {{ booking.className }}</p>
                                     </div>
                                 </div>
                             </td>
