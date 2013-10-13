@@ -269,9 +269,10 @@ app.factory('sessionsService', function (dayService) {
             return daysDifference;
 
         // Sort by starting time of day
-        var secondsDifference = a.seconds_starts_at - b.seconds_starts_at;
-        if (secondsDifference !== 0)
-            return secondsDifference;
+        var secondsStartsDifference = a.seconds_starts_at - b.seconds_starts_at;
+        if (secondsStartsDifference !== 0)
+            return secondsStartsDifference;
+
 
         return a.seconds_ends_at - b.seconds_ends_at;
     };
@@ -436,20 +437,18 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
         if (!$scope.validateTopic(topic))
             return;
 
+        $scope.topicSearch = "";
+
         topic = angular.copy(topic);
 
         $scope.selectedTopics.push($scope.activeTopic);
 
 
-        chosenTopicService.addTopic(topic);
-
         topicFactory.loadTimetableForTopicAsync(topic, function () {
             if (topicIdIsSelected(topic.id)) {
-                chosenTopicService.broadcast();
+                chosenTopicService.addTopic(topic);
             }
         });
-
-        $scope.topicSearch = "";
     };
 
     $scope.removeTopic = function (topic) {
@@ -463,7 +462,7 @@ app.controller('TopicController', function ($scope, chosenTopicService, topicFac
 });
 
 app.controller('ManualClassChooserController', function ($scope, chosenTopicService) {
-    $scope.broadcastClassUpdate = chosenTopicService.broadcastClassesUpdate();
+    $scope.broadcastClassesUpdate = chosenTopicService.broadcastClassesUpdate;
     $scope.chosenTopics = chosenTopicService.getTopics();
 });
 
@@ -498,11 +497,9 @@ app.controller('TimetableController', function ($scope, chosenTopicService, topi
         $scope.timetable = timetable;
     };
 
-    $scope.chosenTopics = [];
+    $scope.chosenTopics = chosenTopicService.getTopics();
 
     $scope.$on('chosenClassesUpdate', function () {
-        $scope.chosenTopics = chosenTopicService.getTopics();
-
         $scope.updateTimetable();
     });
 });

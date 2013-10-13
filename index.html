@@ -139,10 +139,10 @@
     </div>
 </div>
 
-<div class="container" ng-controller="TimetableController" ng-show="chosenTopics.length">
+<div class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
     <div class="chosen-topics">
         <div class="page-header">
-            <h3>Manual Topic Selector</h3>
+            <h3>Manual Class Selector</h3>
         </div>
 
         <div class="row">
@@ -156,8 +156,8 @@
                     <div ng-show="class.class_groups" class="list-group">
                         <a ng-repeat="class_group in class.class_groups" class="list-group-item"
                            ng-class="{ active: (class_group == class.active_class_group) }"
-                           ng-click="(class.active_class_group = class_group) && broadcastClassUpdate()">
-                            <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
+                           ng-click="(class.active_class_group = class_group) && broadcastClassesUpdate()">
+                        <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
                                 class_session.day_of_week }} {{ class_session.time_starts_at }}
                             </p>
                         </a>
