@@ -3,8 +3,7 @@ angular.module('flindersTimetable', [
         'templates-common',
         'flindersTimetable.timetable',
         'ui.state',
-        'ui.route',
-        'ui.bootstrap'
+        'ui.route'
     ])
 
     .config(function myAppConfig($stateProvider, $urlRouterProvider) {
