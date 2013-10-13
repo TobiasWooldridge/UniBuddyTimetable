@@ -1,0 +1,5 @@
+filter:
+    excluded_paths: [js/vendor/*, bootstrap/*]
+
+tools:
+    js_hint: true

@@ -89,15 +89,65 @@
     </form>
 </div>
 
-<div class="container" ng-controller="TimetableController">
-    <div ng-show="chosenTopics.length" class="chosen-topics">
+<div class="container" ng-controller="TimetableGeneratorController" ng-show="hasChosenTopics">
+    <div class="page-header">
+        <h3>Timetable Generator</h3>
+    </div>
+
+    <p>You have {{ numTimetableCombinations }} possible timetables.</p>
+
+    <div ng-show="!hasGeneratedTimetables">
+        <p>Auto generate timetables
+            <button class="btn btn-primary" ng-click="generateTimetables()">Auto Generate Timetables</button>
+        </p>
+    </div>
+
+    <div ng-show="hasGeneratedTimetables">
+        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables, with {{ maxClashes }}
+            clashes.</p>
+
+        <p>This took {{ examineDuration }} seconds.</p>
+
+        <table class="table table-condensed">
+            <tr>
+                <th>Days at uni</th>
+                <th>Time at uni</th>
+                <th>Average start time</th>
+                <th>Average end time</th>
+                <th>Apply</th>
+            </tr>
+            <tr ng-repeat="candidate in topTimetableCandidates">
+                <td>
+                    {{ candidate.daysAtUni }}
+                </td>
+                <td>
+                    {{ candidate.hoursAtUni }}
+                </td>
+                <td>
+                    {{ candidate.averageStartTime }}
+                </td>
+                <td>
+                    {{ candidate.averageEndTime }}
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
+                        Apply Classes
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
+    <div class="chosen-topics">
         <div class="page-header">
-            <h3>Ready? Let's find the ideal timetable</h3>
+            <h3>Manual Class Selector</h3>
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 10}}">
-                <h3>{{ topic.code }} {{ topic.name }}</h3>
+            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 16}}">
+            <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h4>{{ class.name }} ({{ (class.class_groups[0].class_sessions[0].seconds_duration || 0) / 60}}
@@ -106,9 +156,8 @@
                     <div ng-show="class.class_groups" class="list-group">
                         <a ng-repeat="class_group in class.class_groups" class="list-group-item"
                            ng-class="{ active: (class_group == class.active_class_group) }"
-                           ng-click="(class.active_class_group = class_group) && updateTimetable()">
-                            <!-- <h5 ng-show="cltiass.class_groups.length > 1" class="list-group-item-heading">Group {{ class_group.group_id }}</h5> -->
-                            <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
+                           ng-click="(class.active_class_group = class_group) && broadcastClassesUpdate()">
+                        <p class="list-group-item-text" ng-repeat="class_session in class_group.class_sessions">{{
                                 class_session.day_of_week }} {{ class_session.time_starts_at }}
                             </p>
                         </a>
@@ -116,80 +165,56 @@
                 </div>
             </div>
         </div>
-
-        <p>You have {{ numTimetableCombinations }} possible timetables.</p>
-
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables, with {{ maxClashes }} clashes.</p>
-
-        <p>This took {{ examineDuration }} seconds.</p>
-
-        <table class="table table-condensed">
-            <tr>
-                <th>Days at uni</th>
-                <th>Seconds at uni</th>
-                <th>Apply</th>
-            </tr>
-            <tr ng-repeat="timetable in topTimetableCandidates">
-                <td>
-                    {{ timetable.daysAtUni }}
-                </td>
-                <td>
-                    {{ timetable.secondsAtUni }}
-                </td>
-                <td>
-                    <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(timetable.classPicks)">Apply</button>
-                </td>
-            </tr>
-        </table>
     </div>
+</div>
 
-
-    <table class="timetable table" ng-show="chosenTopics.length">
+<div class="container" ng-controller="TimetableController" ng-show="chosenTopics.length">
+    <table class="timetable table">
         <thead>
-            <tr>
-                <th class="times"></th>
-                <th ng-repeat="day in days">{{ day }}</th>
-            </tr>
+        <tr>
+            <th class="times"></th>
+            <th ng-repeat="day in days">{{ day }}</th>
+        </tr>
         </thead>
         <tbody>
-            <tr>
-                <td class="timetable-column">
-                    <table>
-                        <tr ng-repeat="hour in hours">
-                            <th class="hour"><span>{{ hour }}</span></th>
-                        </tr>
-                    </table>
-                </td>
-                <td ng-repeat="day in days" class="timetable-column">
-                    <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
-                        <table style="top: 0px; height: 0px; position: relative;" width="100%">
-                            <tr>
-                                <td ng-repeat="clash_column in clashGroup.clash_columns">
-                                    <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
-                                        <div class="booking topic-{{booking.topic_id % 10}}"
-                                             style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
-                                            <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
-                                            <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
-                                        </div>
+        <tr>
+            <td class="timetable-column">
+                <table>
+                    <tr ng-repeat="hour in hours">
+                        <th class="hour"><span>{{ hour }}</span></th>
+                    </tr>
+                </table>
+            </td>
+            <td ng-repeat="day in days" class="timetable-column">
+                <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
+                    <table style="top: 0px; height: 0px; position: relative;" width="100%">
+                        <tr>
+                            <td ng-repeat="clash_column in clashGroup.clashColumns">
+                                <div ng-repeat="booking in clash_column" style="position: relative; height: 0px;">
+                                    <div class="booking topic-{{booking.topic_id % 16}}"
+                                         style="height: {{ booking.seconds_duration / 60 }}px; top: {{ (booking.seconds_starts_at - 28800) / 60 }}px;">
+                                        <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
+
+                                        <p>{{ booking.topic_code }} {{ booking.class_name }}</p>
                                     </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <table class="grid">
-                        <tr ng-repeat="hours in hours" class="half-hour-marker">
-                            <td>&nbsp;</td>
-                        </tr>
-                        <tr ng-repeat="hours in hours" class="half-hour-marker">
-                            <td>&nbsp;</td>
+                                </div>
+                            </td>
                         </tr>
                     </table>
-                </td>
-            </tr>
+                </div>
+                <table class="grid">
+                    <tr ng-repeat="hours in hours" class="half-hour-marker">
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr ng-repeat="hours in hours" class="half-hour-marker">
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
         </tbody>
     </table>
 </div>
-
 
 <footer class="container">
     <hr/>
@@ -197,8 +222,5 @@
     <p>Timetable data &copy; 2013 Flinders University</p>
 </footer>
 
-<script>
-    timetable({});
-</script>
 </body>
 </html>
