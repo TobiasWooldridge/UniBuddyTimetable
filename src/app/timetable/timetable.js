@@ -45,12 +45,72 @@ angular.module('flindersTimetable.timetable', [
  * And of course we define a controller for our route.
  */
     .controller('TimetableCtrl', function TimetableController($scope) {
+
     })
 
     .filter('toTime', function () {
         return function (number) {
             return moment.unix(number).utc().format('h:mm a');
         };
+    })
+
+    .factory('urlFactory', function($location) {
+        var urlFactory = {};
+         //todo add in startup reading of url?
+
+        var Settings;
+
+        var setHash = function(url) {
+            $location.search(url);
+        };
+
+        urlFactory.get = function (setting) {
+            if (Settings === undefined) {
+                Settings = {};
+                if ($location.search().year !== undefined) {
+                    Settings.year = parseInt($location.search().year, 10);
+                }
+                Settings.semester = $location.search().semester;
+            }
+            if (setting == 'year') {                
+                return Settings.year;
+            }
+            else if (setting == 'semester') {
+                return Settings.semester;
+            }
+        };
+
+        urlFactory.set = function(setting, value) {
+            if (setting == "year") {
+                Settings.year = value;
+            }
+            else if (setting == 'semester') {
+                Settings.semester = value;
+            }
+            else if (setting == 'topics') {
+                Settings.chosenTopics = value;
+            }
+
+            updateURL();
+
+        };
+
+        var updateURL = function() {
+            var url = '?';
+
+            if (Settings.year) {
+                url += "year=" + Settings.year;
+            }
+            if (Settings.semester) {
+                url += "&semester=" + Settings.semester;
+            }
+
+
+            setHash(Settings);
+        };
+
+
+        return urlFactory;
     })
 
     .factory('camelCaseService', function () {
@@ -469,12 +529,26 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .controller('TopicController', function ($scope, chosenTopicService, topicFactory, filterFilter) {
+    .controller('TopicController', function ($scope, chosenTopicService, topicFactory, filterFilter, urlFactory) {
         $scope.years = appConfig.years;
         $scope.activeYear = appConfig.defaultYear;
+        
+        if (urlFactory.get('year') !== undefined && $scope.years.indexOf(urlFactory.get('year')) !== -1) {
+            $scope.activeYear = urlFactory.get('year');
+        }
+        else {
+            urlFactory.set('year', $scope.activeYear);
+        }
 
         $scope.semesters = appConfig.semesters;
         $scope.activeSemester = appConfig.defaultSemester;
+        
+        if (urlFactory.get('semester') !== undefined && $scope.semesters.indexOf(urlFactory.get('semester')) !== -1) {
+            $scope.activeSemester = urlFactory.get('semester');
+        }
+        else {
+            urlFactory.set('semester', $scope.activeSemester);
+        }
 
         $scope.formDisabled = false;
 
