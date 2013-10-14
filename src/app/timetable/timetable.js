@@ -45,10 +45,6 @@ angular.module('flindersTimetable.timetable', [
  * And of course we define a controller for our route.
  */
     .controller('TimetableCtrl', function TimetableController($scope) {
-        $scope.tabs = [
-            { title: "Dynamic Title 1", content: "Dynamic content 1" },
-            { title: "Dynamic Title 2", content: "Dynamic content 2", disabled: true }
-        ];
     })
 
     .filter('toTime', function () {
@@ -57,7 +53,44 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
-    .factory('topicFactory', function ($http, sessionsService) {
+    .factory('camelCaseService', function () {
+        var camelCase = function (str) {
+            return str.toLowerCase().replace(/[_-](.)/g, function (m, g) {
+                return g.toUpperCase();
+            });
+        };
+
+        var that = {};
+
+        that.camelCaseObject = function (object) {
+            if (typeof object !== "object") {
+                return;
+            }
+
+            var keys = [];
+            for (var key in object) {
+                keys.push(key);
+            }
+
+            for (var i = 0; i < keys.length; i++) {
+                var oldKey = keys[i];
+                var newKey = camelCase(oldKey);
+
+                if (oldKey !== newKey) {
+                    object[newKey] = object[oldKey];
+                    delete(object[oldKey]);
+                }
+
+                that.camelCaseObject(object[newKey]);
+            }
+
+            return object;
+        };
+
+        return that;
+    })
+
+    .factory('topicFactory', function ($http, sessionsService, camelCaseService) {
         var topicFactory = {};
 
         topicFactory.getTopicsAsync = function (year, semester, callback) {
@@ -72,20 +105,22 @@ angular.module('flindersTimetable.timetable', [
 
             $http.get(url).success(function (data, status, headers, config) {
                 function compareTopics(a, b) {
-                    var subject_difference = a.subject_area.localeCompare(b.subject_area);
+                    var subjectDifference = a.subjectArea.localeCompare(b.subjectArea);
 
-                    if (subject_difference !== 0) {
-                        return subject_difference;
+                    if (subjectDifference !== 0) {
+                        return subjectDifference;
                     }
 
-                    var topic_difference = a.topic_number.localeCompare(b.topic_number);
+                    var topicDifference = a.topicNumber.localeCompare(b.topicNumber);
 
-                    if (topic_difference !== 0) {
-                        return topic_difference;
+                    if (topicDifference !== 0) {
+                        return topicDifference;
                     }
 
                     return a.name.localeCompare(b.name);
                 }
+
+                camelCaseService.camelCaseObject(data);
 
                 data.sort(compareTopics);
 
@@ -93,32 +128,36 @@ angular.module('flindersTimetable.timetable', [
             });
         };
 
-        topicFactory.getTopicAsync = function (topic_id, callback) {
-            var url = appConfig.apiPath + 'topics/' + topic_id + '.json';
+        topicFactory.getTopicAsync = function (topicId, callback) {
+            var url = appConfig.apiPath + 'topics/' + topicId + '.json';
 
             $http.get(url).success(function (data, status, headers, config) {
+                camelCaseService.camelCaseObject(data);
+
                 callback(data, status, headers, config);
             });
         };
-        topicFactory.getTopicTimetableAsync = function (topic_id, callback) {
-            var url = appConfig.apiPath + 'topics/' + topic_id + '/classes.json';
+        topicFactory.getTopicTimetableAsync = function (topicId, callback) {
+            var url = appConfig.apiPath + 'topics/' + topicId + '/classes.json';
 
-            $http.get(url).success(function (class_types, status, headers, config) {
-                angular.forEach(class_types, function (class_type) {
-                    class_type.active_class_group = class_type.class_groups[0];
+            $http.get(url).success(function (classTypes, status, headers, config) {
+                camelCaseService.camelCaseObject(classTypes);
 
-                    angular.forEach(class_type.class_groups, function (class_group) {
-                        class_group.class_sessions = sessionsService.sortSessions(class_group.class_sessions);
-                        class_group.locked = class_type.class_groups.length === 1;
+                angular.forEach(classTypes, function (classType) {
+                    classType.activeClassGroup = classType.classGroups[0];
+
+                    angular.forEach(classType.classGroups, function (classGroup) {
+                        sessionsService.sortSessions(classGroup.classSessions);
+                        classGroup.locked = classType.classGroups.length === 1;
                     });
                 });
 
-                callback(class_types, status, headers, config);
+                callback(classTypes, status, headers, config);
             });
         };
         topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
-            topicFactory.getTopicTimetableAsync(topic.id, function (class_types, status, headers, config) {
-                topic.classes = class_types;
+            topicFactory.getTopicTimetableAsync(topic.id, function (classTypes, status, headers, config) {
+                topic.classes = classTypes;
 
                 callback(topic, status, headers, config);
             });
@@ -134,12 +173,12 @@ angular.module('flindersTimetable.timetable', [
             var bookings = [];
 
             angular.forEach(topics, function (topic) {
-                angular.forEach(topic.classes, function (class_type) {
-                    if (!class_type.active_class_group) {
+                angular.forEach(topic.classes, function (classType) {
+                    if (!classType.activeClassGroup) {
                         return;
                     }
-                    angular.forEach(class_type.active_class_group.class_sessions, function (class_session) {
-                        bookings.push(bookingFactory.newBooking(topic, class_type, class_type.active_class_group, class_session));
+                    angular.forEach(classType.activeClassGroup.classSessions, function (classSession) {
+                        bookings.push(bookingFactory.newBooking(topic, classType, classType.activeClassGroup, classSession));
                     });
                 });
             });
@@ -148,30 +187,30 @@ angular.module('flindersTimetable.timetable', [
         };
 
         that.listClassTypesForTopics = function (topics) {
-            var class_types = [];
+            var classTypes = [];
 
             angular.forEach(topics, function (topic) {
                 var classes = topic.classes;
                 if (classes) {
-                    class_types = class_types.concat(classes);
+                    classTypes = classTypes.concat(classes);
                 }
             });
 
-            return class_types;
+            return classTypes;
         };
 
         that.listClassGroupsForTopics = function (topics) {
-            var class_types = that.listClassTypesForTopics(topics);
+            var classTypes = that.listClassTypesForTopics(topics);
 
-            var class_groups = [];
+            var classGroups = [];
 
-            angular.forEach(class_types, function (class_type) {
-                if (class_type.class_groups) {
-                    class_groups = class_groups.concat(class_type.class_groups);
+            angular.forEach(classTypes, function (classType) {
+                if (classType.classGroups) {
+                    classGroups = classGroups.concat(classType.classGroups);
                 }
             });
 
-            return class_groups;
+            return classGroups;
         };
 
         return that;
@@ -196,17 +235,17 @@ angular.module('flindersTimetable.timetable', [
     .factory('bookingFactory', function () {
         var that = {};
 
-        that.newBooking = function (topic, class_type, class_group, class_session) {
+        that.newBooking = function (topic, classType, classGroup, classSession) {
             var booking = {};
 
-            booking.topic_id = topic.id;
-            booking.topic_code = topic.code;
-            booking.class_name = class_type.name;
-            booking.day_of_week = class_session.day_of_week;
-            booking.seconds_starts_at = class_session.seconds_starts_at;
-            booking.seconds_ends_at = class_session.seconds_ends_at;
-            booking.seconds_duration = class_session.seconds_duration;
-            booking.locked = class_group.locked;
+            booking.topicId = topic.id;
+            booking.topicCode = topic.code;
+            booking.className = classType.name;
+            booking.dayOfWeek = classSession.dayOfWeek;
+            booking.secondsStartsAt = classSession.secondsStartsAt;
+            booking.secondsEndsAt = classSession.secondsEndsAt;
+            booking.secondsDuration = classSession.secondsDuration;
+            booking.locked = classGroup.locked;
 
             return booking;
         };
@@ -219,35 +258,35 @@ angular.module('flindersTimetable.timetable', [
 
         that.newClashGroup = function (firstBooking) {
             var clashGroup = {
-                day_of_week: firstBooking.day_of_week,
-                seconds_starts_at: firstBooking.seconds_starts_at,
-                seconds_ends_at: firstBooking.seconds_ends_at,
+                dayOfWeek: firstBooking.dayOfWeek,
+                secondsStartsAt: firstBooking.secondsStartsAt,
+                secondsEndsAt: firstBooking.secondsEndsAt,
 
                 clashColumns: [],
 
                 addBooking: function (booking) {
-                    clashGroup.seconds_starts_at = Math.min(clashGroup.seconds_starts_at, booking.seconds_starts_at);
-                    clashGroup.seconds_ends_at = Math.max(clashGroup.seconds_ends_at, booking.seconds_ends_at);
+                    clashGroup.secondsStartsAt = Math.min(clashGroup.secondsStartsAt, booking.secondsStartsAt);
+                    clashGroup.secondsEndsAt = Math.max(clashGroup.secondsEndsAt, booking.secondsEndsAt);
 
 
-                    var clash_column = null;
+                    var clashColumn = null;
                     if (clashGroup.clashColumns.length > 0) {
-                        var latest_contestant_ends = 0;
-                        angular.forEach(clashGroup.clashColumns, function (contestant_column) {
-                            var contestant_column_ends = contestant_column[contestant_column.length - 1].seconds_ends_at;
-                            if (contestant_column_ends <= booking.seconds_starts_at && contestant_column_ends > latest_contestant_ends) {
-                                clash_column = contestant_column;
-                                latest_contestant_ends = contestant_column_ends;
+                        var latestContestantEnds = 0;
+                        angular.forEach(clashGroup.clashColumns, function (contestantColumn) {
+                            var contestantColumnEnds = contestantColumn[contestantColumn.length - 1].secondsEndsAt;
+                            if (contestantColumnEnds <= booking.secondsStartsAt && contestantColumnEnds > latestContestantEnds) {
+                                clashColumn = contestantColumn;
+                                latestContestantEnds = contestantColumnEnds;
                             }
                         });
                     }
 
-                    if (clash_column === null) {
-                        clash_column = [];
-                        clashGroup.clashColumns.push(clash_column);
+                    if (clashColumn === null) {
+                        clashColumn = [];
+                        clashGroup.clashColumns.push(clashColumn);
                     }
 
-                    clash_column.push(booking);
+                    clashColumn.push(booking);
 
                     return true;
                 }
@@ -318,19 +357,19 @@ angular.module('flindersTimetable.timetable', [
 
         that.compareSessions = function (a, b) {
             // Sort by day
-            var daysDifference = dayService.compareDays(a.day_of_week, b.day_of_week);
+            var daysDifference = dayService.compareDays(a.dayOfWeek, b.dayOfWeek);
             if (daysDifference !== 0) {
                 return daysDifference;
             }
 
             // Sort by starting time of day
-            var secondsStartsDifference = a.seconds_starts_at - b.seconds_starts_at;
+            var secondsStartsDifference = a.secondsStartsAt - b.secondsStartsAt;
             if (secondsStartsDifference !== 0) {
                 return secondsStartsDifference;
             }
 
 
-            return a.seconds_ends_at - b.seconds_ends_at;
+            return a.secondsEndsAt - b.secondsEndsAt;
         };
 
         that.sortSessions = function (sessions) {
@@ -344,26 +383,26 @@ angular.module('flindersTimetable.timetable', [
         var that = {};
 
         that.sessionsClash = function (a, b) {
-            if (a.day_of_week !== b.day_of_week) {
+            if (a.dayOfWeek !== b.dayOfWeek) {
                 return false;
             }
-            else if (a.seconds_starts_at == b.seconds_starts_at) {
+            else if (a.secondsStartsAt == b.secondsStartsAt) {
                 return true;
             }
             // a's start is within b's interval
-            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_starts_at < b.seconds_ends_at) {
+            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsStartsAt < b.secondsEndsAt) {
                 return true;
             }
             // a's end is within b's interval
-            else if (b.seconds_starts_at < a.seconds_ends_at && a.seconds_ends_at <= b.seconds_ends_at) {
+            else if (b.secondsStartsAt < a.secondsEndsAt && a.secondsEndsAt <= b.secondsEndsAt) {
                 return true;
             }
             // a wraps b
-            else if (a.seconds_starts_at <= b.seconds_starts_at && b.seconds_ends_at <= a.seconds_ends_at) {
+            else if (a.secondsStartsAt <= b.secondsStartsAt && b.secondsEndsAt <= a.secondsEndsAt) {
                 return true;
             }
             // b wraps a
-            else if (b.seconds_starts_at <= a.seconds_starts_at && a.seconds_ends_at <= b.seconds_ends_at) {
+            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsEndsAt <= b.secondsEndsAt) {
                 return true;
             }
 
@@ -375,15 +414,15 @@ angular.module('flindersTimetable.timetable', [
             var aIndex = 0;
             var bIndex = 0;
 
-            // Assumption: a.class_sessions and b.class_sessions are sorted
-            while (aIndex < a.class_sessions.length && bIndex < b.class_sessions.length) {
+            // Assumption: a.classSessions and b.classSessions are sorted
+            while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
                 //check if both session clash
-                if (that.sessionsClash(a.class_sessions[aIndex], b.class_sessions[bIndex])) {
+                if (that.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex])) {
                     //there is a clash
                     return true;
                 } else {
                     // Advance the pointer to whichever class group starts first
-                    if (sessionsService.compareSessions(a.class_sessions[aIndex], b.class_sessions[bIndex]) < 0) {
+                    if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
                         aIndex++;
                     }
                     else {
@@ -541,7 +580,7 @@ angular.module('flindersTimetable.timetable', [
             bookings = sessionsService.sortSessions(bookings);
 
             angular.forEach(bookings, function (booking) {
-                var day = booking.day_of_week;
+                var day = booking.dayOfWeek;
 
                 var clashGroups = timetable[day];
                 var clashGroup = clashGroups[clashGroups.length - 1];
@@ -572,8 +611,8 @@ angular.module('flindersTimetable.timetable', [
             var possibleTimetables = 1;
 
             angular.forEach(topics, function (topic) {
-                angular.forEach(topic.classes, function (class_type) {
-                    var groups = class_type.class_groups.length;
+                angular.forEach(topic.classes, function (classType) {
+                    var groups = classType.classGroups.length;
                     if (groups > 0) {
                         possibleTimetables *= groups;
                     }
@@ -586,7 +625,7 @@ angular.module('flindersTimetable.timetable', [
 
         $scope.applyClassGroupSelection = function (classGroupSelection) {
             angular.forEach(classGroupSelection, function (entry) {
-                entry.class_type.active_class_group = entry.class_group;
+                entry.classType.activeClassGroup = entry.classGroup;
             });
 
             chosenTopicService.broadcastClassesUpdate();
@@ -597,10 +636,10 @@ angular.module('flindersTimetable.timetable', [
                 return;
             }
 
-            var newClassGroupSelection = function (class_type, class_group) {
+            var newClassGroupSelection = function (classType, classGroup) {
                 return {
-                    class_type: class_type,
-                    class_group: class_group
+                    classType: classType,
+                    classGroup: classGroup
                 };
             };
 
@@ -621,14 +660,14 @@ angular.module('flindersTimetable.timetable', [
 
             var generatedTimetables = [];
 
-            var examineTimetable = function (class_group_selections, numClashes) {
+            var examineTimetable = function (classGroupSelections, numClashes) {
                 if (numClashes < $scope.clashLimit) {
                     $scope.clashLimit = numClashes;
                     generatedTimetables = [];
                 }
 
                 if (numClashes <= $scope.clashLimit) {
-                    generatedTimetables.push(angular.extend({}, class_group_selections));
+                    generatedTimetables.push(angular.extend({}, classGroupSelections));
                 }
             };
 
@@ -636,11 +675,11 @@ angular.module('flindersTimetable.timetable', [
             var searchTimetables = function (previouslyChosenClassGroups, remainingClassChoices, currentClashes) {
                 var currentClassType = remainingClassChoices.pop();
 
-                angular.forEach(currentClassType.class_groups, function (currentGroup) {
+                angular.forEach(currentClassType.classGroups, function (currentGroup) {
                     var selectionClashes = currentClashes;
 
                     angular.forEach(previouslyChosenClassGroups, function (previouslyChosenGroup) {
-                        if (groupsClash[currentGroup.id][previouslyChosenGroup.class_group.id]) {
+                        if (groupsClash[currentGroup.id][previouslyChosenGroup.classGroup.id]) {
                             selectionClashes++;
                         }
                     });
@@ -666,25 +705,25 @@ angular.module('flindersTimetable.timetable', [
                 remainingClassChoices.push(currentClassType);
             };
 
-            var chosen_class_groups = {};
-            var remaining_class_choices = [];
+            var chosenClassGroups = {};
+            var remainingClassChoices = [];
 
-            var class_types = topicService.listClassTypesForTopics(topics);
+            var classTypes = topicService.listClassTypesForTopics(topics);
 
-            angular.forEach(class_types, function (class_type) {
-                if (class_type.class_groups.length >= 1 && class_type.active_class_group.locked) {
-                    var class_group = class_type.class_groups[0];
-                    chosen_class_groups[class_group.id] = newClassGroupSelection(class_type, class_group);
+            angular.forEach(classTypes, function (classType) {
+                if (classType.classGroups.length >= 1 && classType.activeClassGroup.locked) {
+                    var classGroup = classType.classGroups[0];
+                    chosenClassGroups[classGroup.id] = newClassGroupSelection(classType, classGroup);
                 }
-                else if (class_type.class_groups.length > 1) {
-                    remaining_class_choices.push(class_type);
+                else if (classType.classGroups.length > 1) {
+                    remainingClassChoices.push(classType);
                 }
             });
 
 
             var startMillis = new Date().getTime();
 
-            searchTimetables(chosen_class_groups, remaining_class_choices, 0);
+            searchTimetables(chosenClassGroups, remainingClassChoices, 0);
 
             $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
 
@@ -699,7 +738,7 @@ angular.module('flindersTimetable.timetable', [
                 var classSessions = [];
 
                 angular.forEach(classPicks, function (classPick) {
-                    classSessions = classSessions.concat(classPick.class_group.class_sessions);
+                    classSessions = classSessions.concat(classPick.classGroup.classSessions);
                 });
 
                 return classSessions;
@@ -708,16 +747,16 @@ angular.module('flindersTimetable.timetable', [
             var calculateTimeMetrics = function (timetable) {
                 var days = { };
 
-                angular.forEach(timetable.class_sessions, function (session) {
-                    if (typeof days[session.day_of_week] === "undefined") {
-                        days[session.day_of_week] = {
-                            seconds_starts_at: session.seconds_starts_at,
-                            seconds_ends_at: session.seconds_ends_at
+                angular.forEach(timetable.classSessions, function (session) {
+                    if (typeof days[session.dayOfWeek] === "undefined") {
+                        days[session.dayOfWeek] = {
+                            secondsStartsAt: session.secondsStartsAt,
+                            secondsEndsAt: session.secondsEndsAt
                         };
                     }
                     else {
-                        days[session.day_of_week].seconds_starts_at = Math.min(days[session.day_of_week].seconds_starts_at, session.seconds_starts_at);
-                        days[session.day_of_week].seconds_ends_at = Math.max(days[session.day_of_week].seconds_ends_at, session.seconds_ends_at);
+                        days[session.dayOfWeek].secondsStartsAt = Math.min(days[session.dayOfWeek].secondsStartsAt, session.secondsStartsAt);
+                        days[session.dayOfWeek].secondsEndsAt = Math.max(days[session.dayOfWeek].secondsEndsAt, session.secondsEndsAt);
                     }
                 });
 
@@ -729,10 +768,10 @@ angular.module('flindersTimetable.timetable', [
 
                 angular.forEach(days, function (day) {
                     timetable.daysAtUni++;
-                    timetable.secondsAtUni += (day.seconds_ends_at - day.seconds_starts_at);
+                    timetable.secondsAtUni += (day.secondsEndsAt - day.secondsStartsAt);
 
-                    startTimeSum += day.seconds_starts_at;
-                    endTimeSum += day.seconds_ends_at;
+                    startTimeSum += day.secondsStartsAt;
+                    endTimeSum += day.secondsEndsAt;
                 });
 
                 timetable.averageStartTime = startTimeSum / timetable.daysAtUni;
@@ -752,7 +791,7 @@ angular.module('flindersTimetable.timetable', [
                 var timetable = {};
 
                 timetable.classPicks = generatedTimetable;
-                timetable.class_sessions = classSessionsForClassPicks(generatedTimetable);
+                timetable.classSessions = classSessionsForClassPicks(generatedTimetable);
 
                 calculateTimeMetrics(timetable);
 
