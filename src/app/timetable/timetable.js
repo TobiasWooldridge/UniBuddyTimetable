@@ -44,8 +44,10 @@ angular.module('flindersTimetable.timetable', [
 /**
  * And of course we define a controller for our route.
  */
-    .controller('TimetableCtrl', function TimetableController($scope) {
-
+    .controller('TimetableCtrl', function TimetableController($scope,chosenTopicService,urlFactory) {
+        $scope.$on('chosenTopicsUpdate', function() {
+            urlFactory.set('topics', chosenTopicService.getTopics());
+        });
     })
 
     .filter('toTime', function () {
@@ -96,16 +98,6 @@ angular.module('flindersTimetable.timetable', [
         };
 
         var updateURL = function() {
-            var url = '?';
-
-            if (Settings.year) {
-                url += "year=" + Settings.year;
-            }
-            if (Settings.semester) {
-                url += "&semester=" + Settings.semester;
-            }
-
-
             setHash(Settings);
         };
 
@@ -583,6 +575,8 @@ angular.module('flindersTimetable.timetable', [
         };
 
         $scope.loadTopicIndex = function () {
+            urlFactory.set('semester', $scope.activeSemester);
+            urlFactory.set('year', $scope.activeYear);
             $scope.topicIndex = [];
 
             topicFactory.getTopicsAsync($scope.activeYear, $scope.activeSemester, function (data) {
@@ -640,7 +634,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
-    .controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory) {
+    .controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory, urlFactory) {
         $scope.chosenTopics = [];
         $scope.days = dayService.days();
         $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
@@ -674,7 +668,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
 
         $scope.$on('chosenClassesUpdate', function () {
-            $scope.updateTimetable();
+            $scope.updateTimetable();            
         });
     })
 
