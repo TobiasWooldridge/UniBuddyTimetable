@@ -58,7 +58,7 @@ angular.module('flindersTimetable.timetable', [
 
     .factory('urlFactory', function($location) {
         var urlFactory = {};
-         //todo add in startup reading of url?
+        //todo add in startup reading of url?
 
         var Settings;
 
@@ -74,7 +74,7 @@ angular.module('flindersTimetable.timetable', [
                 }
                 Settings.semester = $location.search().semester;
             }
-            if (setting == 'year') {                
+            if (setting == 'year') {
                 return Settings.year;
             }
             else if (setting == 'semester') {
@@ -143,19 +143,50 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .factory('topicFactory', function ($http, sessionsService, camelCaseService) {
+        var baseTopic = {
+            getUniqueTopicCode: function () {
+                // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
+                return this.year + '-' + this.semester + '-' + this.code;
+            }
+        };
+
         var topicFactory = {};
 
-        topicFactory.getTopicsAsync = function (year, semester, callback) {
+        topicFactory.getTopicByUniqueTopicCodeAsync = function (unique_topic_code, callback) {
+            // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
+            // Only gets a thin version of a topic, not all details (e.g. topic desc.)
+
+            var syntax = /([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]+)([0-9]+.*)/;
+
+            var topic_identifier = syntax.exec(unique_topic_code);
+
+            topicFactory.getTopicAsync({
+                year: syntax[1],
+                semester: syntax[2],
+                subjectArea: syntax[3],
+                topicNumber: syntax[4]
+            }, function (topics, status, headers, config) {
+                callback(topics[0], status, headers, config);
+            });
+        };
+
+        topicFactory.getTopicsAsync = function (query, callback) {
             var url = appConfig.apiPath + 'topics.json' + "?";
 
-            if (year !== "Any") {
-                url += "&year=" + year;
+            if (typeof query.year !== "undefined" && query.year !== "Any") {
+                url += "&year=" + query.year;
             }
-            if (semester !== "Any") {
-                url += "&semester=" + semester;
+            if (typeof query.semester !== "undefined" && query.semester !== "Any") {
+                url += "&semester=" + query.semester;
+            }
+            if (typeof query.subjectArea !== "undefined" && query.subjectArea !== "Any") {
+                url += "&subject_area=" + query.subjectArea;
+            }
+            if (typeof query.topicNumber !== "undefined" && query.topicNumber !== "Any") {
+                url += "&topic_number=" + query.topicNumber;
             }
 
-            $http.get(url).success(function (data, status, headers, config) {
+            $http.get(url).success(function (topics, status, headers, config) {
                 function compareTopics(a, b) {
                     var subjectDifference = a.subjectArea.localeCompare(b.subjectArea);
 
@@ -172,11 +203,15 @@ angular.module('flindersTimetable.timetable', [
                     return a.name.localeCompare(b.name);
                 }
 
-                camelCaseService.camelCaseObject(data);
+                camelCaseService.camelCaseObject(topics);
 
-                data.sort(compareTopics);
+                topics.sort(compareTopics);
 
-                callback(data, status, headers, config);
+                angular.forEach(topics, function (topic) {
+                    angular.extend(topic, baseTopic);
+                });
+
+                callback(topics, status, headers, config);
             });
         };
 
@@ -524,7 +559,7 @@ angular.module('flindersTimetable.timetable', [
     .controller('TopicController', function ($scope, chosenTopicService, topicFactory, filterFilter, urlFactory) {
         $scope.years = appConfig.years;
         $scope.activeYear = appConfig.defaultYear;
-        
+
         if (urlFactory.get('year') !== undefined && $scope.years.indexOf(urlFactory.get('year')) !== -1) {
             $scope.activeYear = urlFactory.get('year');
         }
@@ -534,7 +569,7 @@ angular.module('flindersTimetable.timetable', [
 
         $scope.semesters = appConfig.semesters;
         $scope.activeSemester = appConfig.defaultSemester;
-        
+
         if (urlFactory.get('semester') !== undefined && $scope.semesters.indexOf(urlFactory.get('semester')) !== -1) {
             $scope.activeSemester = urlFactory.get('semester');
         }
@@ -579,7 +614,10 @@ angular.module('flindersTimetable.timetable', [
             urlFactory.set('year', $scope.activeYear);
             $scope.topicIndex = [];
 
-            topicFactory.getTopicsAsync($scope.activeYear, $scope.activeSemester, function (data) {
+            topicFactory.getTopicsAsync({
+                year: $scope.activeYear,
+                semester: $scope.activeSemester
+            }, function (data) {
                 $scope.topicIndex = data;
                 applyTopicSearchFilter($scope.topicSearch);
             });
@@ -668,7 +706,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
 
         $scope.$on('chosenClassesUpdate', function () {
-            $scope.updateTimetable();            
+            $scope.updateTimetable();
         });
     })
 
