@@ -656,7 +656,7 @@ angular.module('flindersTimetable.timetable', [
 
             topic = angular.copy(topic);
 
-            $scope.selectedTopics.push($scope.activeTopic);
+            $scope.selectedTopics.push(topic);
 
 
             topicFactory.loadTimetableForTopicAsync(topic, function () {
