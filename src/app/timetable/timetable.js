@@ -44,13 +44,65 @@ angular.module('flindersTimetable.timetable', [
 /**
  * And of course we define a controller for our route.
  */
-    .controller('TimetableCtrl', function TimetableController($scope) {
+    .controller('TimetableCtrl', function TimetableController($scope,chosenTopicService,urlFactory) {
+        $scope.$on('chosenTopicsUpdate', function() {
+            urlFactory.set('topics', chosenTopicService.getTopics());
+        });
     })
 
     .filter('toTime', function () {
         return function (number) {
             return moment.unix(number).utc().format('h:mm a');
         };
+    })
+
+    .factory('urlFactory', function($location) {
+        var urlFactory = {};
+         //todo add in startup reading of url?
+
+        var Settings;
+
+        var setHash = function(url) {
+            $location.search(url);
+        };
+
+        urlFactory.get = function (setting) {
+            if (Settings === undefined) {
+                Settings = {};
+                if ($location.search().year !== undefined) {
+                    Settings.year = parseInt($location.search().year, 10);
+                }
+                Settings.semester = $location.search().semester;
+            }
+            if (setting == 'year') {                
+                return Settings.year;
+            }
+            else if (setting == 'semester') {
+                return Settings.semester;
+            }
+        };
+
+        urlFactory.set = function(setting, value) {
+            if (setting == "year") {
+                Settings.year = value;
+            }
+            else if (setting == 'semester') {
+                Settings.semester = value;
+            }
+            else if (setting == 'topics') {
+                Settings.chosenTopics = value;
+            }
+
+            updateURL();
+
+        };
+
+        var updateURL = function() {
+            setHash(Settings);
+        };
+
+
+        return urlFactory;
     })
 
     .factory('camelCaseService', function () {
@@ -469,12 +521,26 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .controller('TopicController', function ($scope, chosenTopicService, topicFactory, filterFilter) {
+    .controller('TopicController', function ($scope, chosenTopicService, topicFactory, filterFilter, urlFactory) {
         $scope.years = appConfig.years;
         $scope.activeYear = appConfig.defaultYear;
+        
+        if (urlFactory.get('year') !== undefined && $scope.years.indexOf(urlFactory.get('year')) !== -1) {
+            $scope.activeYear = urlFactory.get('year');
+        }
+        else {
+            urlFactory.set('year', $scope.activeYear);
+        }
 
         $scope.semesters = appConfig.semesters;
         $scope.activeSemester = appConfig.defaultSemester;
+        
+        if (urlFactory.get('semester') !== undefined && $scope.semesters.indexOf(urlFactory.get('semester')) !== -1) {
+            $scope.activeSemester = urlFactory.get('semester');
+        }
+        else {
+            urlFactory.set('semester', $scope.activeSemester);
+        }
 
         $scope.formDisabled = false;
 
@@ -509,6 +575,8 @@ angular.module('flindersTimetable.timetable', [
         };
 
         $scope.loadTopicIndex = function () {
+            urlFactory.set('semester', $scope.activeSemester);
+            urlFactory.set('year', $scope.activeYear);
             $scope.topicIndex = [];
 
             topicFactory.getTopicsAsync($scope.activeYear, $scope.activeSemester, function (data) {
@@ -566,7 +634,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
-    .controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory) {
+    .controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory, urlFactory) {
         $scope.chosenTopics = [];
         $scope.days = dayService.days();
         $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
@@ -600,7 +668,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
 
         $scope.$on('chosenClassesUpdate', function () {
-            $scope.updateTimetable();
+            $scope.updateTimetable();            
         });
     })
 
