@@ -41,9 +41,6 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-/**
- * And of course we define a controller for our route.
- */
     .controller('TimetableCtrl', function TimetableController($scope,chosenTopicService,urlFactory) {
         $scope.$on('chosenTopicsUpdate', function() {
             urlFactory.set('topics', chosenTopicService.getTopics());
@@ -75,8 +72,8 @@ angular.module('flindersTimetable.timetable', [
                 }
                 state.semester = query.semester;
 
-                if (typeof query.chosenTopics !== "undefined") {
-                    state.chosenTopics = query.chosenTopics.split(',');
+                if (typeof query.topics !== "undefined") {
+                    state.topics = query.topics.split('_');
                 }
             }
             if (setting == 'year') {
@@ -85,22 +82,39 @@ angular.module('flindersTimetable.timetable', [
             else if (setting == 'semester') {
                 return state.semester;
             } else if (setting == 'topics') {
-                return state.chosenTopics;
+                return state.topics;
             }
         };
 
         urlFactory.set = function(setting, value) {
             if (setting == "year") {
-                state.year = value;
+                if (value === appConfig.defaultYear) {
+                    delete(state.year);
+                }
+                else {
+                    state.year = value;
+                }
             }
             else if (setting == 'semester') {
-                state.semester = value;
+                if (value === appConfig.defaultSemester) {
+                    delete(state.semester);
+                }
+                else {
+                    state.semester = value;
+                }
             }
             else if (setting == 'topics') {
-                state.chosenTopics = [];
+                var topicIdentifiers = [];
                 angular.forEach(value, function(topic) {
-                    state.chosenTopics.push(topic.getUniqueTopicCode());
+                    topicIdentifiers.push(topic.getUniqueTopicCode());
                 });
+
+                if (topicIdentifiers.length > 0) {
+                    state.topics = topicIdentifiers.join('_');
+                }
+                else {
+                    delete(state.topics);
+                }
             }
 
             updateURL();
@@ -687,7 +701,7 @@ angular.module('flindersTimetable.timetable', [
 
 
             var topicIdentifiers = urlFactory.get('topics');
-            if (topicIdentifiers !== undefined || topicIdentifiers != 'undefined') {
+            if (typeof topicIdentifiers !== "undefined") {
                 angular.forEach(topicIdentifiers, function (topicString) {
                     topicFactory.getTopicByUniqueTopicCodeAsync(topicString, function (topic) {
                         console.log(topic);
