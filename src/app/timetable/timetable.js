@@ -58,7 +58,6 @@ angular.module('flindersTimetable.timetable', [
 
     .factory('urlFactory', function($location) {
         var urlFactory = {};
-        //todo add in startup reading of url?
 
         var Settings;
 
@@ -73,12 +72,15 @@ angular.module('flindersTimetable.timetable', [
                     Settings.year = parseInt($location.search().year, 10);
                 }
                 Settings.semester = $location.search().semester;
+                Settings.chosenTopics = $location.search().chosenTopics.split(',');
             }
             if (setting == 'year') {
                 return Settings.year;
             }
             else if (setting == 'semester') {
                 return Settings.semester;
+            } else if (setting == 'topics') {
+                return Settings.chosenTopics;
             }
         };
 
@@ -90,7 +92,10 @@ angular.module('flindersTimetable.timetable', [
                 Settings.semester = value;
             }
             else if (setting == 'topics') {
-                Settings.chosenTopics = value;
+                Settings.chosenTopics = [];
+                angular.forEach(value, function(topic) {
+                    Settings.chosenTopics.push(topic.getUniqueTopicCode());
+                });
             }
 
             updateURL();
@@ -580,6 +585,14 @@ angular.module('flindersTimetable.timetable', [
         $scope.formDisabled = false;
 
         $scope.selectedTopics = [];
+
+        var urlList = urlFactory.get('topics');
+        if (urlList !== undefined || urlList != 'undefined') {
+            angular.forEach(urlList, function(topicString) {
+                console.log(topicString);
+                topicFactory.getTopicByUniqueTopicCodeAsync(topicString, $scope.addTopic);
+            });
+        }
 
         $scope.numTimetableCombinations = 1;
 
