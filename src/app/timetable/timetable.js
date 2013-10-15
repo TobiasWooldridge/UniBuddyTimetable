@@ -166,7 +166,7 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .factory('topicFactory', function ($http, sessionsService, camelCaseService) {
+    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService) {
         var baseTopic = {
             getUniqueTopicCode: function () {
                 // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
@@ -179,7 +179,6 @@ angular.module('flindersTimetable.timetable', [
         topicFactory.getTopicByUniqueTopicCodeAsync = function (uniqueTopicCode, callback) {
             // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
             // Only gets a thin version of a topic, not all details (e.g. topic desc.)
-
 
             var syntax = /^([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]+)([0-9]+.*)$/;
 
@@ -220,25 +219,10 @@ angular.module('flindersTimetable.timetable', [
             }
 
             $http.get(url).success(function (topics, status, headers, config) {
-                function compareTopics(a, b) {
-                    var subjectDifference = a.subjectArea.localeCompare(b.subjectArea);
-
-                    if (subjectDifference !== 0) {
-                        return subjectDifference;
-                    }
-
-                    var topicDifference = a.topicNumber.localeCompare(b.topicNumber);
-
-                    if (topicDifference !== 0) {
-                        return topicDifference;
-                    }
-
-                    return a.name.localeCompare(b.name);
-                }
 
                 camelCaseService.camelCaseObject(topics);
 
-                topics.sort(compareTopics);
+                topicService.sortTopics(topics);
 
                 angular.forEach(topics, function (topic) {
                     angular.extend(topic, baseTopic);
@@ -333,6 +317,24 @@ angular.module('flindersTimetable.timetable', [
             return classGroups;
         };
 
+        function compareTopics(a, b) {
+            var subjectDifference = a.subjectArea.localeCompare(b.subjectArea);
+            if (subjectDifference !== 0) {
+                return subjectDifference;
+            }
+
+            var topicDifference = a.topicNumber.localeCompare(b.topicNumber);
+            if (topicDifference !== 0) {
+                return topicDifference;
+            }
+
+            return a.name.localeCompare(b.name);
+        }
+
+        that.sortTopics = function (topics) {
+            return topics.sort(compareTopics);
+        };
+
         return that;
     })
 
@@ -420,7 +422,7 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .factory('chosenTopicService', function ($rootScope) {
+    .factory('chosenTopicService', function ($rootScope, topicService) {
         var chosenTopics = [];
 
         var getTopicIndex = function (topic) {
@@ -451,6 +453,9 @@ angular.module('flindersTimetable.timetable', [
         that.addTopic = function (topic) {
             if (getTopicIndex(topic) === -1) {
                 chosenTopics.push(topic);
+
+                topicService.sortTopics(chosenTopics);
+
                 that.broadcastTopicsUpdate();
             }
         };
