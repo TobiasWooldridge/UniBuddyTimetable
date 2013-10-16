@@ -7,21 +7,21 @@ describe('FlindersTimetable clash service', function () {
     }));
 
 
-    it('should have a dummy test', inject(function () {
-        expect(true).toBeTruthy();
+    it('should be defined', inject(function () {
+        expect(clashService).toBeDefined();
     }));
 
 
     it('should detect a session clashes with itself', function () {
         var a = {
-            first_day: "2013-08-06",
-            last_day: "2013-11-05",
-            day_of_week: "Tuesday",
-            time_starts_at: "12:00 PM",
-            time_ends_at: "1:50 PM",
-            seconds_starts_at: 43200,
-            seconds_ends_at: 49800,
-            seconds_duration: 6600,
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            timeStartsAt: "12:00 PM",
+            timeEndsAt: "1:50 PM",
+            secondsStartsAt: 43200,
+            secondsEndsAt: 49800,
+            secondsDuration: 6600,
             room: null
         };
 
@@ -31,26 +31,26 @@ describe('FlindersTimetable clash service', function () {
 
     it('should detect no clash for two identical sessions on different days', function () {
         var a = {
-            first_day: "2013-08-06",
-            last_day: "2013-11-05",
-            day_of_week: "Tuesday",
-            time_starts_at: "12:00 PM",
-            time_ends_at: "1:50 PM",
-            seconds_starts_at: 0,
-            seconds_ends_at: 600,
-            seconds_duration: 600,
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            timeStartsAt: "12:00 PM",
+            timeEndsAt: "1:50 PM",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600,
             room: null
         };
 
         var b = {
-            first_day: "2013-08-07",
-            last_day: "2013-11-06",
-            day_of_week: "Wednesday",
-            time_starts_at: "12:00 PM",
-            time_ends_at: "1:50 PM",
-            seconds_starts_at: 0,
-            seconds_ends_at: 600,
-            seconds_duration: 600,
+            firstDay: "2013-08-07",
+            lastDay: "2013-11-06",
+            dayOfWeek: "Wednesday",
+            timeStartsAt: "12:00 PM",
+            timeEndsAt: "1:50 PM",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600,
             room: null
         };
 
@@ -60,26 +60,26 @@ describe('FlindersTimetable clash service', function () {
 
     it('should detect no clash for two successive sessions', function () {
         var a = {
-            first_day: "2013-08-06",
-            last_day: "2013-11-05",
-            day_of_week: "Tuesday",
-            time_starts_at: "12:00 AM",
-            time_ends_at: "12:10 AM",
-            seconds_starts_at: 0,
-            seconds_ends_at: 600,
-            seconds_duration: 600,
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            timeStartsAt: "12:00 AM",
+            timeEndsAt: "12:10 AM",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600,
             room: null
         };
 
         var b = {
-            first_day: "2013-08-06",
-            last_day: "2013-11-05",
-            day_of_week: "Tuesday",
-            time_starts_at: "12:10 AM",
-            time_ends_at: "12:20 AM",
-            seconds_starts_at: 600,
-            seconds_ends_at: 1200,
-            seconds_duration: 600,
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            timeStartsAt: "12:10 AM",
+            timeEndsAt: "12:20 AM",
+            secondsStartsAt: 600,
+            secondsEndsAt: 1200,
+            secondsDuration: 600,
             room: null
         };
 
@@ -89,30 +89,62 @@ describe('FlindersTimetable clash service', function () {
 
     it('should detect no clash for two completely discrete sessions', function () {
         var a = {
-            first_day: "2013-08-06",
-            last_day: "2013-11-05",
-            day_of_week: "Tuesday",
-            time_starts_at: "12:00 AM",
-            time_ends_at: "12:10 AM",
-            seconds_starts_at: 0,
-            seconds_ends_at: 600,
-            seconds_duration: 600,
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            timeStartsAt: "12:00 AM",
+            timeEndsAt: "12:10 AM",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600,
             room: null
         };
 
         var b = {
-            first_day: "2013-08-06",
-            last_day: "2013-11-05",
-            day_of_week: "Tuesday",
-            time_starts_at: "12:20 AM",
-            time_ends_at: "12:30 AM",
-            seconds_starts_at: 1200,
-            seconds_ends_at: 1800,
-            seconds_duration: 600,
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            timeStartsAt: "12:20 AM",
+            timeEndsAt: "12:30 AM",
+            secondsStartsAt: 1200,
+            secondsEndsAt: 1800,
+            secondsDuration: 600,
             room: null
         };
 
         expect(clashService.sessionsClash(a, b)).toBeFalsy();
     });
+});
+
+
+describe('FlindersTimetable dayService', function () {
+    var dayService;
+
+    beforeEach(module('flindersTimetable.timetable'));
+    beforeEach(inject(function ($injector) {
+        dayService = $injector.get('dayService');
+    }));
+
+
+    it('should have a dummy test', inject(function () {
+        expect(true).toBeTruthy();
+    }));
+
+
+    it('should convert day names to integers correctly', function () {
+        expect(dayService.dayOfWeekToDayName(0)).toBe("Monday");
+        expect(dayService.dayOfWeekToDayName(1)).toBe("Tuesday");
+        expect(dayService.dayOfWeekToDayName(2)).toBe("Wednesday");
+        expect(dayService.dayOfWeekToDayName(3)).toBe("Thursday");
+        expect(dayService.dayOfWeekToDayName(4)).toBe("Friday");
+    });
+
+
+    it('should work symmetrically between dayOfWeekToDayName and dayNameToDayOfWeek', function () {
+        for (var i = 0; i < 5; i++) {
+            expect(dayService.dayNameToDayOfWeek(dayService.dayOfWeekToDayName(i))).toBe(i);
+        }
+    });
+
 });
 

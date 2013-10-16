@@ -544,9 +544,9 @@ angular.module('flindersTimetable.timetable', [
             else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsEndsAt <= b.secondsEndsAt) {
                 return true;
             }
-
-
-            return false;
+            else {
+                return false;
+            }
         };
 
         clashService.classGroupsClash = function (a, b) {
