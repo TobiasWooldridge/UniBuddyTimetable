@@ -450,23 +450,37 @@ angular.module('flindersTimetable.timetable', [
             $rootScope.$broadcast('chosenClassesUpdate');
         };
 
-        that.addTopic = function (topic) {
+        that.addTopic = function (topic, broadcast) {
+            if (broadcast === undefined) {
+                broadcast = true;
+            }
+
             if (getTopicIndex(topic) === -1) {
                 chosenTopics.push(topic);
 
                 topicService.sortTopics(chosenTopics);
 
-                that.broadcastTopicsUpdate();
+                if (broadcast) {
+                    that.broadcastTopicsUpdate();
+                }
             }
         };
 
 
-        that.removeTopic = function (topic) {
+        that.removeTopic = function (topic, broadcast) {
+            if (broadcast === undefined) {
+                broadcast = true;
+            }
+
             var index = getTopicIndex(topic);
 
             if (index !== -1) {
                 chosenTopics.splice(index, 1);
                 that.broadcastTopicsUpdate();
+
+                if (broadcast) {
+                    that.broadcastTopicsUpdate();
+                }
             }
         };
 
@@ -505,9 +519,9 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .factory('clashService', function (sessionsService) {
-        var that = {};
+        var clashService = {};
 
-        that.sessionsClash = function (a, b) {
+        clashService.sessionsClash = function (a, b) {
             if (a.dayOfWeek !== b.dayOfWeek) {
                 return false;
             }
@@ -535,14 +549,14 @@ angular.module('flindersTimetable.timetable', [
             return false;
         };
 
-        that.classGroupsClash = function (a, b) {
+        clashService.classGroupsClash = function (a, b) {
             var aIndex = 0;
             var bIndex = 0;
 
             // Assumption: a.classSessions and b.classSessions are sorted
             while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
                 //check if both session clash
-                if (that.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex])) {
+                if (clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex])) {
                     //there is a clash
                     return true;
                 } else {
@@ -560,38 +574,39 @@ angular.module('flindersTimetable.timetable', [
             return false;
         };
 
-        return that;
+        return clashService;
     })
 
     .factory('dayService', function () {
-        var that = {};
+        var dayService = {};
 
         var dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
         var dayIndexes = {};
 
+        // populate dayIndexes
         angular.forEach(dayNames, function (name, index) {
             dayIndexes[name] = index;
         });
 
-        that.dayNameToDayOfWeek = function (dayName) {
-            return dayNames[dayName];
+        dayService.dayNameToDayOfWeek = function (dayName) {
+            return dayIndexes[dayName];
         };
 
-        that.dayOfWeekToDayName = function (dayOfWeek) {
-            return days[dayOfWeek];
+        dayService.dayOfWeekToDayName = function (dayOfWeek) {
+            return dayNames[dayOfWeek];
         };
 
-        that.days = function () {
+        dayService.days = function () {
             // Copy the array so malicious Russells can't manipulate our internal one
             return dayNames.slice(0);
         };
 
-        that.compareDays = function (a, b) {
-            return that.dayNameToDayOfWeek(a) - that.dayNameToDayOfWeek(b);
+        dayService.compareDays = function (a, b) {
+            return dayService.dayNameToDayOfWeek(a) - dayService.dayNameToDayOfWeek(b);
         };
 
-        return that;
+        return dayService;
     })
 
     .controller('TopicController', function ($scope, chosenTopicService, topicFactory, filterFilter, urlFactory) {
@@ -677,7 +692,6 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.selectedTopics.push(topic);
 
-
             topicFactory.loadTimetableForTopicAsync(topic, function () {
                 if (topicIdIsSelected(topic.id)) {
                     chosenTopicService.addTopic(topic);
@@ -738,6 +752,10 @@ angular.module('flindersTimetable.timetable', [
 
             var bookings = topicService.listBookingsForTopics($scope.chosenTopics);
             bookings = sessionsService.sortSessions(bookings);
+
+            angular.forEach(bookings, function (booking) {
+                console.log(booking.dayOfWeek, booking.secondsStartsAt, booking.secondsEndsAt);
+            });
 
             angular.forEach(bookings, function (booking) {
                 var day = booking.dayOfWeek;
@@ -937,7 +955,7 @@ angular.module('flindersTimetable.timetable', [
                 timetable.averageStartTime = startTimeSum / timetable.daysAtUni;
                 timetable.averageEndTime = endTimeSum / timetable.daysAtUni;
 
-
+                // TODO: Share code with toTime filter
                 var duration = moment.duration(timetable.secondsAtUni * 1000);
                 timetable.hoursAtUni = Math.floor(duration.asHours()) + ":" + Math.floor(duration.asMinutes() % 60);
 
@@ -967,7 +985,7 @@ angular.module('flindersTimetable.timetable', [
 
                 var secondsDifference = a.secondsAtUni - b.secondsAtUni;
 
-                return a.secondsAtUni - b.secondsAtUni;
+                return secondsDifference;
             });
 
             return timetables;
