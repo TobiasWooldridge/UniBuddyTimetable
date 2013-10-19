@@ -436,7 +436,9 @@ angular.module('flindersTimetable.timetable', [
                 broadcast = true;
             }
 
-            if (getTopicIndex(topic) === -1) {
+            console.log(!that.topicIsChosen(topic));
+
+            if (!that.topicIsChosen(topic)) {
                 chosenTopics.push(topic);
 
                 topicService.sortTopics(chosenTopics);
@@ -447,16 +449,18 @@ angular.module('flindersTimetable.timetable', [
             }
         };
 
+        that.topicIsChosen = function (topic) {
+            return getTopicIndex(topic) !== -1;
+        };
 
         that.removeTopic = function (topic, broadcast) {
             if (broadcast === undefined) {
                 broadcast = true;
             }
 
-            var index = getTopicIndex(topic);
+            if (that.topicIsChosen(topic)) {
+                chosenTopics.splice(getTopicIndex(topic), 1);
 
-            if (index !== -1) {
-                chosenTopics.splice(index, 1);
                 that.broadcastTopicsUpdate();
 
                 if (broadcast) {
@@ -597,9 +601,9 @@ angular.module('flindersTimetable.timetable', [
         $scope.semesters = appConfig.semesters;
         $scope.activeSemester = appConfig.defaultSemester;
 
-        $scope.selectedTopics = [];
-
         $scope.topicSearch = "";
+
+        $scope.chosenTopics = chosenTopicService.getTopics();
 
         $scope.searchTopics = function (topic) {
             var search = $scope.topicSearch.toLowerCase();
@@ -634,10 +638,10 @@ angular.module('flindersTimetable.timetable', [
         };
 
 
-        var selectedTopicIds = function () {
+        var chosenTopicIds = function () {
             var ids = [];
 
-            angular.forEach($scope.selectedTopics, function (topic) {
+            angular.forEach(chosenTopicService.chosenTopics, function (topic) {
                 ids.push(topic.id);
             });
 
@@ -655,7 +659,6 @@ angular.module('flindersTimetable.timetable', [
                 for (var i = 0; i < $scope.availableTopics.length; i++) {
                     var topic = $scope.availableTopics[i];
                     if ($scope.searchTopics(topic)) {
-                        console.log(topic.code);
                         $scope.activeTopic = topic;
                         break;
                     }
@@ -683,18 +686,18 @@ angular.module('flindersTimetable.timetable', [
 
 
         var topicIdIsSelected = function (topicId) {
-            return selectedTopicIds().indexOf(parseInt(topicId, 10)) !== -1;
+            return chosenTopicIds().indexOf(parseInt(topicId, 10)) !== -1;
         };
 
         $scope.validateTopic = function (topic) {
             if (typeof topic === "undefined") {
                 return false;
             }
-            else if (topicIdIsSelected(topic.id)) {
+            else if (chosenTopicService.topicIsChosen(topic)) {
                 return false;
             }
 
-            return !$scope.formDisabled;
+            return true;
         };
 
         $scope.addTopic = function (topic) {
@@ -704,21 +707,12 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.topicSearch = "";
 
-            topic = angular.copy(topic);
-
-            $scope.selectedTopics.push(topic);
-
-            topicFactory.loadTimetableForTopicAsync(topic, function () {
-                if (topicIdIsSelected(topic.id)) {
-                    chosenTopicService.addTopic(topic);
-                }
+            topicFactory.loadTimetableForTopicAsync(topic, function (topic) {
+                chosenTopicService.addTopic(topic);
             });
         };
 
         $scope.removeTopic = function (topic) {
-            var index = $scope.selectedTopics.indexOf(topic);
-            $scope.selectedTopics.splice(index, 1);
-
             chosenTopicService.removeTopic(topic);
         };
 
