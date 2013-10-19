@@ -22,10 +22,24 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-    .controller('TimetableCtrl', function TimetableController($scope,chosenTopicService,urlFactory) {
-        $scope.$on('chosenTopicsUpdate', function() {
+    .controller('TimetableCtrl', function TimetableController($scope, chosenTopicService, urlFactory, topicFactory) {
+        $scope.$on('chosenTopicsUpdate', function () {
             urlFactory.set('topics', chosenTopicService.getTopics());
         });
+
+        var topicCodes = urlFactory.get('topics');
+        console.log(topicCodes);
+        if (typeof topicCodes !== "undefined") {
+            angular.forEach(topicCodes, function (topicString) {
+                topicFactory.getTopicByUniqueTopicCodeAsync(topicString, function (topic) {
+                    console.log(topic);
+
+                    topicFactory.loadTimetableForTopicAsync(topic, function () {
+                        chosenTopicService.addTopic(topic);
+                    });
+                });
+            });
+        }
     })
 
     .filter('toTime', function () {
@@ -34,12 +48,10 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
-    .factory('urlFactory', function($location) {
+    .factory('urlFactory', function ($location) {
         var urlFactory = {};
 
-        var state = {};
-
-        var setHash = function(url) {
+        var setHash = function (url) {
             $location.search(url);
         };
 
@@ -68,7 +80,7 @@ angular.module('flindersTimetable.timetable', [
             }
         };
 
-        urlFactory.set = function(setting, value) {
+        urlFactory.set = function (setting, value) {
             if (setting === "year") {
                 if (value === appConfig.defaultYear) {
                     delete(state.year);
@@ -87,7 +99,7 @@ angular.module('flindersTimetable.timetable', [
             }
             else if (setting === 'topics') {
                 var topicIdentifiers = [];
-                angular.forEach(value, function(topic) {
+                angular.forEach(value, function (topic) {
                     topicIdentifiers.push(topic.getUniqueTopicCode());
                 });
 
@@ -102,7 +114,7 @@ angular.module('flindersTimetable.timetable', [
             updateURL();
         };
 
-        var updateURL = function() {
+        var updateURL = function () {
             setHash(state);
         };
 
@@ -730,16 +742,6 @@ angular.module('flindersTimetable.timetable', [
             }
             else {
                 urlFactory.set('semester', $scope.activeSemester);
-            }
-
-
-            var topicIdentifiers = urlFactory.get('topics');
-            if (typeof topicIdentifiers !== "undefined") {
-                angular.forEach(topicIdentifiers, function (topicString) {
-                    topicFactory.getTopicByUniqueTopicCodeAsync(topicString, function (topic) {
-                        $scope.addTopic(topic);
-                    });
-                });
             }
 
             $scope.numTimetableCombinations = 1;
