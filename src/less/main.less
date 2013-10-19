@@ -8,9 +8,10 @@
 .booking-highlight(@color: blue) {
   border-color: darken(@color, 10%);
   background: darken(@color, 2%);
-  background-image: linear-gradient(to bottom, lighten(@color, 2%) 0%, darken(@color, 2%) 100%);
-  color: #ffffff !important;
-  text-shadow: 0px 0px 3px darken(@color, 20%);
+  background-image: linear-gradient(to bottom, lighten(@color, 2%) 0%, darken(@color, 5%) 100%);
+  color: #FFFFFF !important;
+  text-shadow: 0px 0px 5px darken(@color, 30%);
+
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -30,7 +31,7 @@
 }
 
 .booking.topic-4, .topic.topic-4 .active {
-  .booking-highlight(#FFC519);
+  .booking-highlight(darken(#FFC519, 6%));
 }
 
 .booking.topic-5, .topic.topic-5 .active {
@@ -141,7 +142,6 @@ table.timetable {
     border: 0;
     table-layout: fixed;
     border-collapse: collapse;
-    font-size: 0.8em;
   }
 
   table.grid {
@@ -180,20 +180,26 @@ table.timetable {
   .clashGroup {
 
     .booking {
-      padding: 5px 0;
       border-radius: 4px;
       position: relative;
-      opacity: 0.75;
-      font-size: 0.8em;
+    }
+
+    .locked {
+      background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2) 10px, transparent 10px, transparent 20px);
+      //      background-image: linear-gradient(135deg, black 10px, transparent 10px, transparent 10px, black 30px);
+
     }
 
     .booking .glyphicon-lock {
       float: right;
-      margin: 4px 10px;
+      margin: 4px 4px 4px 10px;
+      opacity: 0.5;
     }
 
     .booking p {
-      margin: 5 10px;
+      display: block;
+      padding: 10px;
+      font-size: 0.95em;
     }
   }
 }

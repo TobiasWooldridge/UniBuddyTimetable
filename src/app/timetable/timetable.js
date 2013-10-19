@@ -22,18 +22,18 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-    .controller('TimetableCtrl', function TimetableController($scope, chosenTopicService, urlFactory, topicFactory) {
+    .controller('TimetableCtrl', function TimetableController($scope, chosenTopicService, urlService, topicFactory) {
         $scope.$on('chosenTopicsUpdate', function () {
-            urlFactory.set('topics', chosenTopicService.getTopics());
+            urlService.setTopics(chosenTopicService.getTopics());
         });
 
-        var topicCodes = urlFactory.get('topics');
-        console.log(topicCodes);
+        urlService.loadState();
+
+        var topicCodes = urlService.getTopics();
+
         if (typeof topicCodes !== "undefined") {
             angular.forEach(topicCodes, function (topicString) {
                 topicFactory.getTopicByUniqueTopicCodeAsync(topicString, function (topic) {
-                    console.log(topic);
-
                     topicFactory.loadTimetableForTopicAsync(topic, function () {
                         chosenTopicService.addTopic(topic);
                     });
@@ -48,78 +48,81 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
-    .factory('urlFactory', function ($location) {
-        var urlFactory = {};
-
-        var setHash = function (url) {
-            $location.search(url);
+    .factory('urlService', function ($location) {
+        var defaultState = {
+            year: 2013,
+            semester: "S2",
+            topics: ""
         };
 
-        urlFactory.get = function (setting) {
+        var state = {};
+
+        var urlService = {};
+
+        var persistState = function () {
+            $location.search(state);
+        };
+
+        urlService.loadState = function () {
             var query = $location.search();
 
-            if (typeof state === "undefined") {
-                state = {};
-                if (typeof query.year !== "undefined") {
-                    state.year = parseInt(query.year, 10);
-                }
-                state.semester = query.semester;
+            angular.forEach(query, function (value, key) {
+                set(key, value);
+            });
+        };
 
-                if (typeof query.topics !== "undefined") {
-                    state.topics = query.topics.split('_');
-                }
+        var get = function (key) {
+            if (state.hasOwnProperty(key)) {
+                return state[key];
             }
-            if (setting === 'year') {
-                return state.year;
+            if (defaultState.hasOwnProperty(key)) {
+                return defaultState[key];
             }
-            else if (setting === 'semester') {
-                return state.semester;
-            }
-            else if (setting === 'topics') {
-                return state.topics;
+
+            return undefined;
+        };
+
+        var set = function (key, value) {
+            state[key] = value;
+
+            if (defaultState[key] === value) {
+                delete(state[key]);
             }
         };
 
-        urlFactory.set = function (setting, value) {
-            if (setting === "year") {
-                if (value === appConfig.defaultYear) {
-                    delete(state.year);
-                }
-                else {
-                    state.year = value;
-                }
-            }
-            else if (setting === 'semester') {
-                if (value === appConfig.defaultSemester) {
-                    delete(state.semester);
-                }
-                else {
-                    state.semester = value;
-                }
-            }
-            else if (setting === 'topics') {
-                var topicIdentifiers = [];
-                angular.forEach(value, function (topic) {
-                    topicIdentifiers.push(topic.getUniqueTopicCode());
-                });
-
-                if (topicIdentifiers.length > 0) {
-                    state.topics = topicIdentifiers.join('_');
-                }
-                else {
-                    delete(state.topics);
-                }
-            }
-
-            updateURL();
+        urlService.setYear = function (year) {
+            set('year', year);
+            persistState();
         };
 
-        var updateURL = function () {
-            setHash(state);
+        urlService.getYear = function () {
+            return get('year');
         };
 
+        urlService.setSemester = function (semester) {
+            set('semester', semester);
+            persistState();
+        };
 
-        return urlFactory;
+        urlService.getSemester = function () {
+            return get('semester');
+        };
+
+        urlService.setTopics = function (topics) {
+            var topicIdentifiers = [];
+            angular.forEach(topics, function (topic) {
+                topicIdentifiers.push(topic.getUniqueTopicCode());
+            });
+
+            set('topics', topicIdentifiers.join('_'));
+            persistState();
+        };
+
+        urlService.getTopics = function () {
+            return get('topics').split('_');
+        };
+
+        return urlService;
     })
 
     .factory('camelCaseService', function () {
@@ -448,8 +451,6 @@ angular.module('flindersTimetable.timetable', [
                 broadcast = true;
             }
 
-            console.log(!that.topicIsChosen(topic));
-
             if (!that.topicIsChosen(topic)) {
                 chosenTopics.push(topic);
 
@@ -606,7 +607,7 @@ angular.module('flindersTimetable.timetable', [
         return dayService;
     })
 
-    .controller('TopicController', function ($scope, chosenTopicService, topicFactory, urlFactory) {
+    .controller('TopicController', function ($scope, chosenTopicService, topicFactory, urlService) {
         $scope.years = appConfig.years;
         $scope.activeYear = appConfig.defaultYear;
 
@@ -683,8 +684,8 @@ angular.module('flindersTimetable.timetable', [
         });
 
         $scope.updateAvailableTopics = function () {
-            urlFactory.set('semester', $scope.activeSemester);
-            urlFactory.set('year', $scope.activeYear);
+            urlService.setSemester($scope.activeSemester);
+            urlService.setYear($scope.activeYear);
             $scope.availableTopics = [];
 
             topicFactory.getTopicsAsync({
@@ -730,19 +731,9 @@ angular.module('flindersTimetable.timetable', [
 
 
         var loadFromUrl = function () {
-            if (urlFactory.get('year') !== undefined && $scope.years.indexOf(urlFactory.get('year')) !== -1) {
-                $scope.activeYear = urlFactory.get('year');
-            }
-            else {
-                urlFactory.set('year', $scope.activeYear);
-            }
+            $scope.activeYear = urlService.getYear();
 
-            if (urlFactory.get('semester') !== undefined && $scope.semesters.indexOf(urlFactory.get('semester')) !== -1) {
-                $scope.activeSemester = urlFactory.get('semester');
-            }
-            else {
-                urlFactory.set('semester', $scope.activeSemester);
-            }
+            $scope.activeSemester = urlService.getSemester();
 
             $scope.numTimetableCombinations = 1;
         };
@@ -757,7 +748,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
-    .controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory, urlFactory) {
+    .controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory, urlService) {
         $scope.chosenTopics = [];
         $scope.days = dayService.days();
         $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
