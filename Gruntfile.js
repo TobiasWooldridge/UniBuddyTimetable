@@ -598,12 +598,14 @@ module.exports = function (grunt) {
      * compilation.
      */
     grunt.registerMultiTask('index', 'Process index.html template', function () {
+        var assetsPath = grunt.option('assetsPath') || '/';
+
         var dirRE = new RegExp('^(' + grunt.config('build_dir') + '|' + grunt.config('compile_dir') + ')\/', 'g');
         var jsFiles = filterForJS(this.filesSrc).map(function (file) {
-            return file.replace(dirRE, '');
+            return assetsPath + file.replace(dirRE, '');
         });
         var cssFiles = filterForCSS(this.filesSrc).map(function (file) {
-            return file.replace(dirRE, '');
+            return assetsPath + file.replace(dirRE, '');
         });
 
         grunt.file.copy('src/index.html', this.data.dir + '/index.html', {
