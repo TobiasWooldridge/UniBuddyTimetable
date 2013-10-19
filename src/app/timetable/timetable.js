@@ -768,6 +768,28 @@ angular.module('flindersTimetable.timetable', [
             var bookings = topicService.listBookingsForTopics($scope.chosenTopics);
             bookings = sessionsService.sortSessions(bookings);
 
+            // Remove duplicate bookings where the only difference between the two bookings is the room they're in
+
+            for (var i = 0; i < (bookings.length - 1); i++) {
+                var a = bookings[i];
+                var b = bookings[i + 1];
+
+                var sessionComparisonFields = ['topicId', 'className', 'dayOfWeek', 'secondsStartsAt', 'secondsEndsAt'];
+
+                var found = true;
+                for (var j = 0; j < sessionComparisonFields.length; j++) {
+                    var field = sessionComparisonFields[j];
+                    if (a[field] !== b[field]) {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    bookings.splice(i, 1);
+                }
+            }
+
             angular.forEach(bookings, function (booking) {
                 var day = booking.dayOfWeek;
 
