@@ -27,12 +27,12 @@
 
                 <fieldset>
                     <label class="select inline">Year
-                        <select class="form-control" ng-model="activeYear" ng-change="loadTopicIndex()"
+                        <select class="form-control" ng-model="activeYear" ng-change="updateAvailableTopics()"
                                 ng-options="y for y in years">
                         </select>
                     </label>
                     <label class="select inline">Semester
-                        <select class="form-control" ng-model="activeSemester" ng-change="loadTopicIndex()"
+                        <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()"
                                 ng-options="s as s for s in semesters">
                         </select>
                     </label>
@@ -61,11 +61,11 @@
                             <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
                         </td>
                         <td width="*">
-                            <p ng-show="!topicIndex.length"><img src="assets/images/ajax-loader.gif" alt="Loading"
-                                                                 class="ajax-loader"/>
+                            <p ng-show="!availableTopics.length"><img src="assets/images/ajax-loader.gif" alt="Loading"
+                                                                      class="ajax-loader"/>
                             </p>
-                            <select ng-show="topicIndex.length" class="form-control" ng-model="activeTopic"
-                                    ng-options="t as t.code + ' ' + t.name + ' ' for t in topicIndex | filter:topicSearch">
+                            <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
+                                    ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter:searchTopics ">
                             </select>
                         </td>
                         <td class="action">
