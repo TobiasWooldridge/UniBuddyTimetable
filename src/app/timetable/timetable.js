@@ -48,6 +48,23 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
+    .factory('console', function () {
+        var c = {
+            log: function () {
+            },
+            debug: function () {
+            },
+            warn: function () {
+            }
+        };
+
+        if (typeof console !== undefined) {
+            angular.extend(c, console);
+        }
+
+        return console;
+    })
+
     .factory('urlService', function ($location) {
         var defaultState = {
             year: 2013,
@@ -162,7 +179,7 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService) {
+    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService, console) {
         var baseTopic = {
             getUniqueTopicCode: function () {
                 // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
@@ -748,7 +765,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
-    .controller('TimetableController', function ($scope, chosenTopicService, topicFactory, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory, urlService) {
+    .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory) {
         $scope.chosenTopics = [];
         $scope.days = dayService.days();
         $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
@@ -762,7 +779,6 @@ angular.module('flindersTimetable.timetable', [
             bookings = sessionsService.sortSessions(bookings);
 
             // Remove duplicate bookings where the only difference between the two bookings is the room they're in
-
             for (var i = 0; i < (bookings.length - 1); i++) {
                 var a = bookings[i];
                 var b = bookings[i + 1];
@@ -778,10 +794,12 @@ angular.module('flindersTimetable.timetable', [
                     }
                 }
 
+                // Remove the duplicate
                 if (found) {
                     bookings.splice(i, 1);
                 }
             }
+
 
             angular.forEach(bookings, function (booking) {
                 var day = booking.dayOfWeek;

@@ -82,6 +82,11 @@ a.list-group-item {
   cursor: pointer;
 }
 
+.list-group-item.active .list-group-item-text, .list-group-item.active:hover .list-group-item-text, .list-group-item.active:focus .list-group-item-text, .active a.list-group-item {
+  color: #fff;
+
+}
+
 table.topics {
   border-collapse: collapse;
   table-layout: fixed;
@@ -170,35 +175,36 @@ table.timetable {
     height: 0;
   }
 
-  .clashGroup td {
-    padding: 0 10px 0 0;
-  }
   .clashGroup td:first-of-type {
-    padding: 0 10px;
+    padding-left: 10px;
+  }
+  .clashGroup td {
+    padding-right: 5px;
+  }
+  .clashGroup td:last-of-type {
+    padding-right: 10px;
   }
 
   .clashGroup {
 
     .booking {
-      border-radius: 4px;
       position: relative;
+      border-radius: @border-radius-base;
     }
 
     .locked {
-      background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2) 10px, transparent 10px, transparent 20px);
-      //      background-image: linear-gradient(135deg, black 10px, transparent 10px, transparent 10px, black 30px);
-
+      background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15) 10px, rgba(255, 255, 255, 0.3) 10px, rgba(255, 255, 255, 0.3) 20px);
     }
 
     .booking .glyphicon-lock {
       float: right;
       margin: 4px 4px 4px 10px;
-      opacity: 0.5;
+      font-size: 9px;
     }
 
     .booking p {
       display: block;
-      padding: 10px;
+      padding: 4px;
       font-size: 0.95em;
     }
   }
