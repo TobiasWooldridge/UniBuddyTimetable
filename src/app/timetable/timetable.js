@@ -48,23 +48,6 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
-    .factory('console', function () {
-        var c = {
-            log: function () {
-            },
-            debug: function () {
-            },
-            warn: function () {
-            }
-        };
-
-        if (typeof console !== undefined) {
-            angular.extend(c, console);
-        }
-
-        return console;
-    })
-
     .factory('urlService', function ($location) {
         var defaultState = {
             year: 2013,
@@ -179,7 +162,7 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService, console) {
+    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService) {
         var baseTopic = {
             getUniqueTopicCode: function () {
                 // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
@@ -751,8 +734,6 @@ angular.module('flindersTimetable.timetable', [
             $scope.activeYear = urlService.getYear();
 
             $scope.activeSemester = urlService.getSemester();
-
-            $scope.numTimetableCombinations = 1;
         };
 
 
@@ -828,6 +809,7 @@ angular.module('flindersTimetable.timetable', [
 
     .controller('TimetableGeneratorController', function ($scope, chosenTopicService, topicService, clashService) {
         var chosenTopics = chosenTopicService.getTopics();
+        $scope.numPossibleTimetables = 1;
 
         var countPossibleTimetables = function (topics) {
             var possibleTimetables = 1;
@@ -905,6 +887,8 @@ angular.module('flindersTimetable.timetable', [
                             selectionClashes++;
                         }
                     });
+
+                    console.log(selectionClashes);
 
                     // Make sure we're not exceeding our clash limit
                     if (selectionClashes <= $scope.clashLimit) {
@@ -1050,7 +1034,7 @@ angular.module('flindersTimetable.timetable', [
             chosenTopics = chosenTopicService.getTopics();
             $scope.hasChosenTopics = (chosenTopics.length > 0);
 
-            $scope.possibleTimetables = countPossibleTimetables(chosenTopics);
+            $scope.numPossibleTimetables = countPossibleTimetables(chosenTopics);
 
             $scope.hasGeneratedTimetables = false;
         });
