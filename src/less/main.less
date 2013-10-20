@@ -87,7 +87,14 @@ body {
 }
 
 body > .container {
-  background: #ffffff;
+  background: @flinders-light-yellow;
+}
+
+body > .container .container {
+  background: rgba(255, 255, 255, 0.95);
+  margin: 10px 0;
+  border-radius: @border-radius-large;
+  padding: 5px 15px;
 }
 
 a.list-group-item {
