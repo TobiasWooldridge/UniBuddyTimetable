@@ -547,29 +547,47 @@ angular.module('flindersTimetable.timetable', [
             }
         };
 
+        var clashCache = {};
+
+        var addToClashCache = function (a, b, outcome) {
+            if (typeof clashCache[a.id] === "undefined") {
+                clashCache[a.id] = {};
+            }
+
+            clashCache[a.id][b.id] = outcome;
+        };
+
         clashService.classGroupsClash = function (a, b) {
             var aIndex = 0;
             var bIndex = 0;
 
-            // Assumption: a.classSessions and b.classSessions are sorted
-            while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
-                //check if both session clash
-                if (clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex])) {
-                    //there is a clash
-                    return true;
-                } else {
-                    // Advance the pointer to whichever class group starts first
-                    if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
-                        aIndex++;
-                    }
-                    else {
-                        bIndex++;
+            if (typeof clashCache[a.id] === "undefined" || typeof clashCache[a.id][b.id] === "undefined") {
+                var clashFound = false;
+
+                // Assumption: a.classSessions and b.classSessions are sorted
+                while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
+                    //check if both session clash
+                    if (clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex])) {
+                        //there is a clash
+                        clashFound = true;
+                        break;
+                    } else {
+                        // Advance the pointer to whichever class group starts first
+                        if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
+                            aIndex++;
+                        }
+                        else {
+                            bIndex++;
+                        }
                     }
                 }
+
+                addToClashCache(a, b, clashFound);
+                addToClashCache(b, a, clashFound);
             }
 
             // No clashes were found
-            return false;
+            return clashCache[a.id][b.id];
         };
 
         return clashService;
@@ -849,17 +867,6 @@ angular.module('flindersTimetable.timetable', [
 
             var allClassGroups = topicService.listClassGroupsForTopics(topics);
 
-            var groupsClash = {};
-            angular.forEach(allClassGroups, function (a) {
-                groupsClash[a.id] = {};
-
-                angular.forEach(allClassGroups, function (b) {
-                    if (a !== b) {
-                        groupsClash[a.id][b.id] = clashService.classGroupsClash(a, b);
-                    }
-                });
-            });
-
             $scope.clashLimit = 9001; // It's over nine thousaaaaaaaaaaaaaand!
 
             var generatedTimetables = [];
@@ -876,35 +883,33 @@ angular.module('flindersTimetable.timetable', [
             };
 
 
-            var searchTimetables = function (previouslyChosenClassGroups, remainingClassChoices, currentClashes) {
+            var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, currentClashes) {
                 var currentClassType = remainingClassChoices.pop();
 
                 angular.forEach(currentClassType.classGroups, function (currentGroup) {
                     var selectionClashes = currentClashes;
 
-                    angular.forEach(previouslyChosenClassGroups, function (previouslyChosenGroup) {
-                        if (groupsClash[currentGroup.id][previouslyChosenGroup.classGroup.id]) {
+                    angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {
+                        if (clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup)) {
                             selectionClashes++;
                         }
                     });
 
-                    console.log(selectionClashes);
-
                     // Make sure we're not exceeding our clash limit
                     if (selectionClashes <= $scope.clashLimit) {
                         // Work with this group for now
-                        previouslyChosenClassGroups[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
+                        previousClassGroupSelections[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
 
                         if (remainingClassChoices.length === 0) {
                             // No more choices we can make, check if this timetable is good and move on
-                            examineTimetable(previouslyChosenClassGroups, selectionClashes);
+                            examineTimetable(previousClassGroupSelections, selectionClashes);
                         } else {
                             // Keep making choices until we find a working timetable
-                            searchTimetables(previouslyChosenClassGroups, remainingClassChoices, selectionClashes);
+                            searchTimetables(previousClassGroupSelections, remainingClassChoices, selectionClashes);
                         }
 
                         // Stop working with the current group
-                        delete(previouslyChosenClassGroups[currentGroup.id]);
+                        delete(previousClassGroupSelections[currentGroup.id]);
                     }
                 });
 
@@ -917,11 +922,7 @@ angular.module('flindersTimetable.timetable', [
             var classTypes = topicService.listClassTypesForTopics(topics);
 
             angular.forEach(classTypes, function (classType) {
-                if (classType.classGroups.length >= 1 && classType.activeClassGroup.locked) {
-                    var classGroup = classType.classGroups[0];
-                    chosenClassGroups[classGroup.id] = newClassGroupSelection(classType, classGroup);
-                }
-                else if (classType.classGroups.length > 1) {
+                if (classType.classGroups.length > 0) {
                     remainingClassChoices.push(classType);
                 }
             });
