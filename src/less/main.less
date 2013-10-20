@@ -5,6 +5,10 @@
   transform: all 1s ease-in-out;
 }
 
+.flinders-background {
+  background: @flinders-dark-yellow;
+}
+
 .booking-highlight(@color: blue) {
   border-color: darken(@color, 10%);
   background: darken(@color, 2%);
@@ -78,6 +82,14 @@
   .booking-highlight(#FFEE64);
 }
 
+body {
+  .flinders-background;
+}
+
+body > .container {
+  background: #ffffff;
+}
+
 a.list-group-item {
   cursor: pointer;
 }
@@ -117,6 +129,8 @@ table.timetable > thead > tr:first-of-type > th {
 }
 
 table.timetable {
+  background: #ffffff;
+
   thead > tr > th,
   tbody > tr > th,
   tfoot > tr > th,
