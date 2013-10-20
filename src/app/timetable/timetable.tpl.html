@@ -92,12 +92,14 @@
                 <button class="btn btn-primary" ng-click="generateTimetables()">Automatically Generate Timetables
                 </button>
             </p>
-            <p>Click the above button to automatically generate some time tables!</p>
         </div>
 
         <div ng-show="hasGeneratedTimetables">
-            <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables, with {{ clashLimit }}
-                clashes.</p>
+            <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with
+                <ng-pluralize count="clashLimit"
+                              when="{'0': 'no clashes','one': '1 unavoidable clash', 'other': '{} unavoidable clashes'}"></ng-pluralize>
+                .
+            </p>
 
             <p>This took {{ examineDuration }} seconds.</p>
 
