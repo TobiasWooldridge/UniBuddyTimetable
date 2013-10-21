@@ -28,19 +28,53 @@ angular.module('flindersTimetable.timetable', [
         });
 
         var loadFromUrl = function () {
-            while (chosenTopicService.getTopics().length > 0) {
-                chosenTopicService.getTopics().pop();
-            }
+            var newTopicCodes = urlService.getTopics();
+            var oldTopics = chosenTopicService.getTopics();
 
-            var topicCodes = urlService.getTopics();
+            console.log(newTopicCodes, chosenTopicService.getTopicCodes());
 
-            angular.forEach(topicCodes, function (topicCode) {
-                topicFactory.getTopicByUniqueTopicCodeAsync(topicCode, function (topic) {
+            var topicsToRemove = [];
+
+            angular.forEach(oldTopics, function (oldTopic) {
+                var index = newTopicCodes.indexOf(oldTopic.getUniqueTopicCode());
+
+                if (index === -1) {
+                    // The old topic should be removed.
+                    topicsToRemove.push(oldTopic);
+                }
+                else {
+                    // It isn't actually a new topic! Don't add it later.
+                    newTopicCodes.splice(index, 1);
+                }
+            });
+
+            angular.forEach(topicsToRemove, function (topic) {
+                chosenTopicService.removeTopic(topic, false);
+            });
+
+
+            // Don't try to broadcast while we're still asyncronously loading topics.
+            var topicsToLoad = newTopicCodes.length;
+            var broadcastUpdateWhenReady = function () {
+                if (topicsToLoad === 0) {
+                    chosenTopicService.broadcastTopicsUpdate();
+                }
+            };
+
+            // Load all of the new topics
+            angular.forEach(newTopicCodes, function (newTopicCode) {
+                topicFactory.getTopicByUniqueTopicCodeAsync(newTopicCode, function (topic) {
                     topicFactory.loadTimetableForTopicAsync(topic, function () {
                         chosenTopicService.addTopic(topic, false);
+
+                        topicsToLoad--;
+
+                        broadcastUpdateWhenReady();
                     });
                 });
             });
+
+            broadcastUpdateWhenReady();
         };
 
         $scope.$watch(function () {
@@ -419,6 +453,9 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .factory('chosenTopicService', function ($rootScope, topicService) {
+        // Keep track of unbroadcasted changes
+        var dirty = false;
+
         var chosenTopics = [];
 
         var getTopicIndex = function (topic) {
@@ -443,6 +480,8 @@ angular.module('flindersTimetable.timetable', [
         };
 
         that.broadcastClassesUpdate = function () {
+            dirty = false;
+
             $rootScope.$broadcast('chosenClassesUpdate');
         };
 
@@ -459,6 +498,9 @@ angular.module('flindersTimetable.timetable', [
                 if (broadcast) {
                     that.broadcastTopicsUpdate();
                 }
+                else {
+                    dirty = true;
+                }
             }
         };
 
@@ -470,6 +512,16 @@ angular.module('flindersTimetable.timetable', [
             });
 
             return true;
+        };
+
+        that.getTopicCodes = function () {
+            var topicCodes = [];
+
+            angular.forEach(chosenTopics, function (topic) {
+                topicCodes.push(topic.getUniqueTopicCode());
+            });
+
+            return topicCodes;
         };
 
         that.topicIsChosen = function (topic) {
@@ -488,6 +540,9 @@ angular.module('flindersTimetable.timetable', [
 
                 if (broadcast) {
                     that.broadcastTopicsUpdate();
+                }
+                else {
+                    dirty = true;
                 }
             }
         };
