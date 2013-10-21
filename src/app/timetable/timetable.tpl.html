@@ -86,11 +86,15 @@
 
     <p>You have {{ numPossibleTimetables }} possible timetables.</p>
 
-    <div ng-show="!hasGeneratedTimetables">
-        <p>
+    <div ng-show="!hasGeneratedTimetables && !generatingTimetables">
+    <p>
             <button class="btn btn-primary" ng-click="generateTimetables()">Automatically Generate Timetables
             </button>
         </p>
+    </div>
+
+    <div ng-show="!hasGeneratedTimetables && generatingTimetables">
+        <p>Generating timetables</p>
     </div>
 
     <div ng-show="hasGeneratedTimetables">

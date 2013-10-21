@@ -22,24 +22,35 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-    .controller('TimetableCtrl', function TimetableController($scope, chosenTopicService, urlService, topicFactory) {
+    .controller('TimetableCtrl', function TimetableController($scope, $location, chosenTopicService, urlService, topicFactory) {
         $scope.$on('chosenTopicsUpdate', function () {
             urlService.setTopics(chosenTopicService.getTopics());
         });
 
-        urlService.loadState();
+        var loadFromUrl = function () {
+            while (chosenTopicService.getTopics().length > 0) {
+                chosenTopicService.getTopics().pop();
+            }
 
-        var topicCodes = urlService.getTopics();
+            var topicCodes = urlService.getTopics();
 
-        if (typeof topicCodes !== "undefined") {
-            angular.forEach(topicCodes, function (topicString) {
-                topicFactory.getTopicByUniqueTopicCodeAsync(topicString, function (topic) {
+            angular.forEach(topicCodes, function (topicCode) {
+                topicFactory.getTopicByUniqueTopicCodeAsync(topicCode, function (topic) {
                     topicFactory.loadTimetableForTopicAsync(topic, function () {
-                        chosenTopicService.addTopic(topic);
+                        chosenTopicService.addTopic(topic, false);
                     });
                 });
             });
-        }
+        };
+
+        $scope.$watch(function () {
+            return $location.search();
+        }, function () {
+            loadFromUrl();
+        });
+
+
+        loadFromUrl();
     })
 
     .filter('toTime', function () {
@@ -59,21 +70,9 @@ angular.module('flindersTimetable.timetable', [
 
         var urlService = {};
 
-        var persistState = function () {
-            $location.search(state);
-        };
-
-        urlService.loadState = function () {
-            var query = $location.search();
-
-            angular.forEach(query, function (value, key) {
-                set(key, value);
-            });
-        };
-
         var get = function (key) {
-            if (state.hasOwnProperty(key)) {
-                return state[key];
+            if ($location.search().hasOwnProperty(key)) {
+                return $location.search()[key];
             }
             if (defaultState.hasOwnProperty(key)) {
                 return defaultState[key];
@@ -83,16 +82,19 @@ angular.module('flindersTimetable.timetable', [
         };
 
         var set = function (key, value) {
+            var state = $location.search();
+
             state[key] = value;
 
             if (defaultState[key] === value) {
                 delete(state[key]);
             }
+
+            $location.search(state);
         };
 
         urlService.setYear = function (year) {
             set('year', year);
-            persistState();
         };
 
         urlService.getYear = function () {
@@ -101,7 +103,6 @@ angular.module('flindersTimetable.timetable', [
 
         urlService.setSemester = function (semester) {
             set('semester', semester);
-            persistState();
         };
 
         urlService.getSemester = function () {
@@ -115,7 +116,6 @@ angular.module('flindersTimetable.timetable', [
             });
 
             set('topics', topicIdentifiers.join('_'));
-            persistState();
         };
 
         urlService.getTopics = function () {
@@ -460,6 +460,16 @@ angular.module('flindersTimetable.timetable', [
                     that.broadcastTopicsUpdate();
                 }
             }
+        };
+
+        that.containsTopicCode = function (topicCode) {
+            angular.forEach(chosenTopics, function (chosenTopic, i) {
+                if (chosenTopic.getUniqueTopicCode() === topicCode) {
+                    return true;
+                }
+            });
+
+            return true;
         };
 
         that.topicIsChosen = function (topic) {
@@ -828,6 +838,7 @@ angular.module('flindersTimetable.timetable', [
     .controller('TimetableGeneratorController', function ($scope, chosenTopicService, topicService, clashService) {
         var chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
+        $scope.generatingTimetables = false;
 
         var countPossibleTimetables = function (topics) {
             var possibleTimetables = 1;
@@ -854,6 +865,7 @@ angular.module('flindersTimetable.timetable', [
         };
 
         var findTimetablesWithMinimumClashes = function (topics) {
+
             if (topics.length === 0) {
                 return;
             }
@@ -927,7 +939,7 @@ angular.module('flindersTimetable.timetable', [
                 }
             });
 
-
+            // Keep the user informed of progress
             var startMillis = new Date().getTime();
 
             searchTimetables(chosenClassGroups, remainingClassChoices, 0);
