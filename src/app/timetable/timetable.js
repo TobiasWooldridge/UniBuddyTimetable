@@ -1,5 +1,5 @@
 var appConfig = {
-    apiPath: "http://flindersapi.tobias.pw/api/v1/",
+    apiPath: "http://127.0.0.1:3000/api/v1/",
     years: [2013],
     defaultYear: 2013,
     semesters: ["S1", "NS1", "S2", "NS2"],
@@ -23,20 +23,18 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .controller('TimetableCtrl', function TimetableController($scope, $location, chosenTopicService, urlService, topicFactory) {
-        $scope.$on('chosenTopicsUpdate', function () {
+        $scope.$on('chosenClassesUpdate', function () {
             urlService.setTopics(chosenTopicService.getTopics());
         });
 
         var loadFromUrl = function () {
-            var newTopicCodes = urlService.getTopics();
+            var newTopicSerials = urlService.getTopics();
             var oldTopics = chosenTopicService.getTopics();
-
-            console.log(newTopicCodes, chosenTopicService.getTopicCodes());
 
             var topicsToRemove = [];
 
             angular.forEach(oldTopics, function (oldTopic) {
-                var index = newTopicCodes.indexOf(oldTopic.getUniqueTopicCode());
+                var index = newTopicSerials.indexOf(oldTopic.getSerial());
 
                 if (index === -1) {
                     // The old topic should be removed.
@@ -44,7 +42,7 @@ angular.module('flindersTimetable.timetable', [
                 }
                 else {
                     // It isn't actually a new topic! Don't add it later.
-                    newTopicCodes.splice(index, 1);
+                    newTopicSerials.splice(index, 1);
                 }
             });
 
@@ -54,7 +52,7 @@ angular.module('flindersTimetable.timetable', [
 
 
             // Don't try to broadcast while we're still asyncronously loading topics.
-            var topicsToLoad = newTopicCodes.length;
+            var topicsToLoad = newTopicSerials.length;
             var broadcastUpdateWhenReady = function () {
                 if (topicsToLoad === 0) {
                     chosenTopicService.broadcastTopicsUpdate();
@@ -62,15 +60,13 @@ angular.module('flindersTimetable.timetable', [
             };
 
             // Load all of the new topics
-            angular.forEach(newTopicCodes, function (newTopicCode) {
-                topicFactory.getTopicByUniqueTopicCodeAsync(newTopicCode, function (topic) {
-                    topicFactory.loadTimetableForTopicAsync(topic, function () {
-                        chosenTopicService.addTopic(topic, false);
+            angular.forEach(newTopicSerials, function (topicSerial) {
+                topicFactory.loadTimetableFromSerialAsync(topicSerial, function (topic) {
+                    chosenTopicService.addTopic(topic, false);
 
-                        topicsToLoad--;
+                    topicsToLoad--;
 
-                        broadcastUpdateWhenReady();
-                    });
+                    broadcastUpdateWhenReady();
                 });
             });
 
@@ -91,6 +87,25 @@ angular.module('flindersTimetable.timetable', [
         return function (number) {
             return moment.unix(number).utc().format('h:mm a');
         };
+    })
+
+    .factory('hashService', function () {
+        var hashService = {
+            hash : function(str) {
+                var hash = 0, i, c;
+                if (str.length === 0) {
+                    return hash;
+                }
+                for (i = 0, l = str.length; i < l; i++) {
+                    c  = str.charCodeAt(i);
+                    hash  = ((hash<<5)-hash)+c;
+                    hash |= 0;
+                }
+                return hash;
+            }
+        };
+
+        return hashService;
     })
 
     .factory('urlService', function ($location) {
@@ -146,13 +161,17 @@ angular.module('flindersTimetable.timetable', [
         urlService.setTopics = function (topics) {
             var topicIdentifiers = [];
             angular.forEach(topics, function (topic) {
-                topicIdentifiers.push(topic.getUniqueTopicCode());
+                topicIdentifiers.push(topic.getSerial());
             });
 
             set('topics', topicIdentifiers.join('_'));
         };
 
         urlService.getTopics = function () {
+            if (get('topics') === "") {
+                return [];
+            }
+
             return get('topics').split('_');
         };
 
@@ -196,41 +215,35 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService) {
+    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService, hashService) {
         var baseTopic = {
-            getUniqueTopicCode: function () {
-                // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
-                return this.year + '-' + this.semester + '-' + this.code;
+            getSerial: function () {
+                var serial = this.uniqueTopicCode;
+
+                var firstClass = true;
+
+                angular.forEach(this.classes, function(classType) {
+                    if (typeof(classType.activeClassGroup) !== "undefined") {
+                        serial +=  firstClass ? "-(" : "-";
+                        serial += classType.name + "-" + classType.activeClassGroup.groupId;
+
+                        firstClass = false;
+                    }
+                });
+
+                if (!firstClass) {
+                    serial += ")";
+                }
+
+                return serial;
+            },
+
+            getHash: function () {
+                return hashService.hash(this.uniqueTopicCode);
             }
         };
 
         var topicFactory = {};
-
-        topicFactory.getTopicByUniqueTopicCodeAsync = function (uniqueTopicCode, callback) {
-            // TODO: Add this to FlindersAPI2 https://github.com/TobiasWooldridge/FlindersAPI2/issues/12
-            // Only gets a thin version of a topic, not all details (e.g. topic desc.)
-
-            var syntax = /^([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]+)([0-9]+.*)$/;
-
-            var topicIdentifier = syntax.exec(uniqueTopicCode);
-
-            if (topicIdentifier !== null) {
-                topicFactory.getTopicsAsync({
-                    year: topicIdentifier[1],
-                    semester: topicIdentifier[2],
-                    subjectArea: topicIdentifier[3],
-                    topicNumber: topicIdentifier[4]
-                }, function (topics, status, headers, config) {
-                    if (typeof topics[0] !== "undefined") {
-                        callback(topics[0], status, headers, config);
-                    }
-                    else {
-                        console.error("Could not load topic for identifier ", topicIdentifier);
-                    }
-
-                });
-            }
-        };
 
         topicFactory.getTopicsAsync = function (query, callback) {
             var url = appConfig.apiPath + 'topics.json' + "?";
@@ -271,31 +284,67 @@ angular.module('flindersTimetable.timetable', [
                 callback(data, status, headers, config);
             });
         };
-        topicFactory.getTopicTimetableAsync = function (topicId, callback) {
-            var url = appConfig.apiPath + 'topics/' + topicId + '/classes.json';
 
-            $http.get(url).success(function (classTypes, status, headers, config) {
-                camelCaseService.camelCaseObject(classTypes);
+        topicFactory.createTopicFromUniqueTopicCode = function (serial) {
+            var syntax = /^(([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]+)([0-9][0-9A-Za-z]+?))[$-]/;
 
-                angular.forEach(classTypes, function (classType) {
-                    classType.activeClassGroup = classType.classGroups[0];
+            var topicIdentifier = syntax.exec(serial);
 
-                    angular.forEach(classType.classGroups, function (classGroup) {
-                        sessionsService.sortSessions(classGroup.classSessions);
-                        classGroup.locked = classType.classGroups.length === 1;
-                    });
-                });
+            var topic = {
+                uniqueTopicCode : topicIdentifier[1],
+                year: topicIdentifier[2],
+                semester: topicIdentifier[3],
+                subjectArea: topicIdentifier[4],
+                topicNumber: topicIdentifier[5]
+            };
 
-                callback(classTypes, status, headers, config);
-            });
+            return topic;
         };
-        topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
-            topicFactory.getTopicTimetableAsync(topic.id, function (classTypes, status, headers, config) {
-                topic.classes = classTypes;
+
+        topicFactory.loadTimetableFromSerialAsync = function (topicSerial, callback) {
+            var topic = topicFactory.createTopicFromUniqueTopicCode(topicSerial);
+
+            // TODO: Improve the following method (parse string with regex)
+            var syntax = /\((.*)\)/;
+
+            var classSelectionsArray = syntax.exec(unescape(topicSerial))[1].split('-');
+            var classSelections = {};
+
+            for (var i = 0; i < classSelectionsArray.length / 2; i += 2) {
+                classSelections[classSelectionsArray[i]] = classSelectionsArray[i + 1];
+            }
+
+            console.log(classSelections);
+
+            angular.extend(topic, baseTopic);
+
+            topicFactory.loadTimetableForTopicAsync(topic, function(topic, status, headers, config) {
+                angular.forEach(topic.classes, function(classType) {
+                    if (typeof classSelections[classType.name] !== "undefined") {
+                        classType.activeClassGroup = classType.classGroups[classSelections[classType.name] - 1];
+                    }
+
+                });
 
                 callback(topic, status, headers, config);
             });
         };
+
+        topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
+            topicFactory.getTopicAsync(topic.uniqueTopicCode, function (remoteTopicEntry, status, headers, config) {
+                angular.extend(topic, remoteTopicEntry);
+
+                angular.forEach(topic.classes, function(classType) {
+                    if (typeof classType.activeClassGroup === "undefined" && classType.classGroups.length > 0) {
+                        classType.activeClassGroup = classType.classGroups[0];
+                    }
+                });
+
+                console.log(topic);
+                callback(topic, status, headers, config);
+            });
+        };
+
 
         return topicFactory;
     })
@@ -390,7 +439,7 @@ angular.module('flindersTimetable.timetable', [
         that.newBooking = function (topic, classType, classGroup, classSession) {
             var booking = {};
 
-            booking.topicId = topic.id;
+            booking.topicHash = topic.getHash();
             booking.topicCode = topic.code;
             booking.className = classType.name;
             booking.dayOfWeek = classSession.dayOfWeek;
@@ -462,7 +511,7 @@ angular.module('flindersTimetable.timetable', [
             var index = -1;
 
             angular.forEach(chosenTopics, function (chosenTopic, i) {
-                if (chosenTopic.id === topic.id) {
+                if (chosenTopic.uniqueTopicCode === topic.uniqueTopicCode) {
                     index = i;
                     return false; // break
                 }
@@ -504,21 +553,21 @@ angular.module('flindersTimetable.timetable', [
             }
         };
 
-        that.containsTopicCode = function (topicCode) {
-            angular.forEach(chosenTopics, function (chosenTopic, i) {
-                if (chosenTopic.getUniqueTopicCode() === topicCode) {
-                    return true;
-                }
-            });
+        // that.containsTopicCode = function (topicCode) {
+        //     angular.forEach(chosenTopics, function (chosenTopic, i) {
+        //         if (chosenTopic.uniqueTopicCode === topicCode) {
+        //             return true;
+        //         }
+        //     });
 
-            return true;
-        };
+        //     return true;
+        // };
 
         that.getTopicCodes = function () {
             var topicCodes = [];
 
             angular.forEach(chosenTopics, function (topic) {
-                topicCodes.push(topic.getUniqueTopicCode());
+                topicCodes.push(topic.getSerial());
             });
 
             return topicCodes;
@@ -584,55 +633,76 @@ angular.module('flindersTimetable.timetable', [
     .factory('clashService', function (sessionsService) {
         var clashService = {};
 
-        clashService.sessionsClash = function (a, b) {
-            if (a.dayOfWeek !== b.dayOfWeek) {
-                return false;
+
+        var sessionClashCache = {};
+
+        var addToSessionClashCache = function (a, b, outcome) {
+            if (typeof sessionClashCache[a.id] === "undefined") {
+                sessionClashCache[a.id] = {};
             }
-            else if (a.secondsStartsAt === b.secondsStartsAt) {
-                return true;
+
+            sessionClashCache[a.id][b.id] = outcome;
+
+
+            if (typeof sessionClashCache[b.id] === "undefined") {
+                sessionClashCache[b.id] = {};
             }
-            // a's start is within b's interval
-            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsStartsAt < b.secondsEndsAt) {
-                return true;
-            }
-            // a's end is within b's interval
-            else if (b.secondsStartsAt < a.secondsEndsAt && a.secondsEndsAt <= b.secondsEndsAt) {
-                return true;
-            }
-            // a wraps b
-            else if (a.secondsStartsAt <= b.secondsStartsAt && b.secondsEndsAt <= a.secondsEndsAt) {
-                return true;
-            }
-            // b wraps a
-            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsEndsAt <= b.secondsEndsAt) {
-                return true;
-            }
-            else {
-                return false;
-            }
+            sessionClashCache[b.id][a.id] = outcome;
         };
 
-        var clashCache = {};
 
-        var addToClashCache = function (a, b, outcome) {
-            if (typeof clashCache[a.id] === "undefined") {
-                clashCache[a.id] = {};
+        clashService.sessionsClash = function (a, b) {
+            var secondsClash = 0;
+
+            if (a.dayOfWeek !== b.dayOfWeek) {
+                secondsClash = 0;
+            }
+            else if (a.secondsStartsAt === b.secondsStartsAt) {
+                // a and b start at the same time
+                // clash's duration is until first ends
+                secondsClash = Math.min(a.secondsDuration, b.secondsDuration);
+            }
+            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsStartsAt < b.secondsEndsAt) {
+                // a's start is within b's interval
+                secondsClash = (Math.max(a.secondsEndsAt, b.secondsEndsAt) - a.secondsStartsAt);
+            }
+            else if (b.secondsStartsAt < a.secondsEndsAt && a.secondsEndsAt <= b.secondsEndsAt) {
+                // a's end is within b's interval
+                secondsClash = (a.secondsEndsAt - Math.min(a.secondsStartsAt, b.secondsStartsAt));
+            }
+            else if (a.secondsStartsAt <= b.secondsStartsAt && b.secondsEndsAt <= a.secondsEndsAt) {
+                // a wraps b
+                secondsClash = b.secondsDuration;
+            }
+            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsEndsAt <= b.secondsEndsAt) {
+                // b wraps a
+                secondsClash = a.secondsDuration;
+            }
+            else {
+                secondsClash = 0;
             }
 
-            clashCache[a.id][b.id] = outcome;
+            return secondsClash;
+        };
+
+        var classClashCache = {};
+
+        var addToClassClashCache = function (a, b, outcome) {
+            classClashCache[a.id + ", " + b.id] = outcome;
+            classClashCache[b.id + ", " + a.id] = outcome;
         };
 
         clashService.classGroupsClash = function (a, b) {
             var aIndex = 0;
             var bIndex = 0;
 
-            if (typeof clashCache[a.id] === "undefined" || typeof clashCache[a.id][b.id] === "undefined") {
+            if (typeof classClashCache[a.id + ", " + b.id] === "undefined") {
                 var clashFound = false;
 
                 // Assumption: a.classSessions and b.classSessions are sorted
                 while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
                     //check if both session clash
-                    if (clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex])) {
+                    if (clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]) > 0) {
                         //there is a clash
                         clashFound = true;
                         break;
@@ -647,12 +717,10 @@ angular.module('flindersTimetable.timetable', [
                     }
                 }
 
-                addToClashCache(a, b, clashFound);
-                addToClashCache(b, a, clashFound);
+                addToClassClashCache(a, b, clashFound);
             }
 
-            // No clashes were found
-            return clashCache[a.id][b.id];
+            return classClashCache[a.id + ", " + b.id];
         };
 
         return clashService;
@@ -734,14 +802,14 @@ angular.module('flindersTimetable.timetable', [
         };
 
 
-        var chosenTopicIds = function () {
-            var ids = [];
+        var chosenUniqueTopicCodes = function () {
+            var uniqueTopicCodes = [];
 
             angular.forEach(chosenTopicService.chosenTopics, function (topic) {
-                ids.push(topic.id);
+                uniqueTopicCodes.push(topic.uniqueTopicCode);
             });
 
-            return ids;
+            return uniqueTopicCodes;
         };
 
         var applyTopicSearchFilter = function (newValue) {
@@ -871,7 +939,7 @@ angular.module('flindersTimetable.timetable', [
                 var clashGroups = timetable[day];
                 var clashGroup = clashGroups[clashGroups.length - 1];
 
-                if (typeof clashGroup === "undefined" || !clashService.sessionsClash(clashGroup, booking)) {
+                if (typeof clashGroup === "undefined" || clashService.sessionsClash(clashGroup, booking) === 0) {
                     clashGroup = clashGroupFactory.newClashGroup(booking);
                     timetable[day].push(clashGroup);
                 }

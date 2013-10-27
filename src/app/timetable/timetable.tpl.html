@@ -161,7 +161,7 @@
                         <tr>
                             <td ng-repeat="clashColumn in clashGroup.clashColumns">
                                 <div ng-repeat="booking in clashColumn" style="position: relative; height: 0px;">
-                                    <div class="booking topic-{{booking.topicId % 16}}"
+                                    <div class="booking topic-{{booking.topicHash % 16}}"
                                          ng-class="{'locked': booking.locked }"
                                          style="height: {{ booking.secondsDuration / 60 }}px; top: {{ (booking.secondsStartsAt - 28800) / 60 }}px;">
                                         <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
@@ -195,7 +195,7 @@
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.id % 16}}">
+            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.hash % 16}}">
                 <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
