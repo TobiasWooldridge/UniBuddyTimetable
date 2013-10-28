@@ -195,7 +195,7 @@
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.hash % 16}}">
+            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.getHash() % 16}}">
                 <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
