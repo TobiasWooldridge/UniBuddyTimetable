@@ -1,5 +1,5 @@
 var appConfig = {
-    apiPath: "flindersapi.tobias.pw/api/v1/",
+    apiPath: "http://flindersapi.tobias.pw/api/v1/",
     years: [2013],
     defaultYear: 2013,
     semesters: ["S1", "NS1", "S2", "NS2"],
@@ -101,7 +101,7 @@ angular.module('flindersTimetable.timetable', [
                     hash  = ((hash<<5)-hash)+c;
                     hash |= 0;
                 }
-                return hash;
+                return Math.abs(hash);
             }
         };
 
