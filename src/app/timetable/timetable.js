@@ -91,14 +91,14 @@ angular.module('flindersTimetable.timetable', [
 
     .factory('hashService', function () {
         var hashService = {
-            hash : function(str) {
+            hash: function (str) {
                 var hash = 0, i, c;
                 if (str.length === 0) {
                     return hash;
                 }
                 for (i = 0, l = str.length; i < l; i++) {
-                    c  = str.charCodeAt(i);
-                    hash  = ((hash<<5)-hash)+c;
+                    c = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + c;
                     hash |= 0;
                 }
                 return Math.abs(hash);
@@ -106,6 +106,25 @@ angular.module('flindersTimetable.timetable', [
         };
 
         return hashService;
+    })
+
+    .factory('classNameService', function () {
+        var classNameService = {};
+
+        classNameService.simplifyName = function (name) {
+            // Remove all nasty characters
+            name = name.replace(/[^A-Za-z0-9]/g, '');
+
+            name = name.replace(/Computer/g, 'Comp');
+            name = name.replace(/Laboratory/g, 'Lab');
+            name = name.replace(/Tutorial/g, 'Tute');
+            name = name.replace(/Practical/g, 'Prac');
+            name = name.replace(/Project/g, 'Proj');
+
+            return name;
+        };
+
+        return classNameService;
     })
 
     .factory('urlService', function ($location) {
@@ -215,17 +234,21 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService, hashService) {
+    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService, hashService, classNameService) {
         var baseTopic = {
             getSerial: function () {
                 var serial = this.uniqueTopicCode;
 
                 var firstClass = true;
 
-                angular.forEach(this.classes, function(classType) {
-                    if (typeof(classType.activeClassGroup) !== "undefined") {
-                        serial +=  firstClass ? "-(" : "-";
-                        serial += classType.name + "-" + classType.activeClassGroup.groupId;
+                angular.forEach(this.classes, function (classType) {
+                    if (typeof(classType.activeClassGroup) === "undefined") {
+                    }
+                    else if (classType.classGroups.length <= 1) {
+                    }
+                    else {
+                        serial += firstClass ? "-(" : "-";
+                        serial += classNameService.simplifyName(classType.name) + classType.activeClassGroup.groupId;
 
                         firstClass = false;
                     }
@@ -290,8 +313,12 @@ angular.module('flindersTimetable.timetable', [
 
             var topicIdentifier = syntax.exec(serial);
 
+            if (!topicIdentifier) {
+                return false;
+            }
+
             var topic = {
-                uniqueTopicCode : topicIdentifier[1],
+                uniqueTopicCode: topicIdentifier[1],
                 year: topicIdentifier[2],
                 semester: topicIdentifier[3],
                 subjectArea: topicIdentifier[4],
@@ -305,26 +332,35 @@ angular.module('flindersTimetable.timetable', [
             var topic = topicFactory.createTopicFromUniqueTopicCode(topicSerial);
 
             // TODO: Improve the following method (parse string with regex)
-            var syntax = /\((.*)\)/;
+            var parens = /\((.*)\)/;
 
-            var classSelectionsArray = syntax.exec(unescape(topicSerial))[1].split('-');
-            var classSelections = {};
+            var bracketSets = parens.exec(topicSerial);
 
-            for (var i = 0; i < classSelectionsArray.length / 2; i += 2) {
-                classSelections[classSelectionsArray[i]] = classSelectionsArray[i + 1];
+            var hasClassSelections = bracketSets !== null;
+
+            if (hasClassSelections) {
+                var getClassesRegex = /([(A-Za-z]+)([0-9]+)-?/g;
+                var classSelections = {};
+
+                while (classSelection = getClassesRegex.exec(bracketSets[1])) {
+                    classSelections[classSelection[1]] = classSelection[2];
+                }
             }
 
-            console.log(classSelections);
 
             angular.extend(topic, baseTopic);
 
-            topicFactory.loadTimetableForTopicAsync(topic, function(topic, status, headers, config) {
-                angular.forEach(topic.classes, function(classType) {
-                    if (typeof classSelections[classType.name] !== "undefined") {
-                        classType.activeClassGroup = classType.classGroups[classSelections[classType.name] - 1];
-                    }
+            topicFactory.loadTimetableForTopicAsync(topic, function (topic, status, headers, config) {
+                if (hasClassSelections) {
+                    angular.forEach(topic.classes, function (classType) {
+                        var strippedName = classNameService.simplifyName(classType.name);
 
-                });
+                        if (typeof classSelections[strippedName] !== "undefined") {
+                            classType.activeClassGroup = classType.classGroups[classSelections[strippedName] - 1];
+                        }
+
+                    });
+                }
 
                 callback(topic, status, headers, config);
             });
@@ -334,13 +370,18 @@ angular.module('flindersTimetable.timetable', [
             topicFactory.getTopicAsync(topic.uniqueTopicCode, function (remoteTopicEntry, status, headers, config) {
                 angular.extend(topic, remoteTopicEntry);
 
-                angular.forEach(topic.classes, function(classType) {
-                    if (typeof classType.activeClassGroup === "undefined" && classType.classGroups.length > 0) {
-                        classType.activeClassGroup = classType.classGroups[0];
+                angular.forEach(topic.classes, function (classType) {
+                    if (classType.classGroups.length > 0) {
+                        classType.classGroups.sort(function (a, b) {
+                            return a.groupId - b.groupId;
+                        });
+
+                        if (typeof classType.activeClassGroup === "undefined") {
+                            classType.activeClassGroup = classType.classGroups[0];
+                        }
                     }
                 });
 
-                console.log(topic);
                 callback(topic, status, headers, config);
             });
         };
