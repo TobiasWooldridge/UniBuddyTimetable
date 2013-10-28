@@ -1,5 +1,5 @@
 var appConfig = {
-    apiPath: "http://127.0.0.1:3000/api/v1/",
+    apiPath: "flindersapi.tobias.pw/api/v1/",
     years: [2013],
     defaultYear: 2013,
     semesters: ["S1", "NS1", "S2", "NS2"],
