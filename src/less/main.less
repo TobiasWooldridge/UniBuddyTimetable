@@ -5,12 +5,17 @@
   transform: all 1s ease-in-out;
 }
 
+.flinders-background {
+  background: @flinders-dark-background;
+}
+
 .booking-highlight(@color: blue) {
   border-color: darken(@color, 10%);
   background: darken(@color, 2%);
-  background-image: linear-gradient(to bottom, lighten(@color, 2%) 0%, darken(@color, 2%) 100%);
-  color: #ffffff !important;
-  text-shadow: 0px 0px 3px darken(@color, 20%);
+  background-image: linear-gradient(to bottom, lighten(@color, 2%) 0%, darken(@color, 5%) 100%);
+  color: #FFFFFF !important;
+  text-shadow: 0px 0px 5px darken(@color, 30%);
+
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -30,7 +35,7 @@
 }
 
 .booking.topic-4, .topic.topic-4 .active {
-  .booking-highlight(#FFC519);
+  .booking-highlight(darken(#FFC519, 6%));
 }
 
 .booking.topic-5, .topic.topic-5 .active {
@@ -77,8 +82,32 @@
   .booking-highlight(#FFEE64);
 }
 
+body {
+  .flinders-background;
+}
+
+body > .container {
+  background: @flinders-light-background;
+}
+
+body > .container .container {
+  background: rgba(255, 255, 255, 0.95);
+  margin: 10px 0;
+  border-radius: @border-radius-large;
+  padding: 5px 15px;
+
+  .page-header {
+    margin-top: 20px;
+  }
+}
+
 a.list-group-item {
   cursor: pointer;
+}
+
+.list-group-item.active .list-group-item-text, .list-group-item.active:hover .list-group-item-text, .list-group-item.active:focus .list-group-item-text, .active a.list-group-item {
+  color: #fff;
+
 }
 
 table.topics {
@@ -111,6 +140,8 @@ table.timetable > thead > tr:first-of-type > th {
 }
 
 table.timetable {
+  background: #ffffff;
+
   thead > tr > th,
   tbody > tr > th,
   tfoot > tr > th,
@@ -141,7 +172,6 @@ table.timetable {
     border: 0;
     table-layout: fixed;
     border-collapse: collapse;
-    font-size: 0.8em;
   }
 
   table.grid {
@@ -170,30 +200,37 @@ table.timetable {
     height: 0;
   }
 
-  .clashGroup td {
-    padding: 0 10px 0 0;
-  }
   .clashGroup td:first-of-type {
-    padding: 0 10px;
+    padding-left: 10px;
+  }
+  .clashGroup td {
+    padding-right: 5px;
+  }
+  .clashGroup td:last-of-type {
+    padding-right: 10px;
   }
 
   .clashGroup {
 
     .booking {
-      padding: 5px 0;
-      border-radius: 4px;
       position: relative;
-      opacity: 0.75;
-      font-size: 0.8em;
+      border-radius: @border-radius-base;
+    }
+
+    .locked {
+      background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15) 10px, rgba(255, 255, 255, 0.3) 10px, rgba(255, 255, 255, 0.3) 20px);
     }
 
     .booking .glyphicon-lock {
       float: right;
-      margin: 4px 10px;
+      margin: 4px 4px 4px 10px;
+      font-size: 9px;
     }
 
     .booking p {
-      margin: 5 10px;
+      display: block;
+      padding: 4px;
+      font-size: 0.95em;
     }
   }
 }
