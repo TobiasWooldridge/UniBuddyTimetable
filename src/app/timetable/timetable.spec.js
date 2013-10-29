@@ -148,3 +148,17 @@ describe('FlindersTimetable dayService', function () {
 
 });
 
+describe('flindersTimetable TopicController', function () {
+    var TopicController;
+
+    beforeEach(module('flindersTimetable.timetable'));
+    beforeEach(inject(function ($injector) {
+        TopicController = $injector.get('TopicController');
+    }));
+
+    it('should have a dummy test', inject(function() {
+        expect(true).toBeTruthy();
+    }));
+
+    
+});

@@ -818,7 +818,7 @@ angular.module('flindersTimetable.timetable', [
             }
 
             var searchables = [
-                topic.code.toLowerCase(),
+                //topic.code.toLowerCase(),
                 topic.name.toLowerCase()
             ];
 
@@ -826,6 +826,21 @@ angular.module('flindersTimetable.timetable', [
 
             for (var i = 0; i < predicates.length; i++) {
                 var foundPredicate = false;
+                
+                //search topic code when 1-4 letters, 4 letters + 1-4 numbers or 4 numbers
+                var topicNumberExpression = /^([A-Z]+[0-9]*[A-Z]*|[0-9]{4}[A-Z]?)$/i; // /([A-Za-z]{4}[0-9]{1,4})|([A-Za-z]{1,4})|([0-9]{4})/;
+
+                var TopicMatch = topicNumberExpression.exec(predicates[i]);
+
+                if (TopicMatch !== undefined && TopicMatch !== null && TopicMatch.length > 0) {
+                    //match topic code with member
+                    var matchIndex = topic.code.toLowerCase().indexOf(predicates[i]);
+                    if (matchIndex === 0 || matchIndex == 4) { //match from start of code or numbers in code
+                        foundPredicate = true;
+                        continue; //don't search other elements with this predicate if a topic match is found
+                    }
+                }
+
 
                 for (var j = 0; j < searchables.length; j++) {
                     if (searchables[j].indexOf(predicates[i]) !== -1) {
