@@ -61,9 +61,9 @@ angular.module('flindersTimetable.timetable', [
 
             // Load all of the new topics
             angular.forEach(newTopicSerials, function (topicSerial) {
-                topicFactory.loadTimetableFromSerialAsync(topicSerial, function (topic) {
-                    chosenTopicService.addTopic(topic, false);
 
+                topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
+                    chosenTopicService.addTopic(topic, false);
                     topicsToLoad--;
 
                     broadcastUpdateWhenReady();
@@ -261,6 +261,8 @@ angular.module('flindersTimetable.timetable', [
                 return serial;
             },
 
+            timetableLoaded: false,
+
             getHash: function () {
                 return hashService.hash(this.uniqueTopicCode);
             }
@@ -309,7 +311,7 @@ angular.module('flindersTimetable.timetable', [
         };
 
         topicFactory.createTopicFromUniqueTopicCode = function (serial) {
-            var syntax = /^(([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]+)([0-9][0-9A-Za-z]+?))[$-]/;
+            var syntax = /^(([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]{4})([0-9]{4}[A-Z]?))/i;
 
             var topicIdentifier = syntax.exec(serial);
 
@@ -328,8 +330,13 @@ angular.module('flindersTimetable.timetable', [
             return topic;
         };
 
-        topicFactory.loadTimetableFromSerialAsync = function (topicSerial, callback) {
+        topicFactory.loadTopicFromSerialAsync = function (topicSerial, callback) {
+
             var topic = topicFactory.createTopicFromUniqueTopicCode(topicSerial);
+
+            if (!topic) {
+                return false;
+            }
 
             // TODO: Improve the following method (parse string with regex)
             var parens = /\((.*)\)/;
@@ -369,6 +376,7 @@ angular.module('flindersTimetable.timetable', [
         topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
             topicFactory.getTopicAsync(topic.uniqueTopicCode, function (remoteTopicEntry, status, headers, config) {
                 angular.extend(topic, remoteTopicEntry);
+                topic.timetableLoaded = true;
 
                 angular.forEach(topic.classes, function (classType) {
                     if (classType.classGroups.length > 0) {
@@ -912,8 +920,8 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.topicSearch = "";
 
+            chosenTopicService.addTopic(topic);
             topicFactory.loadTimetableForTopicAsync(topic, function (topic) {
-                chosenTopicService.addTopic(topic);
             });
         };
 

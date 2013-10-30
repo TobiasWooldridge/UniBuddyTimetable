@@ -54,7 +54,7 @@
                 </td>
             </tr>
             </tbody>
-            <tfoot ng-show="chosenTopics.length <= 6">
+            <tfoot ng-show="chosenTopics.length < 6">
             <tr>
                 <td class="filter">
                     <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
@@ -195,8 +195,9 @@
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.getHash() % 16}}">
-                <h3>{{ topic.code }} {{ topic.name }}</h3>
+            <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded"
+                 class="col-md-3 topic topic-{{topic.getHash() % 16}}">
+            <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h4>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) /
