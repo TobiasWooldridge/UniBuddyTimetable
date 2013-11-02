@@ -196,6 +196,12 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .factory('camelCaseService', function () {
+        /**
+         * Convert a given string to camelCase
+         *
+         * @param {string} str The string to camelcase
+         * @returns {string} str in camelCase
+         */
         var camelCase = function (str) {
             return str.toLowerCase().replace(/[_-](.)/g, function (m, g) {
                 return g.toUpperCase();
@@ -204,8 +210,15 @@ angular.module('flindersTimetable.timetable', [
 
         var that = {};
 
+        /**
+         * camelCase all of the keys in an object recursively. Originally designed for dealing with underscore-oriented remote APIs
+         *
+         * @param object
+         * @returns {*} the same object, with all keys in the object recursively camelcased
+         */
         that.camelCaseObject = function (object) {
             if (typeof object !== "object") {
+                // We can't camelcase the keys of an object
                 return;
             }
 
@@ -738,8 +751,8 @@ angular.module('flindersTimetable.timetable', [
         var classClashCache = {};
 
         var addToClassClashCache = function (a, b, outcome) {
-            classClashCache[a.id + ", " + b.id] = outcome;
-            classClashCache[b.id + ", " + a.id] = outcome;
+            classClashCache[a + ", " + b] = outcome;
+            classClashCache[b + ", " + a] = outcome;
         };
 
         clashService.classGroupsClash = function (a, b) {
@@ -755,18 +768,22 @@ angular.module('flindersTimetable.timetable', [
                     //check if both session clash
                     if (sessionSecondsClash > 0) {
                         secondsClash += sessionSecondsClash;
-                    } else {
-                        // Advance the pointer to whichever class group starts first
-                        if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
-                            aIndex++;
-                        }
-                        else {
-                            bIndex++;
-                        }
                     }
+
+                    // Advance the pointer to whichever class group starts first
+                    if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
+                        aIndex++;
+                    }
+                    else {
+                        bIndex++;
+                    }
+
+                    console.log(aIndex, bIndex);
                 }
 
-                addToClassClashCache(a, b, secondsClash);
+                addToClassClashCache(a.id, b.id, secondsClash);
+
+                console.log(a.id, b.id, secondsClash);
             }
 
             return classClashCache[a.id + ", " + b.id];
@@ -1075,7 +1092,7 @@ angular.module('flindersTimetable.timetable', [
                     var selectionClashes = currentClashes;
 
                     angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {
-                        if (clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup)) {
+                        if (clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup) > 0) {
                             selectionClashes++;
                         }
                     });
