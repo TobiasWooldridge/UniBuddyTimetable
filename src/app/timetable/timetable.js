@@ -3,7 +3,8 @@ var appConfig = {
     years: [2013],
     defaultYear: 2013,
     semesters: ["S1", "NS1", "S2", "NS2"],
-    defaultSemester: "S2"
+    defaultSemester: "S2",
+    maxTimetableSuggestions: 7
 };
 
 angular.module('flindersTimetable.timetable', [
@@ -61,11 +62,12 @@ angular.module('flindersTimetable.timetable', [
 
             // Load all of the new topics
             angular.forEach(newTopicSerials, function (topicSerial) {
-                chosenTopicService.addTopic(topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
+                topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
                     topicsToLoad--;
 
+                    chosenTopicService.addTopic(topic, false);
                     broadcastUpdateWhenReady();
-                }), false);
+                });
             });
 
             broadcastUpdateWhenReady();
@@ -81,11 +83,21 @@ angular.module('flindersTimetable.timetable', [
         loadFromUrl();
     })
 
-    .filter('toTime', function () {
+    .filter('secondsToTime', function (moment) {
         return function (number) {
             return moment.unix(number).utc().format('h:mm a');
         };
     })
+
+    .filter('secondsToHours', function (moment) {
+        return function (number) {
+            var duration = moment.duration(number * 1000);
+            var timeInHours = Math.floor(duration.asHours()) + ":" + Math.floor(duration.asMinutes() % 60);
+
+            return timeInHours;
+        };
+    })
+
 
     .factory('hashService', function () {
         var hashService = {
@@ -104,6 +116,10 @@ angular.module('flindersTimetable.timetable', [
         };
 
         return hashService;
+    })
+
+    .factory('moment', function () {
+        return moment;
     })
 
     .factory('classNameService', function () {
@@ -756,19 +772,15 @@ angular.module('flindersTimetable.timetable', [
         };
 
         clashService.classGroupsClash = function (a, b) {
-            var aIndex = 0;
-            var bIndex = 0;
-
             if (typeof classClashCache[a.id + ", " + b.id] === "undefined") {
-                var secondsClash = 0;
+                var groupSecondsClash = 0;
+                var aIndex = 0;
+                var bIndex = 0;
 
                 // Assumption: a.classSessions and b.classSessions are sorted
                 while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
-                    var sessionSecondsClash = clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]) > 0;
-                    //check if both session clash
-                    if (sessionSecondsClash > 0) {
-                        secondsClash += sessionSecondsClash;
-                    }
+                    var sessionSecondsClash = clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]);
+                    groupSecondsClash += sessionSecondsClash;
 
                     // Advance the pointer to whichever class group starts first
                     if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
@@ -777,13 +789,9 @@ angular.module('flindersTimetable.timetable', [
                     else {
                         bIndex++;
                     }
-
-                    console.log(aIndex, bIndex);
                 }
 
-                addToClassClashCache(a.id, b.id, secondsClash);
-
-                console.log(a.id, b.id, secondsClash);
+                addToClassClashCache(a.id, b.id, groupSecondsClash);
             }
 
             return classClashCache[a.id + ", " + b.id];
@@ -1055,7 +1063,6 @@ angular.module('flindersTimetable.timetable', [
         };
 
         var findTimetablesWithMinimumClashes = function (topics) {
-
             if (topics.length === 0) {
                 return;
             }
@@ -1069,45 +1076,45 @@ angular.module('flindersTimetable.timetable', [
 
             var allClassGroups = topicService.listClassGroupsForTopics(topics);
 
-            $scope.clashLimit = 9001; // It's over nine thousaaaaaaaaaaaaaand!
+            $scope.fewestSecondsClashing = Number.MAX_VALUE;
 
             var generatedTimetables = [];
 
             var examineTimetable = function (classGroupSelections, numClashes) {
-                if (numClashes < $scope.clashLimit) {
-                    $scope.clashLimit = numClashes;
+                if (numClashes < $scope.fewestSecondsClashing) {
+                    $scope.fewestSecondsClashing = numClashes;
                     generatedTimetables = [];
                 }
 
-                if (numClashes <= $scope.clashLimit) {
+                if (numClashes <= $scope.fewestSecondsClashing) {
                     generatedTimetables.push(angular.extend({}, classGroupSelections));
                 }
             };
 
 
-            var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, currentClashes) {
+            var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, secondsClashesPrior) {
                 var currentClassType = remainingClassChoices.pop();
 
                 angular.forEach(currentClassType.classGroups, function (currentGroup) {
-                    var selectionClashes = currentClashes;
+                    var secondsClashesCurrent = secondsClashesPrior;
 
                     angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {
-                        if (clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup) > 0) {
-                            selectionClashes++;
-                        }
+                        var classGroupSecondsClashing = clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup);
+                        secondsClashesCurrent += classGroupSecondsClashing;
                     });
 
+
                     // Make sure we're not exceeding our clash limit
-                    if (selectionClashes <= $scope.clashLimit) {
+                    if (secondsClashesCurrent <= $scope.fewestSecondsClashing) {
                         // Work with this group for now
                         previousClassGroupSelections[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
 
                         if (remainingClassChoices.length === 0) {
                             // No more choices we can make, check if this timetable is good and move on
-                            examineTimetable(previousClassGroupSelections, selectionClashes);
+                            examineTimetable(previousClassGroupSelections, secondsClashesCurrent);
                         } else {
                             // Keep making choices until we find a working timetable
-                            searchTimetables(previousClassGroupSelections, remainingClassChoices, selectionClashes);
+                            searchTimetables(previousClassGroupSelections, remainingClassChoices, secondsClashesCurrent);
                         }
 
                         // Stop working with the current group
@@ -1186,10 +1193,6 @@ angular.module('flindersTimetable.timetable', [
                 timetable.averageStartTime = startTimeSum / timetable.daysAtUni;
                 timetable.averageEndTime = endTimeSum / timetable.daysAtUni;
 
-                // TODO: Share code with toTime filter
-                var duration = moment.duration(timetable.secondsAtUni * 1000);
-                timetable.hoursAtUni = Math.floor(duration.asHours()) + ":" + Math.floor(duration.asMinutes() % 60);
-
                 return timetable;
             };
 
@@ -1227,7 +1230,7 @@ angular.module('flindersTimetable.timetable', [
 
             timetables = cherryPickIdealTimetables(timetables);
 
-            $scope.topTimetableCandidates = timetables.slice(0, 5);
+            $scope.topTimetableCandidates = timetables.slice(0, appConfig.maxTimetableSuggestions);
 
             $scope.hasGeneratedTimetables = true;
         };

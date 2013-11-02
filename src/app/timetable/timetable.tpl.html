@@ -103,11 +103,8 @@
     </div>
 
     <div ng-show="hasGeneratedTimetables">
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with
-            <ng-pluralize count="clashLimit"
-                          when="{'0': 'no clashes','one': '1 unavoidable clash', 'other': '{} unavoidable clashes'}"></ng-pluralize>
-            .
-        </p>
+        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with {{ ( 0 +
+            fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.</p>
 
         <p>This took {{ examineDuration }} seconds.</p>
 
@@ -124,13 +121,13 @@
                     {{ candidate.daysAtUni }}
                 </td>
                 <td>
-                    {{ candidate.hoursAtUni }}
+                    {{ candidate.secondsAtUni | secondsToHours }} hours
                 </td>
                 <td>
-                    {{ candidate.averageStartTime | toTime }}
+                    {{ candidate.averageStartTime | secondsToTime }}
                 </td>
                 <td>
-                    {{ candidate.averageEndTime | toTime }}
+                    {{ candidate.averageEndTime | secondsToTime }}
                 </td>
                 <td>
                     <button class="btn btn-primary btn-sm"
