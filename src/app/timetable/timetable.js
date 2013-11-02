@@ -61,13 +61,11 @@ angular.module('flindersTimetable.timetable', [
 
             // Load all of the new topics
             angular.forEach(newTopicSerials, function (topicSerial) {
-
-                topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
-                    chosenTopicService.addTopic(topic, false);
+                chosenTopicService.addTopic(topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
                     topicsToLoad--;
 
                     broadcastUpdateWhenReady();
-                });
+                }), false);
             });
 
             broadcastUpdateWhenReady();
@@ -324,7 +322,8 @@ angular.module('flindersTimetable.timetable', [
                 year: topicIdentifier[2],
                 semester: topicIdentifier[3],
                 subjectArea: topicIdentifier[4],
-                topicNumber: topicIdentifier[5]
+                topicNumber: topicIdentifier[5],
+                code: topicIdentifier[4] + topicIdentifier[5]
             };
 
             return topic;
@@ -371,6 +370,8 @@ angular.module('flindersTimetable.timetable', [
 
                 callback(topic, status, headers, config);
             });
+
+            return topic;
         };
 
         topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
@@ -746,15 +747,14 @@ angular.module('flindersTimetable.timetable', [
             var bIndex = 0;
 
             if (typeof classClashCache[a.id + ", " + b.id] === "undefined") {
-                var clashFound = false;
+                var secondsClash = 0;
 
                 // Assumption: a.classSessions and b.classSessions are sorted
                 while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
+                    var sessionSecondsClash = clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]) > 0;
                     //check if both session clash
-                    if (clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]) > 0) {
-                        //there is a clash
-                        clashFound = true;
-                        break;
+                    if (sessionSecondsClash > 0) {
+                        secondsClash += sessionSecondsClash;
                     } else {
                         // Advance the pointer to whichever class group starts first
                         if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
@@ -766,7 +766,7 @@ angular.module('flindersTimetable.timetable', [
                     }
                 }
 
-                addToClassClashCache(a, b, clashFound);
+                addToClassClashCache(a, b, secondsClash);
             }
 
             return classClashCache[a.id + ", " + b.id];
@@ -922,6 +922,7 @@ angular.module('flindersTimetable.timetable', [
 
             chosenTopicService.addTopic(topic);
             topicFactory.loadTimetableForTopicAsync(topic, function (topic) {
+                chosenTopicService.broadcastTopicsUpdate();
             });
         };
 
