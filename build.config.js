@@ -62,11 +62,17 @@ module.exports = {
      */
     vendor_files: {
         js: [
+            'vendor/jquery/jquery.js',
+            'vendor/jquery-ui/ui/jquery.ui.core.js',
+            'vendor/jquery-ui/ui/jquery.ui.widget.js',
+            'vendor/jquery-ui/ui/jquery.ui.mouse.js',
+            'vendor/jquery-ui/ui/jquery.ui.sortable.js',
             'vendor/angular/angular.js',
             'vendor/placeholders/angular-placeholders-0.0.1-SNAPSHOT.min.js',
             'vendor/angular-ui-router/release/angular-ui-router.js',
             'vendor/angular-ui-router/release/angular-ui-router.js',
             'vendor/angular-ui-utils/modules/route/route.js',
+            'vendor/angular-ui-sortable/src/sortable.js',
             'vendor/moment/moment.js'
         ],
         css: [

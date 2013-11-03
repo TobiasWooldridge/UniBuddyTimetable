@@ -3,7 +3,7 @@
 </div>
 
 <div class="alert alert-danger">
-    This project is still in development. Expect things to be broken and/or unfinished.
+    This project is still in development; remain calm if things don't work.
 </div>
 
 <div class="container">
@@ -89,12 +89,20 @@
         <h3>Timetable Generator</h3>
     </div>
 
-    <p>You have {{ numPossibleTimetables }} possible timetables.</p>
+    <p>You have {{ numPossibleTimetables }} possible timetables. To find your ideal timetable, we're going to need a little more information</p>
 
-    <div ng-show="!hasGeneratedTimetables && !generatingTimetables">
-    <p>
-            <button class="btn btn-primary" ng-click="generateTimetables()">Automatically Generate Timetables
-            </button>
+    <p>Order the below list in terms of what's important to you, most important first.</p>
+
+    <div class="row">
+        <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities" class="col-md-3 list-group generator-priorities">
+            <li ng-repeat="priority in timetablePriorities" class="list-group-item">{{ priority.label }}</li>
+        </ul>
+    </div>
+
+
+    <div ng-show="!generatingTimetables">
+        <p>
+            <button class="btn btn-primary" ng-click="generateTimetables()">Automatically Generate Timetables</button>
         </p>
     </div>
 
@@ -103,6 +111,7 @@
     </div>
 
     <div ng-show="hasGeneratedTimetables">
+        <hr />
         <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with {{ ( 0 +
             fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.</p>
 

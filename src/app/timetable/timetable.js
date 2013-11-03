@@ -8,7 +8,8 @@ var appConfig = {
 };
 
 angular.module('flindersTimetable.timetable', [
-        'ui.state'
+        'ui.state',
+        'ui.sortable'
     ])
     .config(function config($stateProvider) {
         $stateProvider.state('home', {
@@ -129,11 +130,11 @@ angular.module('flindersTimetable.timetable', [
             // Remove all nasty characters
             name = name.replace(/[^A-Za-z0-9]/g, '');
 
-            name = name.replace(/Computer/g, 'Comp');
-            name = name.replace(/Laboratory/g, 'Lab');
-            name = name.replace(/Tutorial/g, 'Tute');
-            name = name.replace(/Practical/g, 'Prac');
-            name = name.replace(/Project/g, 'Proj');
+            name = name.replace(/Computer/g, 'Comp')
+                       .replace(/Laboratory/g, 'Lab')
+                       .replace(/Tutorial/g, 'Tute')
+                       .replace(/Practical/g, 'Prac')
+                       .replace(/Project/g, 'Proj');
 
             return name;
         };
@@ -623,6 +624,7 @@ angular.module('flindersTimetable.timetable', [
 
                 topicService.sortTopics(chosenTopics);
 
+                dirty = true;
                 if (broadcast) {
                     that.broadcastTopicsUpdate();
                 }
@@ -1038,6 +1040,40 @@ angular.module('flindersTimetable.timetable', [
         $scope.numPossibleTimetables = 1;
         $scope.generatingTimetables = false;
 
+        $scope.timetablePriorities = [];
+
+        $scope.prioritiesSortableOptions = {
+            axis : "y"
+        };
+
+        var allGeneratedTimetables = [];
+
+        var initializeTimetablePriorities = function() {
+            var createTimetablePriority = function(label, sorter) {
+                return {
+                    label : label,
+                    sorter : sorter
+                };
+            };
+
+            $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function(a, b) {
+                return a.daysAtUni - b.daysAtUni;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Minimize amount of time at uni', function(a, b) {
+                return a.secondsAtUni - b.secondsAtUni;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Start classes earlier', function(a, b) {
+                return a.averageStartTime - b.averageStartTime;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Start classes later', function(a, b) {
+                return b.averageStartTime - a.averageStartTime;
+            }));
+        };
+        initializeTimetablePriorities();
+
         var countPossibleTimetables = function (topics) {
             var possibleTimetables = 1;
 
@@ -1148,7 +1184,7 @@ angular.module('flindersTimetable.timetable', [
             return generatedTimetables;
         };
 
-        var cherryPickIdealTimetables = function (rawGeneratedTimetables) {
+        var sortTimetablesByPriorities = function (rawGeneratedTimetables) {
 
             var classSessionsForClassPicks = function (classPicks) {
                 var classSessions = [];
@@ -1210,31 +1246,39 @@ angular.module('flindersTimetable.timetable', [
                 timetables.push(timetable);
             });
 
-            timetables.sort(function (a, b) {
-                var daysDifference = a.daysAtUni - b.daysAtUni;
+            // Sort timetables by the user-defined priorities
 
-                if (daysDifference !== 0) {
-                    return daysDifference;
+            console.log($scope.timetablePriorities);
+
+            timetables.sort(function (a, b) {
+                var difference = 0;
+
+                for (var i = 0; i < $scope.timetablePriorities.length; i++) {
+                    var priority = $scope.timetablePriorities[i];
+
+                    difference = priority.sorter(a,b);
+
+                    if (difference !== 0) {
+                        break;
+                    }
                 }
 
-                var secondsDifference = a.secondsAtUni - b.secondsAtUni;
 
-                return secondsDifference;
+                return difference;
             });
 
             return timetables;
         };
 
         $scope.generateTimetables = function () {
-            var timetables = findTimetablesWithMinimumClashes(chosenTopics);
+            allGeneratedTimetables = findTimetablesWithMinimumClashes(chosenTopics);
 
-            timetables = cherryPickIdealTimetables(timetables);
+            allGeneratedTimetables = sortTimetablesByPriorities(allGeneratedTimetables);
 
-            $scope.topTimetableCandidates = timetables.slice(0, appConfig.maxTimetableSuggestions);
+            $scope.topTimetableCandidates = allGeneratedTimetables.slice(0, appConfig.maxTimetableSuggestions);
 
             $scope.hasGeneratedTimetables = true;
         };
-
 
         $scope.$on('chosenTopicsUpdate', function () {
             chosenTopics = chosenTopicService.getTopics();
