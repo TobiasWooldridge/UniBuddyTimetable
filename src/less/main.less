@@ -115,7 +115,15 @@ body > .container .container {
   margin: 10px 15px;
 }
 .generator-priorities li {
-  cursor: pointer;
+  cursor: move;
+  list-style: none;
+  padding: 10px;
+  border: 1px solid @list-group-border;
+  margin-top: -1px;
+
+  &:hover, &.ui-sortable-helper {
+    background: #EEE;
+  }
 }
 
 a.list-group-item {
@@ -127,7 +135,6 @@ a.list-group-item {
   margin-bottom: 0;
 
 }
-
 
 
 table.topics {

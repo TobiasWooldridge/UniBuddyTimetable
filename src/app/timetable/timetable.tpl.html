@@ -93,12 +93,14 @@
 
     <p>Order the below list in terms of what's important to you, most important first.</p>
 
+    <div class="page-header">
+        <h4>Sort by preference, most preferred first</h4>
+    </div>
     <div class="row">
-        <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities" class="col-md-3 list-group generator-priorities">
-            <li ng-repeat="priority in timetablePriorities" class="list-group-item">{{ priority.label }}<span class="glyphicon glyphicon-resize-vertical pull-right"></span></li>
+        <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities" class="col-md-3 generator-priorities">
+            <li ng-repeat="priority in timetablePriorities">{{ priority.label }}<span class="glyphicon glyphicon-resize-vertical pull-right"></span></li>
         </ul>
     </div>
-
 
     <div ng-show="!generatingTimetables">
         <p>
@@ -174,7 +176,7 @@
                                 <div ng-repeat="booking in clashColumn" style="position: relative; height: 0px;">
                                     <div class="booking topic-{{booking.topicHash % 16}}"
                                          ng-class="{'locked': booking.locked }"
-                                         style="height: {{ booking.secondsDuration / 60 }}px; top: {{ (booking.secondsStartsAt - 28800) / 60 }}px;">
+                                         ng-style="{ height: (booking.secondsDuration / 60) + 'px', top: ((booking.secondsStartsAt - 28800) / 60) + 'px' }">
                                         <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
 
                                         <p>{{ booking.topicCode }} {{ booking.className }}</p>
@@ -220,8 +222,8 @@
                            ng-class="{ active: (classGroup == class.activeClassGroup) }"
                            ng-click="(class.activeClassGroup = classGroup) && broadcastClassesUpdate()">
                             <p class="list-group-item-text"
-                               ng-repeat="classSession in classGroup.classSessions">{{
-                                classSession.dayOfWeek }} {{ classSession.timeStartsAt }}
+                               ng-repeat="classSession in classGroup.classSessions">
+                                {{ classSession.dayOfWeek }} {{ classSession.timeStartsAt }}
                             </p>
                         </a>
                     </div>
