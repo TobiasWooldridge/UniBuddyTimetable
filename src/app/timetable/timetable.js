@@ -2,8 +2,7 @@ var appConfig = {
     years: [2013],
     defaultYear: 2013,
     semesters: ["S1", "NS1", "S2", "NS2"],
-    defaultSemester: "S2",
-    maxTimetableSuggestions: 7
+    defaultSemester: "S2"
 };
 
 angular.module('flindersTimetable.timetable', [
@@ -11,6 +10,14 @@ angular.module('flindersTimetable.timetable', [
         'ui.sortable',
         'flap.topics'
     ])
+    .constant('times', {
+        years: [2013],
+        defaultYear: 2013,
+        semesters: ["S1", "NS1", "S2", "NS2"],
+        defaultSemester: "S2"
+    })
+    .constant('maxTimetableSuggestions', 7)
+
     .config(function config($stateProvider) {
         $stateProvider.state('home', {
             url: '/',
@@ -714,7 +721,54 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-    .controller('TimetableGeneratorController', function ($scope, chosenTopicService, topicService, clashService) {
+    .factory('ArrayMath', function() {
+        var self = {
+            sum : function(arr) {
+                var sum = 0;
+
+                for (var i = 0; i < arr.length; i++) {
+                    sum += arr[i];
+                }
+
+                return sum;
+            },
+            mean : function(arr) {
+                var sum = self.sum(arr);
+                return sum / arr.length;
+            },
+            variance : function(arr) {
+                var sumOfSquares = 0;
+
+                for (var i = 0; i < arr.length; i++) {
+                    sumOfSquares += Math.pow(arr[i], 2);
+                }
+
+                var variance = sumOfSquares/arr.length - Math.pow(self.mean(arr), 2);
+
+                return variance;
+            },
+            variability : function (arr) {
+                arr = angular.copy(arr);
+
+                arr.sort();
+
+                var previous = arr[0];
+
+                var variability = 0;
+                for (var i = 1; i < arr.length; i++) {
+                    variability += Math.abs(arr[i] - previous);
+
+                    previous = arr[i];
+                }
+
+                return variability;
+            }
+        };
+
+        return self;
+    })
+
+    .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetableSuggestions) {
         var chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
         $scope.generatingTimetables = false;
@@ -741,6 +795,10 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.timetablePriorities.push(createTimetablePriority('Minimize amount of time at uni', function(a, b) {
                 return a.secondsAtUni - b.secondsAtUni;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Consistent start time', function(a, b) {
+                return a.startTimeVariability - b.startTimeVariability;
             }));
 
             $scope.timetablePriorities.push(createTimetablePriority('Start classes earlier', function(a, b) {
@@ -876,6 +934,8 @@ angular.module('flindersTimetable.timetable', [
             };
 
             var calculateTimeMetrics = function (timetable) {
+                var secondsInDay = 24 * 60 * 60;
+
                 var days = { };
 
                 angular.forEach(timetable.classSessions, function (session) {
@@ -897,16 +957,27 @@ angular.module('flindersTimetable.timetable', [
                 var startTimeSum = 0;
                 var endTimeSum = 0;
 
+                var startTimes = [];
+                var endTimes = [];
+                var secondsAtUni = [];
+                var weekendStartsAt = Number.MAX_VALUE;
+
                 angular.forEach(days, function (day) {
                     timetable.daysAtUni++;
-                    timetable.secondsAtUni += (day.secondsEndsAt - day.secondsStartsAt);
 
-                    startTimeSum += day.secondsStartsAt;
-                    endTimeSum += day.secondsEndsAt;
+                    secondsAtUni.push(day.secondsEndsAt - day.secondsStartsAt);
+
+                    startTimes.push(day.secondsStartsAt);
+                    endTimes.push(day.secondsEndsAt);
+
+                    weekendStartsAt = Math.min(weekendStartsAt, day * secondsInDay + day.secondsEndsAt);
                 });
 
-                timetable.averageStartTime = startTimeSum / timetable.daysAtUni;
-                timetable.averageEndTime = endTimeSum / timetable.daysAtUni;
+                timetable.secondsAtUni = ArrayMath.sum(secondsAtUni);
+                timetable.averageStartTime = ArrayMath.mean(startTimes);
+                timetable.averageEndTime = ArrayMath.mean(endTimes);
+                timetable.startTimeVariability = ArrayMath.variability(startTimes);
+                timetable.weekendStartsAt = weekendStartsAt;
 
                 return timetable;
             };
@@ -926,9 +997,6 @@ angular.module('flindersTimetable.timetable', [
             });
 
             // Sort timetables by the user-defined priorities
-
-            console.log($scope.timetablePriorities);
-
             timetables.sort(function (a, b) {
                 var difference = 0;
 
@@ -954,7 +1022,7 @@ angular.module('flindersTimetable.timetable', [
 
             allGeneratedTimetables = sortTimetablesByPriorities(allGeneratedTimetables);
 
-            $scope.topTimetableCandidates = allGeneratedTimetables.slice(0, appConfig.maxTimetableSuggestions);
+            $scope.topTimetableCandidates = allGeneratedTimetables.slice(0, maxTimetableSuggestions);
 
             $scope.hasGeneratedTimetables = true;
         };
