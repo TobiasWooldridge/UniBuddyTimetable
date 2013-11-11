@@ -768,7 +768,7 @@ angular.module('flindersTimetable.timetable', [
         return self;
     })
 
-    .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetableSuggestions) {
+    .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetableSuggestions, dayService) {
         var chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
         $scope.generatingTimetables = false;
@@ -799,6 +799,10 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.timetablePriorities.push(createTimetablePriority('Consistent start time', function(a, b) {
                 return a.startTimeVariability - b.startTimeVariability;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Start weekend earlier', function(a, b) {
+                return a.weekendStartsAt - b.weekendStartsAt;
             }));
 
             $scope.timetablePriorities.push(createTimetablePriority('Start classes earlier', function(a, b) {
@@ -960,9 +964,9 @@ angular.module('flindersTimetable.timetable', [
                 var startTimes = [];
                 var endTimes = [];
                 var secondsAtUni = [];
-                var weekendStartsAt = Number.MAX_VALUE;
+                var weekendStartsAt = 0;
 
-                angular.forEach(days, function (day) {
+                angular.forEach(days, function (day, dayName) {
                     timetable.daysAtUni++;
 
                     secondsAtUni.push(day.secondsEndsAt - day.secondsStartsAt);
@@ -970,7 +974,7 @@ angular.module('flindersTimetable.timetable', [
                     startTimes.push(day.secondsStartsAt);
                     endTimes.push(day.secondsEndsAt);
 
-                    weekendStartsAt = Math.min(weekendStartsAt, day * secondsInDay + day.secondsEndsAt);
+                    weekendStartsAt = Math.max(weekendStartsAt, dayService.dayNameToDayOfWeek(dayName) * secondsInDay + day.secondsEndsAt);
                 });
 
                 timetable.secondsAtUni = ArrayMath.sum(secondsAtUni);
