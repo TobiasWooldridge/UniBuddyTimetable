@@ -1,5 +1,4 @@
 var appConfig = {
-    apiPath: "http://flindersapi.tobias.pw/api/v1/",
     years: [2013],
     defaultYear: 2013,
     semesters: ["S1", "NS1", "S2", "NS2"],
@@ -7,8 +6,18 @@ var appConfig = {
 };
 
 angular.module('flindersTimetable.timetable', [
-        'ui.state'
+        'ui.state',
+        'ui.sortable',
+        'flap.topics'
     ])
+    .constant('times', {
+        years: [2013],
+        defaultYear: 2013,
+        semesters: ["S1", "NS1", "S2", "NS2"],
+        defaultSemester: "S2"
+    })
+    .constant('maxTimetableSuggestions', 7)
+
     .config(function config($stateProvider) {
         $stateProvider.state('home', {
             url: '/',
@@ -61,11 +70,10 @@ angular.module('flindersTimetable.timetable', [
 
             // Load all of the new topics
             angular.forEach(newTopicSerials, function (topicSerial) {
-                topicFactory.loadTimetableFromSerialAsync(topicSerial, function (topic) {
-                    chosenTopicService.addTopic(topic, false);
-
+                topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
                     topicsToLoad--;
 
+                    chosenTopicService.addTopic(topic, false);
                     broadcastUpdateWhenReady();
                 });
             });
@@ -83,11 +91,21 @@ angular.module('flindersTimetable.timetable', [
         loadFromUrl();
     })
 
-    .filter('toTime', function () {
+    .filter('secondsToTime', function (moment) {
         return function (number) {
             return moment.unix(number).utc().format('h:mm a');
         };
     })
+
+    .filter('secondsToHours', function (moment) {
+        return function (number) {
+            var duration = moment.duration(number * 1000);
+            var timeInHours = Math.floor(duration.asHours()) + ":" + Math.floor(duration.asMinutes() % 60);
+
+            return timeInHours;
+        };
+    })
+
 
     .factory('hashService', function () {
         var hashService = {
@@ -108,6 +126,10 @@ angular.module('flindersTimetable.timetable', [
         return hashService;
     })
 
+    .factory('moment', function () {
+        return moment;
+    })
+
     .factory('classNameService', function () {
         var classNameService = {};
 
@@ -115,11 +137,11 @@ angular.module('flindersTimetable.timetable', [
             // Remove all nasty characters
             name = name.replace(/[^A-Za-z0-9]/g, '');
 
-            name = name.replace(/Computer/g, 'Comp');
-            name = name.replace(/Laboratory/g, 'Lab');
-            name = name.replace(/Tutorial/g, 'Tute');
-            name = name.replace(/Practical/g, 'Prac');
-            name = name.replace(/Project/g, 'Proj');
+            name = name.replace(/Computer/g, 'Comp')
+                       .replace(/Laboratory/g, 'Lab')
+                       .replace(/Tutorial/g, 'Tute')
+                       .replace(/Practical/g, 'Prac')
+                       .replace(/Project/g, 'Proj');
 
             return name;
         };
@@ -195,267 +217,6 @@ angular.module('flindersTimetable.timetable', [
         };
 
         return urlService;
-    })
-
-    .factory('camelCaseService', function () {
-        var camelCase = function (str) {
-            return str.toLowerCase().replace(/[_-](.)/g, function (m, g) {
-                return g.toUpperCase();
-            });
-        };
-
-        var that = {};
-
-        that.camelCaseObject = function (object) {
-            if (typeof object !== "object") {
-                return;
-            }
-
-            var keys = [];
-            for (var key in object) {
-                keys.push(key);
-            }
-
-            for (var i = 0; i < keys.length; i++) {
-                var oldKey = keys[i];
-                var newKey = camelCase(oldKey);
-
-                if (oldKey !== newKey) {
-                    object[newKey] = object[oldKey];
-                    delete(object[oldKey]);
-                }
-
-                that.camelCaseObject(object[newKey]);
-            }
-
-            return object;
-        };
-
-        return that;
-    })
-
-    .factory('topicFactory', function ($http, sessionsService, camelCaseService, topicService, hashService, classNameService) {
-        var baseTopic = {
-            getSerial: function () {
-                var serial = this.uniqueTopicCode;
-
-                var firstClass = true;
-
-                angular.forEach(this.classes, function (classType) {
-                    if (typeof(classType.activeClassGroup) === "undefined") {
-                    }
-                    else if (classType.classGroups.length <= 1) {
-                    }
-                    else {
-                        serial += firstClass ? "-(" : "-";
-                        serial += classNameService.simplifyName(classType.name) + classType.activeClassGroup.groupId;
-
-                        firstClass = false;
-                    }
-                });
-
-                if (!firstClass) {
-                    serial += ")";
-                }
-
-                return serial;
-            },
-
-            getHash: function () {
-                return hashService.hash(this.uniqueTopicCode);
-            }
-        };
-
-        var topicFactory = {};
-
-        topicFactory.getTopicsAsync = function (query, callback) {
-            var url = appConfig.apiPath + 'topics.json' + "?";
-
-            if (typeof query.year !== "undefined" && query.year !== "Any") {
-                url += "&year=" + query.year;
-            }
-            if (typeof query.semester !== "undefined" && query.semester !== "Any") {
-                url += "&semester=" + query.semester;
-            }
-            if (typeof query.subjectArea !== "undefined" && query.subjectArea !== "Any") {
-                url += "&subject_area=" + query.subjectArea;
-            }
-            if (typeof query.topicNumber !== "undefined" && query.topicNumber !== "Any") {
-                url += "&topic_number=" + query.topicNumber;
-            }
-
-            $http.get(url).success(function (topics, status, headers, config) {
-
-                camelCaseService.camelCaseObject(topics);
-
-                topicService.sortTopics(topics);
-
-                angular.forEach(topics, function (topic) {
-                    angular.extend(topic, baseTopic);
-                });
-
-                callback(topics, status, headers, config);
-            });
-        };
-
-        topicFactory.getTopicAsync = function (topicId, callback) {
-            var url = appConfig.apiPath + 'topics/' + topicId + '.json';
-
-            $http.get(url).success(function (data, status, headers, config) {
-                camelCaseService.camelCaseObject(data);
-
-                callback(data, status, headers, config);
-            });
-        };
-
-        topicFactory.createTopicFromUniqueTopicCode = function (serial) {
-            var syntax = /^(([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]+)([0-9][0-9A-Za-z]+?))[$-]/;
-
-            var topicIdentifier = syntax.exec(serial);
-
-            if (!topicIdentifier) {
-                return false;
-            }
-
-            var topic = {
-                uniqueTopicCode: topicIdentifier[1],
-                year: topicIdentifier[2],
-                semester: topicIdentifier[3],
-                subjectArea: topicIdentifier[4],
-                topicNumber: topicIdentifier[5]
-            };
-
-            return topic;
-        };
-
-        topicFactory.loadTimetableFromSerialAsync = function (topicSerial, callback) {
-            var topic = topicFactory.createTopicFromUniqueTopicCode(topicSerial);
-
-            // TODO: Improve the following method (parse string with regex)
-            var parens = /\((.*)\)/;
-
-            var bracketSets = parens.exec(topicSerial);
-
-            var hasClassSelections = bracketSets !== null;
-
-            if (hasClassSelections) {
-                var getClassesRegex = /([(A-Za-z]+)([0-9]+)-?/g;
-                var classSelections = {};
-
-                while (classSelection = getClassesRegex.exec(bracketSets[1])) {
-                    classSelections[classSelection[1]] = classSelection[2];
-                }
-            }
-
-
-            angular.extend(topic, baseTopic);
-
-            topicFactory.loadTimetableForTopicAsync(topic, function (topic, status, headers, config) {
-                if (hasClassSelections) {
-                    angular.forEach(topic.classes, function (classType) {
-                        var strippedName = classNameService.simplifyName(classType.name);
-
-                        if (typeof classSelections[strippedName] !== "undefined") {
-                            classType.activeClassGroup = classType.classGroups[classSelections[strippedName] - 1];
-                        }
-
-                    });
-                }
-
-                callback(topic, status, headers, config);
-            });
-        };
-
-        topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
-            topicFactory.getTopicAsync(topic.uniqueTopicCode, function (remoteTopicEntry, status, headers, config) {
-                angular.extend(topic, remoteTopicEntry);
-
-                angular.forEach(topic.classes, function (classType) {
-                    if (classType.classGroups.length > 0) {
-                        classType.classGroups.sort(function (a, b) {
-                            return a.groupId - b.groupId;
-                        });
-
-                        if (typeof classType.activeClassGroup === "undefined") {
-                            classType.activeClassGroup = classType.classGroups[0];
-                        }
-                    }
-                });
-
-                callback(topic, status, headers, config);
-            });
-        };
-
-
-        return topicFactory;
-    })
-
-    .factory('topicService', function (bookingFactory) {
-        var that = {};
-
-        that.listBookingsForTopics = function (topics) {
-            var bookings = [];
-
-            angular.forEach(topics, function (topic) {
-                angular.forEach(topic.classes, function (classType) {
-                    if (!classType.activeClassGroup) {
-                        return;
-                    }
-                    angular.forEach(classType.activeClassGroup.classSessions, function (classSession) {
-                        bookings.push(bookingFactory.newBooking(topic, classType, classType.activeClassGroup, classSession));
-                    });
-                });
-            });
-
-            return bookings;
-        };
-
-        that.listClassTypesForTopics = function (topics) {
-            var classTypes = [];
-
-            angular.forEach(topics, function (topic) {
-                var classes = topic.classes;
-                if (classes) {
-                    classTypes = classTypes.concat(classes);
-                }
-            });
-
-            return classTypes;
-        };
-
-        that.listClassGroupsForTopics = function (topics) {
-            var classTypes = that.listClassTypesForTopics(topics);
-
-            var classGroups = [];
-
-            angular.forEach(classTypes, function (classType) {
-                if (classType.classGroups) {
-                    classGroups = classGroups.concat(classType.classGroups);
-                }
-            });
-
-            return classGroups;
-        };
-
-        function compareTopics(a, b) {
-            var subjectDifference = a.subjectArea.localeCompare(b.subjectArea);
-            if (subjectDifference !== 0) {
-                return subjectDifference;
-            }
-
-            var topicDifference = a.topicNumber.localeCompare(b.topicNumber);
-            if (topicDifference !== 0) {
-                return topicDifference;
-            }
-
-            return a.name.localeCompare(b.name);
-        }
-
-        that.sortTopics = function (topics) {
-            return topics.sort(compareTopics);
-        };
-
-        return that;
     })
 
     .factory('timetableFactory', function (dayService) {
@@ -585,6 +346,7 @@ angular.module('flindersTimetable.timetable', [
 
                 topicService.sortTopics(chosenTopics);
 
+                dirty = true;
                 if (broadcast) {
                     that.broadcastTopicsUpdate();
                 }
@@ -593,16 +355,6 @@ angular.module('flindersTimetable.timetable', [
                 }
             }
         };
-
-        // that.containsTopicCode = function (topicCode) {
-        //     angular.forEach(chosenTopics, function (chosenTopic, i) {
-        //         if (chosenTopic.uniqueTopicCode === topicCode) {
-        //             return true;
-        //         }
-        //     });
-
-        //     return true;
-        // };
 
         that.getTopicCodes = function () {
             var topicCodes = [];
@@ -644,32 +396,6 @@ angular.module('flindersTimetable.timetable', [
         return that;
     })
 
-    .factory('sessionsService', function (dayService) {
-        var that = {};
-
-        that.compareSessions = function (a, b) {
-            // Sort by day
-            var daysDifference = dayService.compareDays(a.dayOfWeek, b.dayOfWeek);
-            if (daysDifference !== 0) {
-                return daysDifference;
-            }
-
-            // Sort by starting time of day
-            var secondsStartsDifference = a.secondsStartsAt - b.secondsStartsAt;
-            if (secondsStartsDifference !== 0) {
-                return secondsStartsDifference;
-            }
-
-
-            return a.secondsEndsAt - b.secondsEndsAt;
-        };
-
-        that.sortSessions = function (sessions) {
-            return sessions.sort(that.compareSessions);
-        };
-
-        return that;
-    })
 
     .factory('clashService', function (sessionsService) {
         var clashService = {};
@@ -729,36 +455,31 @@ angular.module('flindersTimetable.timetable', [
         var classClashCache = {};
 
         var addToClassClashCache = function (a, b, outcome) {
-            classClashCache[a.id + ", " + b.id] = outcome;
-            classClashCache[b.id + ", " + a.id] = outcome;
+            classClashCache[a + ", " + b] = outcome;
+            classClashCache[b + ", " + a] = outcome;
         };
 
         clashService.classGroupsClash = function (a, b) {
-            var aIndex = 0;
-            var bIndex = 0;
-
             if (typeof classClashCache[a.id + ", " + b.id] === "undefined") {
-                var clashFound = false;
+                var groupSecondsClash = 0;
+                var aIndex = 0;
+                var bIndex = 0;
 
                 // Assumption: a.classSessions and b.classSessions are sorted
                 while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
-                    //check if both session clash
-                    if (clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]) > 0) {
-                        //there is a clash
-                        clashFound = true;
-                        break;
-                    } else {
-                        // Advance the pointer to whichever class group starts first
-                        if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
-                            aIndex++;
-                        }
-                        else {
-                            bIndex++;
-                        }
+                    var sessionSecondsClash = clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]);
+                    groupSecondsClash += sessionSecondsClash;
+
+                    // Advance the pointer to whichever class group starts first
+                    if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
+                        aIndex++;
+                    }
+                    else {
+                        bIndex++;
                     }
                 }
 
-                addToClassClashCache(a, b, clashFound);
+                addToClassClashCache(a.id, b.id, groupSecondsClash);
             }
 
             return classClashCache[a.id + ", " + b.id];
@@ -927,8 +648,9 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.topicSearch = "";
 
+            chosenTopicService.addTopic(topic);
             topicFactory.loadTimetableForTopicAsync(topic, function (topic) {
-                chosenTopicService.addTopic(topic);
+                chosenTopicService.broadcastTopicsUpdate();
             });
         };
 
@@ -1014,10 +736,99 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-    .controller('TimetableGeneratorController', function ($scope, chosenTopicService, topicService, clashService) {
+    .factory('ArrayMath', function() {
+        var self = {
+            sum : function(arr) {
+                var sum = 0;
+
+                for (var i = 0; i < arr.length; i++) {
+                    sum += arr[i];
+                }
+
+                return sum;
+            },
+            mean : function(arr) {
+                var sum = self.sum(arr);
+                return sum / arr.length;
+            },
+            variance : function(arr) {
+                var sumOfSquares = 0;
+
+                for (var i = 0; i < arr.length; i++) {
+                    sumOfSquares += Math.pow(arr[i], 2);
+                }
+
+                var variance = sumOfSquares/arr.length - Math.pow(self.mean(arr), 2);
+
+                return variance;
+            },
+            variability : function (arr) {
+                arr = angular.copy(arr);
+
+                arr.sort();
+
+                var previous = arr[0];
+
+                var variability = 0;
+                for (var i = 1; i < arr.length; i++) {
+                    variability += Math.abs(arr[i] - previous);
+
+                    previous = arr[i];
+                }
+
+                return variability;
+            }
+        };
+
+        return self;
+    })
+
+    .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetableSuggestions, dayService) {
         var chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
         $scope.generatingTimetables = false;
+
+        $scope.timetablePriorities = [];
+
+        $scope.prioritiesSortableOptions = {
+            axis : "y"
+        };
+
+        var allGeneratedTimetables = [];
+
+        var initializeTimetablePriorities = function() {
+            var createTimetablePriority = function(label, sorter) {
+                return {
+                    label : label,
+                    sorter : sorter
+                };
+            };
+
+            $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function(a, b) {
+                return a.daysAtUni - b.daysAtUni;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Minimize amount of time at uni', function(a, b) {
+                return a.secondsAtUni - b.secondsAtUni;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Consistent start time', function(a, b) {
+                return a.startTimeVariability - b.startTimeVariability;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Start weekend earlier', function(a, b) {
+                return a.weekendStartsAt - b.weekendStartsAt;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Start classes earlier', function(a, b) {
+                return a.averageStartTime - b.averageStartTime;
+            }));
+
+            $scope.timetablePriorities.push(createTimetablePriority('Start classes later', function(a, b) {
+                return b.averageStartTime - a.averageStartTime;
+            }));
+        };
+        initializeTimetablePriorities();
 
         var countPossibleTimetables = function (topics) {
             var possibleTimetables = 1;
@@ -1044,7 +855,6 @@ angular.module('flindersTimetable.timetable', [
         };
 
         var findTimetablesWithMinimumClashes = function (topics) {
-
             if (topics.length === 0) {
                 return;
             }
@@ -1058,45 +868,45 @@ angular.module('flindersTimetable.timetable', [
 
             var allClassGroups = topicService.listClassGroupsForTopics(topics);
 
-            $scope.clashLimit = 9001; // It's over nine thousaaaaaaaaaaaaaand!
+            $scope.fewestSecondsClashing = Number.MAX_VALUE;
 
             var generatedTimetables = [];
 
             var examineTimetable = function (classGroupSelections, numClashes) {
-                if (numClashes < $scope.clashLimit) {
-                    $scope.clashLimit = numClashes;
+                if (numClashes < $scope.fewestSecondsClashing) {
+                    $scope.fewestSecondsClashing = numClashes;
                     generatedTimetables = [];
                 }
 
-                if (numClashes <= $scope.clashLimit) {
+                if (numClashes <= $scope.fewestSecondsClashing) {
                     generatedTimetables.push(angular.extend({}, classGroupSelections));
                 }
             };
 
 
-            var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, currentClashes) {
+            var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, secondsClashesPrior) {
                 var currentClassType = remainingClassChoices.pop();
 
                 angular.forEach(currentClassType.classGroups, function (currentGroup) {
-                    var selectionClashes = currentClashes;
+                    var secondsClashesCurrent = secondsClashesPrior;
 
                     angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {
-                        if (clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup)) {
-                            selectionClashes++;
-                        }
+                        var classGroupSecondsClashing = clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup);
+                        secondsClashesCurrent += classGroupSecondsClashing;
                     });
 
+
                     // Make sure we're not exceeding our clash limit
-                    if (selectionClashes <= $scope.clashLimit) {
+                    if (secondsClashesCurrent <= $scope.fewestSecondsClashing) {
                         // Work with this group for now
                         previousClassGroupSelections[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
 
                         if (remainingClassChoices.length === 0) {
                             // No more choices we can make, check if this timetable is good and move on
-                            examineTimetable(previousClassGroupSelections, selectionClashes);
+                            examineTimetable(previousClassGroupSelections, secondsClashesCurrent);
                         } else {
                             // Keep making choices until we find a working timetable
-                            searchTimetables(previousClassGroupSelections, remainingClassChoices, selectionClashes);
+                            searchTimetables(previousClassGroupSelections, remainingClassChoices, secondsClashesCurrent);
                         }
 
                         // Stop working with the current group
@@ -1130,7 +940,7 @@ angular.module('flindersTimetable.timetable', [
             return generatedTimetables;
         };
 
-        var cherryPickIdealTimetables = function (rawGeneratedTimetables) {
+        var sortTimetablesByPriorities = function (rawGeneratedTimetables) {
 
             var classSessionsForClassPicks = function (classPicks) {
                 var classSessions = [];
@@ -1143,6 +953,8 @@ angular.module('flindersTimetable.timetable', [
             };
 
             var calculateTimeMetrics = function (timetable) {
+                var secondsInDay = 24 * 60 * 60;
+
                 var days = { };
 
                 angular.forEach(timetable.classSessions, function (session) {
@@ -1164,20 +976,27 @@ angular.module('flindersTimetable.timetable', [
                 var startTimeSum = 0;
                 var endTimeSum = 0;
 
-                angular.forEach(days, function (day) {
-                    timetable.daysAtUni++;
-                    timetable.secondsAtUni += (day.secondsEndsAt - day.secondsStartsAt);
+                var startTimes = [];
+                var endTimes = [];
+                var secondsAtUni = [];
+                var weekendStartsAt = 0;
 
-                    startTimeSum += day.secondsStartsAt;
-                    endTimeSum += day.secondsEndsAt;
+                angular.forEach(days, function (day, dayName) {
+                    timetable.daysAtUni++;
+
+                    secondsAtUni.push(day.secondsEndsAt - day.secondsStartsAt);
+
+                    startTimes.push(day.secondsStartsAt);
+                    endTimes.push(day.secondsEndsAt);
+
+                    weekendStartsAt = Math.max(weekendStartsAt, dayService.dayNameToDayOfWeek(dayName) * secondsInDay + day.secondsEndsAt);
                 });
 
-                timetable.averageStartTime = startTimeSum / timetable.daysAtUni;
-                timetable.averageEndTime = endTimeSum / timetable.daysAtUni;
-
-                // TODO: Share code with toTime filter
-                var duration = moment.duration(timetable.secondsAtUni * 1000);
-                timetable.hoursAtUni = Math.floor(duration.asHours()) + ":" + Math.floor(duration.asMinutes() % 60);
+                timetable.secondsAtUni = ArrayMath.sum(secondsAtUni);
+                timetable.averageStartTime = ArrayMath.mean(startTimes);
+                timetable.averageEndTime = ArrayMath.mean(endTimes);
+                timetable.startTimeVariability = ArrayMath.variability(startTimes);
+                timetable.weekendStartsAt = weekendStartsAt;
 
                 return timetable;
             };
@@ -1196,31 +1015,36 @@ angular.module('flindersTimetable.timetable', [
                 timetables.push(timetable);
             });
 
+            // Sort timetables by the user-defined priorities
             timetables.sort(function (a, b) {
-                var daysDifference = a.daysAtUni - b.daysAtUni;
+                var difference = 0;
 
-                if (daysDifference !== 0) {
-                    return daysDifference;
+                for (var i = 0; i < $scope.timetablePriorities.length; i++) {
+                    var priority = $scope.timetablePriorities[i];
+
+                    difference = priority.sorter(a,b);
+
+                    if (difference !== 0) {
+                        break;
+                    }
                 }
 
-                var secondsDifference = a.secondsAtUni - b.secondsAtUni;
 
-                return secondsDifference;
+                return difference;
             });
 
             return timetables;
         };
 
         $scope.generateTimetables = function () {
-            var timetables = findTimetablesWithMinimumClashes(chosenTopics);
+            allGeneratedTimetables = findTimetablesWithMinimumClashes(chosenTopics);
 
-            timetables = cherryPickIdealTimetables(timetables);
+            allGeneratedTimetables = sortTimetablesByPriorities(allGeneratedTimetables);
 
-            $scope.topTimetableCandidates = timetables.slice(0, 5);
+            $scope.topTimetableCandidates = allGeneratedTimetables.slice(0, maxTimetableSuggestions);
 
             $scope.hasGeneratedTimetables = true;
         };
-
 
         $scope.$on('chosenTopicsUpdate', function () {
             chosenTopics = chosenTopicService.getTopics();

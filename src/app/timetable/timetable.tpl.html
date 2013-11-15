@@ -1,11 +1,13 @@
 <div class="page-header">
     <h1>Flinders University Timetable Planner</h1>
 </div>
+
+<div class="alert alert-danger">
+    This project is still in development; remain calm if things don't work.
+</div>
+
 <div class="container">
 
-    <div class="alert alert-warning">
-        This project is still in development. Expect things to be broken and/or unfinished.
-    </div>
 
     <p>Use this tool to find the ideal timetable for next semester</p>
 
@@ -13,11 +15,13 @@
     <ol>
         <li>Choose which semester you're planning for</li>
         <li>Choose your topics</li>
-        <li>Specify your criteria for an ideal table (no clashes, maximum number of days free, minimum time spent at
+        <li>Order your criteria for an ideal table (maximize number of days free, minimize time spent at
             university, etc.)
         </li>
+        <li>Click &quot;Generate Timetables&quot; and choose your ideal timetable</li>
     </ol>
 </div>
+
 <div class="container" ng-controller="TopicController">
     <form class="form-inline">
         <div class="page-header">
@@ -38,9 +42,11 @@
         </fieldset>
 
     </form>
+    <br/>
+
     <form>
         <div class="page-header">
-            <h3>Okay, now which topics are you planning to do?</h3>
+            <h3>Which topics are you planning to do?</h3>
         </div>
         <table class="table topics">
             <tbody>
@@ -54,7 +60,7 @@
                 </td>
             </tr>
             </tbody>
-            <tfoot ng-show="chosenTopics.length <= 6">
+            <tfoot ng-show="chosenTopics.length < 6">
             <tr>
                 <td class="filter">
                     <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
@@ -84,12 +90,22 @@
         <h3>Timetable Generator</h3>
     </div>
 
-    <p>You have {{ numPossibleTimetables }} possible timetables.</p>
+    <p>You have {{ numPossibleTimetables }} possible timetables. To find your ideal timetable, we're going to need a little more information</p>
 
-    <div ng-show="!hasGeneratedTimetables && !generatingTimetables">
-    <p>
-            <button class="btn btn-primary" ng-click="generateTimetables()">Automatically Generate Timetables
-            </button>
+    <p>Order the below list in terms of what's important to you, most important first.</p>
+
+    <div class="page-header">
+        <h4>Sort by preference, most preferred first</h4>
+    </div>
+    <div class="row">
+        <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities" class="col-md-3 generator-priorities">
+            <li ng-repeat="priority in timetablePriorities">{{ priority.label }}<span class="glyphicon glyphicon-resize-vertical pull-right"></span></li>
+        </ul>
+    </div>
+
+    <div ng-show="!generatingTimetables">
+        <p>
+            <button class="btn btn-primary" ng-click="generateTimetables()">Generate Timetables</button>
         </p>
     </div>
 
@@ -98,11 +114,9 @@
     </div>
 
     <div ng-show="hasGeneratedTimetables">
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with
-            <ng-pluralize count="clashLimit"
-                          when="{'0': 'no clashes','one': '1 unavoidable clash', 'other': '{} unavoidable clashes'}"></ng-pluralize>
-            .
-        </p>
+        <hr />
+        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with {{ ( 0 +
+            fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.</p>
 
         <p>This took {{ examineDuration }} seconds.</p>
 
@@ -119,13 +133,13 @@
                     {{ candidate.daysAtUni }}
                 </td>
                 <td>
-                    {{ candidate.hoursAtUni }}
+                    {{ candidate.secondsAtUni | secondsToHours }} hours
                 </td>
                 <td>
-                    {{ candidate.averageStartTime | toTime }}
+                    {{ candidate.averageStartTime | secondsToTime }}
                 </td>
                 <td>
-                    {{ candidate.averageEndTime | toTime }}
+                    {{ candidate.averageEndTime | secondsToTime }}
                 </td>
                 <td>
                     <button class="btn btn-primary btn-sm"
@@ -163,7 +177,7 @@
                                 <div ng-repeat="booking in clashColumn" style="position: relative; height: 0px;">
                                     <div class="booking topic-{{booking.topicHash % 16}}"
                                          ng-class="{'locked': booking.locked }"
-                                         style="height: {{ booking.secondsDuration / 60 }}px; top: {{ (booking.secondsStartsAt - 28800) / 60 }}px;">
+                                         ng-style="{ height: (booking.secondsDuration / 60) + 'px', top: ((booking.secondsStartsAt - 28800) / 60) + 'px' }">
                                         <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
 
                                         <p>{{ booking.topicCode }} {{ booking.className }}</p>
@@ -195,8 +209,9 @@
         </div>
 
         <div class="row">
-            <div ng-repeat="topic in chosenTopics" class="col-md-3 topic topic-{{topic.getHash() % 16}}">
-                <h3>{{ topic.code }} {{ topic.name }}</h3>
+            <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded"
+                 class="col-md-3 topic topic-{{topic.getHash() % 16}}">
+            <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h4>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) /
@@ -208,8 +223,8 @@
                            ng-class="{ active: (classGroup == class.activeClassGroup) }"
                            ng-click="(class.activeClassGroup = classGroup) && broadcastClassesUpdate()">
                             <p class="list-group-item-text"
-                               ng-repeat="classSession in classGroup.classSessions">{{
-                                classSession.dayOfWeek }} {{ classSession.timeStartsAt }}
+                               ng-repeat="classSession in classGroup.classSessions">
+                                {{ classSession.dayOfWeek }} {{ classSession.timeStartsAt }}
                             </p>
                         </a>
                     </div>

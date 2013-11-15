@@ -12,7 +12,8 @@
         "type": "git",
         "url": "git@github.com:TobiasWooldridge/FlindersTimetable.git"
     },
-    "dependencies": {},
+    "dependencies": {
+    },
     "devDependencies": {
         "grunt": "~0.4.1",
         "grunt-recess": "~0.3.0",

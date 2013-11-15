@@ -16,6 +16,10 @@
   color: #FFFFFF !important;
   text-shadow: 0px 0px 5px darken(@color, 30%);
 
+  &:hover {
+    background-image: linear-gradient(to bottom, darken(@color, 5%) 0%, darken(@color, 9%) 100%);
+
+  }
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -83,11 +87,15 @@
 }
 
 body {
-  .flinders-background;
+  background: #EEE;
 }
 
-body > .container {
-  background: @flinders-light-background;
+#page > .container {
+  background: #FFF;
+  box-shadow: 0px 1px 3px #DDD;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 10px 20px 20px;
 }
 
 body > .container .container {
@@ -101,14 +109,33 @@ body > .container .container {
   }
 }
 
+
+
+.generator-priorities {
+  margin: 10px 15px;
+}
+.generator-priorities li {
+  cursor: move;
+  list-style: none;
+  padding: 10px;
+  border: 1px solid @list-group-border;
+  margin-top: -1px;
+
+  &:hover, &.ui-sortable-helper {
+    background: #EEE;
+  }
+}
+
 a.list-group-item {
   cursor: pointer;
 }
 
 .list-group-item.active .list-group-item-text, .list-group-item.active:hover .list-group-item-text, .list-group-item.active:focus .list-group-item-text, .active a.list-group-item {
   color: #fff;
+  margin-bottom: 0;
 
 }
+
 
 table.topics {
   border-collapse: collapse;
