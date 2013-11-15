@@ -826,7 +826,7 @@ angular.module('flindersTimetable.timetable', [
 
             for (var i = 0; i < predicates.length; i++) {
                 var foundPredicate = false;
-                
+                        
                 //search topic code when 1-4 letters, 4 letters + 1-4 numbers or 4 numbers
                 var topicNumberExpression = /^([A-Z]+[0-9]*[A-Z]*|[0-9]{4}[A-Z]?)$/i; // /([A-Za-z]{4}[0-9]{1,4})|([A-Za-z]{1,4})|([0-9]{4})/;
 

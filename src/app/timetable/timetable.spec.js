@@ -149,16 +149,24 @@ describe('FlindersTimetable dayService', function () {
 });
 
 describe('flindersTimetable TopicController', function () {
-    var TopicController;
+    var scope;
+    var topicController;
 
     beforeEach(module('flindersTimetable.timetable'));
-    beforeEach(inject(function ($injector) {
-        TopicController = $injector.get('TopicController');
+    beforeEach(inject(function ($rootScope, $controller, $injector) {
+        scope = $rootScope.$new();
+        //topicFactory bypass
+        var topicFactory = {};
+        topicController = $controller('TopicController', {$scope: scope, chosenTopicService: $injector.get('chosenTopicService'), topicFactory: topicFactory, urlService: $injector.get('urlService')});
     }));
 
     it('should have a dummy test', inject(function() {
         expect(true).toBeTruthy();
     }));
 
+
+    it('should define scope', function () {
+        expect(scope).toBeDefined();
+    });
     
 });
