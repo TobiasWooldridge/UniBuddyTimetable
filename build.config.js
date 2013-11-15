@@ -80,5 +80,15 @@ module.exports = {
         assets: [
             'vendor/bootstrap/fonts/*'
         ]
+    },
+
+    connect: {
+        server: {
+            options: {
+                port: 1337,
+                base: 'build',
+                keepalive: true
+            }
+        }
     }
 };
