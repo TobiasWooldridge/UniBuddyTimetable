@@ -27,7 +27,7 @@ angular.module('flindersTimetable.timetable', [
                     templateUrl: 'timetable/timetable.tpl.html'
                 }
             },
-            data: { pageTitle: 'Make your ideal timetable' }
+            data: { pageTitle: 'Unofficial Flinders University Timetable Planner' }
         });
     })
 
