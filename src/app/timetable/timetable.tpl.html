@@ -1,15 +1,24 @@
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
 <div class="page-header">
     <h1>Unofficial Flinders University Timetable Planner</h1>
 </div>
 
-<div class="alert alert-danger">
-    This project is still in development; remain calm if things don't work.
+<div class="alert alert-success">
+    2014 timetables will be available from <strong>November 29th</strong>, and 2014 enrolment will open on <strong>November 30th</strong>
 </div>
 
 <div class="container">
-    <p>Use this tool to find the ideal timetable for next semester</p>
+    <h2>Just a few simple steps</h2>
 
-    <p>Find the optimal timetable in a few simple steps</p>
+    <p>Use this tool to find the ideal timetable for next semester</p>
     <ol>
         <li>Choose which semester you're planning for</li>
         <li>Choose your topics</li>
@@ -18,6 +27,16 @@
         </li>
         <li>Click &quot;Generate Timetables&quot; and choose your ideal timetable</li>
     </ol>
+</div>
+
+<div class="container">
+    <h2>Spread the word</h2>
+    <p>This tool has been made independently of the university, without any expectation of reimbursement.</p>
+    <p>All that we get out of making this timetable planner is the satisfaction that we've helped you make the best timetable possible for this semester.</p>
+    <p>If you find this tool useful, or even just nifty, thank us by sharing it with your friends.</p>
+    <p>Or just post it to Facebook to make your friends from Adelaide/UniSA jealous <small>(don't worry, though, we'll try and add you guys soon)</small></p>
+
+    <div class="fb-like" data-href="http://flinderstimetable.tobias.pw/" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
 </div>
 
 <div class="container" ng-controller="TopicController">
@@ -125,8 +144,8 @@
 
     <div ng-show="hasGeneratedTimetables">
         <hr/>
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with {{ ( 0 +
-            fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.</p>
+        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables.<!-- with {{ ( 0 +
+            fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.--></p>
 
         <p>This took {{ examineDuration }} seconds.</p>
 
