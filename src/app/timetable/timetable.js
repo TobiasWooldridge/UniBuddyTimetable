@@ -821,7 +821,30 @@ angular.module('flindersTimetable.timetable', [
             $scope.timetablePriorities.push(createEarlierLaterPriority("Start day", "averageStartTime", "later"));
 
             $scope.timetablePriorities.push(createDayOfWeekProperty("Minimize time at uni on", "secondsAtUniByDay", "later"));
+
+            $scope.demotePreference = function(index) {
+                if (index == $scope.timetablePriorities.length) {
+                    return;
+                }
+
+
+                var buffer = $scope.timetablePriorities[index];
+                $scope.timetablePriorities[index] = $scope.timetablePriorities[index + 1];
+                $scope.timetablePriorities[index + 1] = buffer;
+            };
+
+            $scope.promotePreference = function(index) {
+                if (index === 0) {
+                    return;
+                }
+
+
+                var buffer = $scope.timetablePriorities[index];
+                $scope.timetablePriorities[index] = $scope.timetablePriorities[index - 1];
+                $scope.timetablePriorities[index - 1] = buffer;
+            };
         };
+
         initializeTimetablePriorities();
 
         var countPossibleTimetables = function (topics) {

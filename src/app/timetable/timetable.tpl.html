@@ -116,20 +116,24 @@
     <p>Order the below list in terms of what's important to you, most important first.</p>
 
     <div class="page-header">
-        <h4>Sort by preference, most preferred first</h4>
+        <h4>Sort your preference</h4>
     </div>
+    <p>Drag the preferences to sort them</p>
     <div class="row">
-        <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
+        <ol ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
             class="col-md-6 generator-priorities">
             <li ng-repeat="priority in timetablePriorities">
-                {{ priority.label }}
+                {{ $index + 1 }}. {{ priority.label }}
 
                 <select ng-show="priority.options" ng-model="priority.selectedOption" ng-options="p as p for p in priority.options">
                 </select>
 
-                <span class="glyphicon glyphicon-resize-vertical pull-right"></span>
+                <span class="hint" ng-show="$first">(Most important)</span>
+
+                <span class="glyphicon glyphicon-arrow-down pull-right" ng-click="demotePreference($index)"></span>
+                <span class="glyphicon glyphicon-arrow-up pull-right" ng-click="promotePreference($index)"></span>
             </li>
-        </ul>
+        </ol>
     </div>
 
     <div ng-show="!generatingTimetables">

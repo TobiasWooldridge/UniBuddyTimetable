@@ -116,13 +116,29 @@ body > .container .container {
 }
 .generator-priorities li {
   cursor: move;
-  list-style: none;
   padding: 10px;
+  list-style: none;
   border: 1px solid @list-group-border;
   margin-top: -1px;
 
   &:hover, &.ui-sortable-helper {
     background: #EEE;
+
+    & .hint {
+      display: none;
+    }
+  }
+
+  .glyphicon {
+    cursor: pointer;
+    padding: 0 10px;
+
+    &.glyphicon-arrow-up {
+      color: @btn-success-bg;
+    }
+    &.glyphicon-arrow-down {
+      color: @btn-danger-bg;
+    }
   }
 }
 
