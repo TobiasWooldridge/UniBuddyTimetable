@@ -30,21 +30,13 @@ If you have homebrew installed, run
 To build the software continuously, run
 
     grunt watch
-    
-#### Webserver
 
-Either make sure you have a webserver pointing to your /build directory, or run
 
-    grunt connect:server &
-    
-to start a webserver pointing to the project at http://localhost:1337/
+This will start continuous builds for the project (rebuilding the project every time a file changes), and start a webserver pointing to these builds at http://localhost:1337/
 
 A webserver is necessary if you wish to avoid browser security issues. IE still manages to break things because localhost 
 is an intranet address, so you'll need to turn down IE's intranet security settings to test in IE.
 
-    
-This'll compile the LESS/JS for the project into the project's /build directory every time a file changes.
-    
 ### Building
 
 To build FlindersTimetable's application, run

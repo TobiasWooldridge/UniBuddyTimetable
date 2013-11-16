@@ -7,8 +7,6 @@
 </div>
 
 <div class="container">
-
-
     <p>Use this tool to find the ideal timetable for next semester</p>
 
     <p>Find the optimal timetable in a few simple steps</p>
@@ -66,13 +64,14 @@
                     <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
                 </td>
                 <td width="*">
-                    <p ng-show="!availableTopics.length"><img src="assets/images/ajax-loader.gif" alt="Loading"
+                    <p ng-show="topicSearch.length >= 3"><span ng-show="!availableTopics.length"><img src="assets/images/ajax-loader.gif" alt="Loading"
                                                               class="ajax-loader"/>
-                    </p>
+                    </span>
                     <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
-                            ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 10 ">
+                            ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 20">
                     </select>
-                    <p ng-show="!topicSearch" class="hint hint-filter">Type a topic code or topic name to the right to search for topics</p>
+                    </p>
+                    <p ng-show="topicSearch.length < 3" class="hint hint-filter">Type a few letters of a topic code or topic name to the right to search for topics</p>
                 </td>
 
                 <td class="action">

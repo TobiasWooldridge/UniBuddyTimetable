@@ -23,9 +23,6 @@ module.exports = {
         js: [ 'src/**/*.js', '!src/**/*.spec.js', '!src/assets/**/*.js' ],
         jsunit: [ 'src/**/*.spec.js' ],
 
-        coffee: [ 'src/**/*.coffee', '!src/**/*.spec.coffee' ],
-        coffeeunit: [ 'src/**/*.spec.coffee' ],
-
         atpl: [ 'src/app/**/*.tpl.html' ],
         ctpl: [ 'src/common/**/*.tpl.html' ],
 
@@ -63,6 +60,7 @@ module.exports = {
     vendor_files: {
         js: [
             'vendor/jquery/jquery.js',
+            'vendor/bootstrap/dist/js/bootstrap.js',
             'vendor/jquery-ui/ui/jquery.ui.core.js',
             'vendor/jquery-ui/ui/jquery.ui.widget.js',
             'vendor/jquery-ui/ui/jquery.ui.mouse.js',
@@ -84,6 +82,12 @@ module.exports = {
 
     connect: {
         server: {
+            options: {
+                port: 1337,
+                base: 'build'
+            }
+        },
+        keepalive: {
             options: {
                 port: 1337,
                 base: 'build',

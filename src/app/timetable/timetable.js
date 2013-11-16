@@ -1,5 +1,5 @@
 var appConfig = {
-    years: [2013],
+    years: [2011, 2012, 2013],
     defaultYear: 2013,
     semesters: ["S1", "NS1", "S2", "NS2"],
     defaultSemester: "S2"
