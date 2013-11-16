@@ -90,7 +90,8 @@
         <h3>Timetable Generator</h3>
     </div>
 
-    <p>You have {{ numPossibleTimetables }} possible timetables. To find your ideal timetable, we're going to need a little more information</p>
+    <p>You have {{ numPossibleTimetables }} possible timetables. To find your ideal timetable, we're going to need a
+        little more information</p>
 
     <p>Order the below list in terms of what's important to you, most important first.</p>
 
@@ -98,8 +99,10 @@
         <h4>Sort by preference, most preferred first</h4>
     </div>
     <div class="row">
-        <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities" class="col-md-3 generator-priorities">
-            <li ng-repeat="priority in timetablePriorities">{{ priority.label }}<span class="glyphicon glyphicon-resize-vertical pull-right"></span></li>
+        <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
+            class="col-md-3 generator-priorities">
+            <li ng-repeat="priority in timetablePriorities">{{ priority.label }}<span
+                    class="glyphicon glyphicon-resize-vertical pull-right"></span></li>
         </ul>
     </div>
 
@@ -114,7 +117,7 @@
     </div>
 
     <div ng-show="hasGeneratedTimetables">
-        <hr />
+        <hr/>
         <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with {{ ( 0 +
             fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.</p>
 
@@ -211,7 +214,7 @@
         <div class="row">
             <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded"
                  class="col-md-3 topic topic-{{topic.getHash() % 16}}">
-            <h3>{{ topic.code }} {{ topic.name }}</h3>
+                <h3>{{ topic.code }} {{ topic.name }}</h3>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h4>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) /

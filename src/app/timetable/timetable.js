@@ -138,10 +138,10 @@ angular.module('flindersTimetable.timetable', [
             name = name.replace(/[^A-Za-z0-9]/g, '');
 
             name = name.replace(/Computer/g, 'Comp')
-                       .replace(/Laboratory/g, 'Lab')
-                       .replace(/Tutorial/g, 'Tute')
-                       .replace(/Practical/g, 'Prac')
-                       .replace(/Project/g, 'Proj');
+                .replace(/Laboratory/g, 'Lab')
+                .replace(/Tutorial/g, 'Tute')
+                .replace(/Practical/g, 'Prac')
+                .replace(/Project/g, 'Proj');
 
             return name;
         };
@@ -529,55 +529,38 @@ angular.module('flindersTimetable.timetable', [
                 return false;
             }
 
-            var searchables = [
-                //topic.code.toLowerCase(),
-                topic.name.toLowerCase()
-            ];
+            var name = topic.name.toLowerCase();
+            var code = topic.code.toLowerCase();
 
             var predicates = $scope.topicSearch.toLowerCase().split(' ');
 
             for (var i = 0; i < predicates.length; i++) {
-                var foundPredicate = false;
-                        
-                //search topic code when 1-4 letters, 4 letters + 1-4 numbers or 4 numbers
-                var topicNumberExpression = /^([A-Z]+[0-9]*[A-Z]*|[0-9]{4}[A-Z]?)$/i; // /([A-Za-z]{4}[0-9]{1,4})|([A-Za-z]{1,4})|([0-9]{4})/;
-
-                var TopicMatch = topicNumberExpression.exec(predicates[i]);
-
-                if (TopicMatch !== undefined && TopicMatch !== null && TopicMatch.length > 0) {
-                    //match topic code with member
-                    var matchIndex = topic.code.toLowerCase().indexOf(predicates[i]);
-                    if (matchIndex === 0 || matchIndex == 4) { //match from start of code or numbers in code
-                        foundPredicate = true;
-                        continue; //don't search other elements with this predicate if a topic match is found
+                // Try searching the topic code
+                var matchIndex = code.indexOf(predicates[i]);
+                if (matchIndex === 0 || matchIndex === 4) {
+                    // Only count these matches if the predicate
+                    // * Is 1-4 letters
+                    // * Is 1-4 letters followed by numbers (and optionally a letter)
+                    // * Is 4 numbers
+                    var topicNumberExpression = /^([A-Z]+[0-9]*[A-Z]*|[0-9]{4}[A-Z]?)$/i;
+                    if (topicNumberExpression.test(code)) {
+                        // Predicate matched! Next predicate
+                        continue;
                     }
                 }
 
-
-                for (var j = 0; j < searchables.length; j++) {
-                    if (searchables[j].indexOf(predicates[i]) !== -1) {
-                        foundPredicate = true;
-                        break;
-                    }
+                // Try searching the topic name
+                if (name.indexOf(predicates[i]) !== -1) {
+                    // Predicate matched! Next predicate
+                    continue;
                 }
 
-                if (!foundPredicate) {
-                    return false;
-                }
+
+                // Predicate not found
+                return false;
             }
 
             return true;
-        };
-
-
-        var chosenUniqueTopicCodes = function () {
-            var uniqueTopicCodes = [];
-
-            angular.forEach(chosenTopicService.chosenTopics, function (topic) {
-                uniqueTopicCodes.push(topic.uniqueTopicCode);
-            });
-
-            return uniqueTopicCodes;
         };
 
         var applyTopicSearchFilter = function (newValue) {
@@ -727,9 +710,9 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-    .factory('ArrayMath', function() {
+    .factory('ArrayMath', function () {
         var self = {
-            sum : function(arr) {
+            sum: function (arr) {
                 var sum = 0;
 
                 for (var i = 0; i < arr.length; i++) {
@@ -738,22 +721,22 @@ angular.module('flindersTimetable.timetable', [
 
                 return sum;
             },
-            mean : function(arr) {
+            mean: function (arr) {
                 var sum = self.sum(arr);
                 return sum / arr.length;
             },
-            variance : function(arr) {
+            variance: function (arr) {
                 var sumOfSquares = 0;
 
                 for (var i = 0; i < arr.length; i++) {
                     sumOfSquares += Math.pow(arr[i], 2);
                 }
 
-                var variance = sumOfSquares/arr.length - Math.pow(self.mean(arr), 2);
+                var variance = sumOfSquares / arr.length - Math.pow(self.mean(arr), 2);
 
                 return variance;
             },
-            variability : function (arr) {
+            variability: function (arr) {
                 arr = angular.copy(arr);
 
                 arr.sort();
@@ -782,40 +765,40 @@ angular.module('flindersTimetable.timetable', [
         $scope.timetablePriorities = [];
 
         $scope.prioritiesSortableOptions = {
-            axis : "y"
+            axis: "y"
         };
 
         var allGeneratedTimetables = [];
 
-        var initializeTimetablePriorities = function() {
-            var createTimetablePriority = function(label, sorter) {
+        var initializeTimetablePriorities = function () {
+            var createTimetablePriority = function (label, sorter) {
                 return {
-                    label : label,
-                    sorter : sorter
+                    label: label,
+                    sorter: sorter
                 };
             };
 
-            $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function(a, b) {
+            $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
                 return a.daysAtUni - b.daysAtUni;
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Minimize amount of time at uni', function(a, b) {
+            $scope.timetablePriorities.push(createTimetablePriority('Minimize amount of time at uni', function (a, b) {
                 return a.secondsAtUni - b.secondsAtUni;
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Consistent start time', function(a, b) {
+            $scope.timetablePriorities.push(createTimetablePriority('Consistent start time', function (a, b) {
                 return a.startTimeVariability - b.startTimeVariability;
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Start weekend earlier', function(a, b) {
+            $scope.timetablePriorities.push(createTimetablePriority('Start weekend earlier', function (a, b) {
                 return a.weekendStartsAt - b.weekendStartsAt;
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Start classes earlier', function(a, b) {
+            $scope.timetablePriorities.push(createTimetablePriority('Start classes earlier', function (a, b) {
                 return a.averageStartTime - b.averageStartTime;
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Start classes later', function(a, b) {
+            $scope.timetablePriorities.push(createTimetablePriority('Start classes later', function (a, b) {
                 return b.averageStartTime - a.averageStartTime;
             }));
         };
@@ -1013,7 +996,7 @@ angular.module('flindersTimetable.timetable', [
                 for (var i = 0; i < $scope.timetablePriorities.length; i++) {
                     var priority = $scope.timetablePriorities[i];
 
-                    difference = priority.sorter(a,b);
+                    difference = priority.sorter(a, b);
 
                     if (difference !== 0) {
                         break;
