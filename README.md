@@ -5,9 +5,15 @@ FlindersTimetable
 
 This project helps Flinders students find their ideal timetable for a semester.
 
+### Prerequisites
+
 To build the project, you'll need a modern version of Node.jsm, NPM and git in your classpath.
 
-That should be all you need to get developing!
+#### OS X
+
+If you have homebrew installed, run
+
+    brew install nodejs git
 
 ### Installation
 
