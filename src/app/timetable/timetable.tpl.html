@@ -70,9 +70,11 @@
                                                               class="ajax-loader"/>
                     </p>
                     <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
-                            ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter:searchTopics ">
+                            ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 10 ">
                     </select>
+                    <p ng-show="!topicSearch" class="hint hint-filter">Type a topic code or topic name to the right to search for topics</p>
                 </td>
+
                 <td class="action">
                     <button type="submit" class="btn btn-primary" ng-click="addTopic(activeTopic)"
                             ng-disabled="!validateTopic(activeTopic)">
