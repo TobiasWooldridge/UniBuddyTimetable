@@ -148,3 +148,49 @@ describe('FlindersTimetable dayService', function () {
 
 });
 
+describe('flindersTimetable TopicController', function () {
+    var scope;
+    var topicController;
+
+    beforeEach(module('flindersTimetable.timetable'));
+    beforeEach(inject(function ($rootScope, $controller, $injector) {
+        scope = $rootScope.$new();
+        //topicFactory bypass
+        var topicFactory = {getTopicsAsync: function() {},
+            getTopicAsync: function() {},
+            createTopicFromUniqueTopicCode: function() {},
+            loadTopicFromSerialAsync: function() {},
+            loadTimetableForTopicAsync: function() {}
+        };
+        topicController = $controller('TopicController', {$scope: scope, chosenTopicService: $injector.get('chosenTopicService'), topicFactory: topicFactory, urlService: $injector.get('urlService')});
+    }));
+
+    it('should have a dummy test', inject(function() {
+        expect(true).toBeTruthy();
+    }));
+
+
+    it('should define scope', function () {
+        expect(scope).toBeDefined();
+    });
+
+    it('should define searchTopics', function() {
+        expect(scope.searchTopics).toBeDefined();
+    });
+
+    it('should define topicSearch', function() {
+        expect(scope.topicSearch).toBeDefined();
+    });
+
+    it('topicSearch of \'\' should return all members of the list', function() {
+        scope.topicSearch = '';
+        var topicArray = [];
+        for (var i = 0; i < 10; i++) {
+            topicArray.push({name: "topic" + i, code: "ENGR000"});
+        }
+        expect(topicArray.length).toBe(10);
+        topicArray.filter(scope.searchTopics);
+        expect(topicArray.length).toBe(10);
+    });
+    
+});
