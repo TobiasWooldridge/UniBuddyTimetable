@@ -513,15 +513,20 @@ angular.module('flindersTimetable.timetable', [
             var predicates = $scope.topicSearch.toLowerCase().split(' ');
 
             for (var i = 0; i < predicates.length; i++) {
+                var predicate = predicates[i];
+
+
                 // Try searching the topic code
-                var matchIndex = code.indexOf(predicates[i]);
+                var matchIndex = code.indexOf(predicate);
+
                 if (matchIndex === 0 || matchIndex === 4) {
                     // Only count these matches if the predicate
                     // * Is 1-4 letters
                     // * Is 1-4 letters followed by numbers (and optionally a letter)
                     // * Is 4 numbers
-                    var topicNumberExpression = /^([a-z]{1,4}|[a-z]{4}[0-9]{1,4}[a-z]?|[0-9]{4})$/i;
-                    if (topicNumberExpression.test(code)) {
+                    var topicNumberExpression = /^([a-z]{1,4}|[a-z]{4}\d{1,4}[a-z]?|\d{4})$/;
+                    var topicNumberMatches = predicate.match(topicNumberExpression);
+                    if (topicNumberMatches) {
                         // Predicate matched! Next predicate
                         continue;
                     }
