@@ -11,7 +11,7 @@ angular.module('flindersTimetable.timetable', [
         'flap.topics'
     ])
     .constant('times', {
-        years: [2013],
+        years: [2011, 2012, 2013],
         defaultYear: 2013,
         semesters: ["S1", "NS1", "S2", "NS2"],
         defaultSemester: "S2"
@@ -304,9 +304,6 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .factory('chosenTopicService', function ($rootScope, topicService) {
-        // Keep track of unbroadcasted changes
-        var dirty = false;
-
         var chosenTopics = [];
 
         var getTopicIndex = function (topic) {
@@ -331,8 +328,6 @@ angular.module('flindersTimetable.timetable', [
         };
 
         that.broadcastClassesUpdate = function () {
-            dirty = false;
-
             $rootScope.$broadcast('chosenClassesUpdate');
         };
 
@@ -346,12 +341,8 @@ angular.module('flindersTimetable.timetable', [
 
                 topicService.sortTopics(chosenTopics);
 
-                dirty = true;
                 if (broadcast) {
                     that.broadcastTopicsUpdate();
-                }
-                else {
-                    dirty = true;
                 }
             }
         };

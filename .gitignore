@@ -4,3 +4,5 @@ build/
 bin/
 node_modules/
 vendor/
+.idea
+FlindersTimetable.iml
