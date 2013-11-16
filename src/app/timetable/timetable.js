@@ -523,8 +523,6 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
 
         $scope.searchTopics = function (topic) {
-            var search = $scope.topicSearch.toLowerCase();
-
             if (topic === undefined) {
                 return false;
             }
@@ -542,7 +540,7 @@ angular.module('flindersTimetable.timetable', [
                     // * Is 1-4 letters
                     // * Is 1-4 letters followed by numbers (and optionally a letter)
                     // * Is 4 numbers
-                    var topicNumberExpression = /^([A-Z]+[0-9]*[A-Z]*|[0-9]{4}[A-Z]?)$/i;
+                    var topicNumberExpression = /^([a-z]{1,4}|[a-z]{4}[0-9]{1,4}[a-z]?|[0-9]{4})$/i;
                     if (topicNumberExpression.test(code)) {
                         // Predicate matched! Next predicate
                         continue;
