@@ -766,6 +766,25 @@ angular.module('flindersTimetable.timetable', [
                 return -minimize(a, b);
             };
 
+            var createEarlierLaterPriority = function(label, property, defaultOption) {
+                var priority = createTimetablePriority(label);
+
+                var optionDirections = {
+                    'earlier' : minimize,
+                    'later' : maximize
+                };
+
+                priority.sorter = function(a, b) {
+                    return optionDirections[priority.selectedOption](a[property], b[property]);
+                };
+
+                priority.options = ['earlier', 'later'];
+                priority.selectedOption = defaultOption;
+
+                return priority;
+            };
+
+
             $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
                 return minimize(a.daysAtUni, b.daysAtUni);
             }));
@@ -778,29 +797,8 @@ angular.module('flindersTimetable.timetable', [
                 return minimize(a.startTimeVariability, b.startTimeVariability);
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Start weekend earlier', function (a, b) {
-                return minimize(a.weekendStartsAt, b.weekendStartsAt);
-            }));
-
-            var createStartAtPriority = function() {
-                var priority = createTimetablePriority('Start day');
-
-                var optionDirections = {
-                    'earlier' : minimize,
-                    'later' : maximize
-                };
-
-                priority.sorter = function(a, b) {
-                    return optionDirections[priority.selectedOption](a.averageStartTime, b.averageStartTime);
-                };
-
-                priority.options = ['earlier', 'later'];
-                priority.selectedOption = 'later';
-
-                return priority;
-            };
-
-            $scope.timetablePriorities.push(createStartAtPriority());
+            $scope.timetablePriorities.push(createEarlierLaterPriority("Start weekend", "weekendStartsAt", "earlier"));
+            $scope.timetablePriorities.push(createEarlierLaterPriority("Start day", "averageStartTime", "later"));
         };
         initializeTimetablePriorities();
 

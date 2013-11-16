@@ -101,11 +101,11 @@
     </div>
     <div class="row">
         <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
-            class="col-md-3 generator-priorities">
+            class="col-md-6 generator-priorities">
             <li ng-repeat="priority in timetablePriorities">
                 {{ priority.label }}
 
-                <select ng-show="priority.options" class="form-control" ng-model="priority.selectedOption" ng-options="p as p for p in priority.options">
+                <select ng-show="priority.options" ng-model="priority.selectedOption" ng-options="p as p for p in priority.options">
                 </select>
 
                 <span class="glyphicon glyphicon-resize-vertical pull-right"></span>
