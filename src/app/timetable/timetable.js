@@ -789,12 +789,27 @@ angular.module('flindersTimetable.timetable', [
                 return priority;
             };
 
+            var createDayOfWeekProperty = function(label, property) {
+                var priority = createTimetablePriority(label);
+
+
+                priority.sorter = function(a, b) {
+                    var dayOfWeek = dayService.dayNameToDayOfWeek(priority.selectedOption);
+                    return minimize(a[property][dayOfWeek], b[property][dayOfWeek]);
+                };
+
+                priority.options = dayService.days();
+                priority.selectedOption = priority.options[0];
+
+                return priority;
+            };
+
 
             $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
                 return minimize(a.daysAtUni, b.daysAtUni);
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Minimize amount of time at uni', function (a, b) {
+            $scope.timetablePriorities.push(createTimetablePriority('Minimize time at uni', function (a, b) {
                 return minimize(a.secondsAtUni, b.secondsAtUni);
             }));
 
@@ -804,6 +819,8 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.timetablePriorities.push(createEarlierLaterPriority("Start weekend", "weekendStartsAt", "earlier"));
             $scope.timetablePriorities.push(createEarlierLaterPriority("Start day", "averageStartTime", "later"));
+
+            $scope.timetablePriorities.push(createDayOfWeekProperty("Minimize time at uni on", "secondsAtUniByDay", "later"));
         };
         initializeTimetablePriorities();
 
@@ -952,20 +969,23 @@ angular.module('flindersTimetable.timetable', [
 
                 var startTimes = [];
                 var endTimes = [];
-                var secondsAtUni = [];
+                var secondsAtUni = [0, 0, 0, 0, 0];
                 var weekendStartsAt = 0;
 
                 angular.forEach(days, function (day, dayName) {
                     timetable.daysAtUni++;
 
-                    secondsAtUni.push(day.secondsEndsAt - day.secondsStartsAt);
+                    var dayOfWeek = dayService.dayNameToDayOfWeek(dayName);
+
+                    secondsAtUni[dayOfWeek] = day.secondsEndsAt - day.secondsStartsAt;
 
                     startTimes.push(day.secondsStartsAt);
                     endTimes.push(day.secondsEndsAt);
 
-                    weekendStartsAt = Math.max(weekendStartsAt, dayService.dayNameToDayOfWeek(dayName) * secondsInDay + day.secondsEndsAt);
+                    weekendStartsAt = Math.max(weekendStartsAt, dayOfWeek * secondsInDay + day.secondsEndsAt);
                 });
 
+                timetable.secondsAtUniByDay = secondsAtUni;
                 timetable.secondsAtUni = ArrayMath.sum(secondsAtUni);
                 timetable.averageStartTime = ArrayMath.mean(startTimes);
                 timetable.averageEndTime = ArrayMath.mean(endTimes);
