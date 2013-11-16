@@ -106,26 +106,6 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
-
-    .factory('hashService', function () {
-        var hashService = {
-            hash: function (str) {
-                var hash = 0, i, c;
-                if (str.length === 0) {
-                    return hash;
-                }
-                for (i = 0, l = str.length; i < l; i++) {
-                    c = str.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + c;
-                    hash |= 0;
-                }
-                return Math.abs(hash);
-            }
-        };
-
-        return hashService;
-    })
-
     .factory('moment', function () {
         return moment;
     })
@@ -769,36 +749,58 @@ angular.module('flindersTimetable.timetable', [
         var allGeneratedTimetables = [];
 
         var initializeTimetablePriorities = function () {
-            var createTimetablePriority = function (label, sorter) {
+            var createTimetablePriority = function (label, sorter, options, defaultOption) {
                 return {
                     label: label,
-                    sorter: sorter
+                    sorter: sorter,
+                    options: options,
+                    selectedOption: defaultOption
                 };
             };
 
+            var minimize = function(a, b) {
+                return a - b;
+            };
+
+            var maximize = function(a, b) {
+                return -minimize(a, b);
+            };
+
             $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
-                return a.daysAtUni - b.daysAtUni;
+                return minimize(a.daysAtUni, b.daysAtUni);
             }));
 
             $scope.timetablePriorities.push(createTimetablePriority('Minimize amount of time at uni', function (a, b) {
-                return a.secondsAtUni - b.secondsAtUni;
+                return minimize(a.secondsAtUni, b.secondsAtUni);
             }));
 
             $scope.timetablePriorities.push(createTimetablePriority('Consistent start time', function (a, b) {
-                return a.startTimeVariability - b.startTimeVariability;
+                return minimize(a.startTimeVariability, b.startTimeVariability);
             }));
 
             $scope.timetablePriorities.push(createTimetablePriority('Start weekend earlier', function (a, b) {
-                return a.weekendStartsAt - b.weekendStartsAt;
+                return minimize(a.weekendStartsAt, b.weekendStartsAt);
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Start classes earlier', function (a, b) {
-                return a.averageStartTime - b.averageStartTime;
-            }));
+            var createStartAtPriority = function() {
+                var priority = createTimetablePriority('Start day');
 
-            $scope.timetablePriorities.push(createTimetablePriority('Start classes later', function (a, b) {
-                return b.averageStartTime - a.averageStartTime;
-            }));
+                var optionDirections = {
+                    'earlier' : minimize,
+                    'later' : maximize
+                };
+
+                priority.sorter = function(a, b) {
+                    return optionDirections[priority.selectedOption](a.averageStartTime, b.averageStartTime);
+                };
+
+                priority.options = ['earlier', 'later'];
+                priority.selectedOption = 'later';
+
+                return priority;
+            };
+
+            $scope.timetablePriorities.push(createStartAtPriority());
         };
         initializeTimetablePriorities();
 
@@ -944,9 +946,6 @@ angular.module('flindersTimetable.timetable', [
 
                 timetable.daysAtUni = 0;
                 timetable.secondsAtUni = 0;
-
-                var startTimeSum = 0;
-                var endTimeSum = 0;
 
                 var startTimes = [];
                 var endTimes = [];

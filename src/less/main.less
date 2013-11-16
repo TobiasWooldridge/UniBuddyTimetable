@@ -208,7 +208,10 @@ table.timetable {
   }
 
   table.grid {
+    border-top: 1px solid @table-border-color;
     border-left: 1px solid @table-border-color;
+    border-right: 0px;
+    border-bottom: 0px;
   }
 
   .hour {
@@ -216,6 +219,7 @@ table.timetable {
   }
   .half-hour-marker {
     height: 30px;
+    border-top: 1px solid @table-border-color !important;
   }
   .half-hour-marker:nth-child(even) td {
     height: 30px;
@@ -279,4 +283,5 @@ table.timetable {
 
 .hint {
   font-style: italic;
+  opacity: 0.5;
 }

@@ -1,5 +1,6 @@
 angular.module( 'flap.topics', [
-        'flap.objectUtils'
+        'flap.objectUtils',
+        'flap.stringUtils'
     ])
     .constant('apiPath', "http://flindersapi.tobias.pw/api/v1/")
 

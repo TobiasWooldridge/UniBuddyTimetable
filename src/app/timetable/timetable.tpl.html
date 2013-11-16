@@ -68,14 +68,14 @@
                                                               class="ajax-loader"/>
                     </span>
                     <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
-                            ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 20">
+                            ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 100">
                     </select>
                     </p>
-                    <p ng-show="topicSearch.length < 3" class="hint hint-filter">Type a few letters of a topic code or topic name to the right to search for topics</p>
+                    <p ng-show="topicSearch.length < 3" class="hint hint-filter">Type a few letters of a topic code or topic name to the left to search for topics</p>
                 </td>
 
                 <td class="action">
-                    <button type="submit" class="btn btn-primary" ng-click="addTopic(activeTopic)"
+                    <button ng-show="topicSearch.length >= 3" type="submit" class="btn btn-primary" ng-click="addTopic(activeTopic)"
                             ng-disabled="!validateTopic(activeTopic)">
                         Add
                     </button>
@@ -102,8 +102,14 @@
     <div class="row">
         <ul ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
             class="col-md-3 generator-priorities">
-            <li ng-repeat="priority in timetablePriorities">{{ priority.label }}<span
-                    class="glyphicon glyphicon-resize-vertical pull-right"></span></li>
+            <li ng-repeat="priority in timetablePriorities">
+                {{ priority.label }}
+
+                <select ng-show="priority.options" class="form-control" ng-model="priority.selectedOption" ng-options="p as p for p in priority.options">
+                </select>
+
+                <span class="glyphicon glyphicon-resize-vertical pull-right"></span>
+            </li>
         </ul>
     </div>
 
