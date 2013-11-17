@@ -121,7 +121,7 @@
     <p>Drag the preferences to sort them</p>
     <div class="row">
         <ol ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
-            class="col-md-6 generator-priorities">
+            class="col-md-8 generator-priorities">
             <li ng-repeat="priority in timetablePriorities">
                 {{ $index + 1 }}. {{ priority.label }}
 
@@ -129,6 +129,7 @@
                 </select>
 
                 <span class="hint" ng-show="$first">(Most important)</span>
+                <span class="hint" ng-show="$last">(Least important)</span>
 
                 <span class="glyphicon glyphicon-arrow-down pull-right" ng-click="demotePreference($index)"></span>
                 <span class="glyphicon glyphicon-arrow-up pull-right" ng-click="promotePreference($index)"></span>
