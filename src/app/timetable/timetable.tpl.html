@@ -48,7 +48,7 @@
         <fieldset>
             <label class="select inline">Year
                 <select class="form-control" ng-model="activeYear" ng-change="updateAvailableTopics()"
-                        ng-options="y for y in years">
+                        ng-options="y as y for y in years">
                 </select>
             </label>
             <label class="select inline">Semester

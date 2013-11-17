@@ -129,10 +129,10 @@ angular.module('flindersTimetable.timetable', [
         return classNameService;
     })
 
-    .factory('urlService', function ($location) {
+    .factory('urlService', function ($location, times) {
         var defaultState = {
-            year: 2013,
-            semester: "S2",
+            year: times.defaultYear,
+            semester: times.defaultSemester,
             topics: ""
         };
 
@@ -168,7 +168,12 @@ angular.module('flindersTimetable.timetable', [
         };
 
         urlService.getYear = function () {
-            return get('year');
+            try {
+                return parseInt(get('year'), 10);
+            }
+            catch (e) {
+                return defaultState.year;
+            }
         };
 
         urlService.setSemester = function (semester) {
@@ -493,10 +498,10 @@ angular.module('flindersTimetable.timetable', [
 
     .controller('TopicController', function ($scope, chosenTopicService, topicFactory, urlService) {
         $scope.years = appConfig.years;
-        $scope.activeYear = appConfig.defaultYear;
+        $scope.activeYear = urlService.getYear();
 
         $scope.semesters = appConfig.semesters;
-        $scope.activeSemester = appConfig.defaultSemester;
+        $scope.activeSemester = urlService.getSemester();
 
         $scope.topicSearch = "";
 
