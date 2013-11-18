@@ -11,7 +11,7 @@ describe('FlindersTimetable clash service', function () {
         expect(clashService).toBeDefined();
     }));
 
-    var expectClash = function(a, b, clashDuration) {
+    var expectSessionsClash = function(a, b, clashDuration) {
         expect(clashService.sessionsClash(a, b)).toEqual(clashDuration);
         expect(clashService.sessionsClash(b, a)).toEqual(clashDuration);
     };
@@ -26,7 +26,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 6600
         };
 
-        expectClash(a, a, 6600);
+        expectSessionsClash(a, a, 6600);
     });
 
 
@@ -49,7 +49,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expectClash(a, b, 0);
+        expectSessionsClash(a, b, 0);
     });
 
 
@@ -72,7 +72,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expectClash(a, b, 0);
+        expectSessionsClash(a, b, 0);
     });
 
 
@@ -95,7 +95,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expectClash(a, b, 0);
+        expectSessionsClash(a, b, 0);
     });
 
     it('should detect a clash for half-overlapping sessions (b starting mid-a)', function () {
@@ -117,7 +117,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expectClash(a, b, 300);
+        expectSessionsClash(a, b, 300);
     });
 
     it('should detect a clash for half-overlapping sessions (b ending mid-a)', function () {
@@ -139,7 +139,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expectClash(a, b, 300);
+        expectSessionsClash(a, b, 300);
     });
 
     it('should detect a clash for somewhat-overlapping sessions (same start, b finishes earlier)', function () {
@@ -161,7 +161,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 800
         };
 
-        expectClash(a, b, 800);
+        expectSessionsClash(a, b, 800);
     });
 
     it('should detect a clash for half-overlapping sessions (b starts AND finishes earlier)', function () {
@@ -183,7 +183,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expectClash(a, b, 300);
+        expectSessionsClash(a, b, 300);
     });
 
     it('should detect a clash for half-overlapping sessions (b starts earlier, same finish)', function () {
@@ -205,7 +205,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 300
         };
 
-        expectClash(a, b, 300);
+        expectSessionsClash(a, b, 300);
     });
 
     it('should detect a clash for a wrapped session (a wraps b)', function () {
@@ -227,8 +227,195 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expectClash(a, b, 600);
+        expectSessionsClash(a, b, 600);
     });
+
+
+    // Class group clashes
+
+
+    var expectGroupsClash = function(a, b, clashDuration) {
+        expect(clashService.classGroupsClash(a, b)).toEqual(clashDuration);
+        expect(clashService.classGroupsClash(b, a)).toEqual(clashDuration);
+    };
+
+    it('should detect a clash between two classGroups with one identical session each', function () {
+        var a = {
+            id : 1,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 0,
+                    secondsEndsAt: 600,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        var b = {
+            id : 2,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 0,
+                    secondsEndsAt: 600,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        expectGroupsClash(a, b, 600);
+    });
+
+    it('should detect a clash between two classGroups with two identical sessions each', function () {
+        var a = {
+            id : 1,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 0,
+                    secondsEndsAt: 600,
+                    secondsDuration: 600
+                },
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 1200,
+                    secondsEndsAt: 1800,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        var b = {
+            id : 2,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 0,
+                    secondsEndsAt: 600,
+                    secondsDuration: 600
+                },
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 1200,
+                    secondsEndsAt: 1800,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        expectGroupsClash(a, b, 1200);
+    });
+
+
+    it('should detect a clash between two classGroups with two ordered non-identical sessions each', function () {
+        var a = {
+            id : 1,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 0,
+                    secondsEndsAt: 600,
+                    secondsDuration: 600
+                },
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 600,
+                    secondsEndsAt: 1200,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        var b = {
+            id : 2,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 300,
+                    secondsEndsAt: 900,
+                    secondsDuration: 600
+                },
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 900,
+                    secondsEndsAt: 1500,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        expectGroupsClash(a, b, 900);
+    });
+    it('should detect a clash between two classGroups with two unordered non-identical sessions each', function () {
+        var a = {
+            id : 1,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 600,
+                    secondsEndsAt: 1200,
+                    secondsDuration: 600
+                },
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 0,
+                    secondsEndsAt: 600,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        var b = {
+            id : 2,
+            classSessions : [
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 900,
+                    secondsEndsAt: 1500,
+                    secondsDuration: 600
+                },
+                {
+                    firstDay: "2013-08-06",
+                    lastDay: "2013-11-05",
+                    dayOfWeek: "Tuesday",
+                    secondsStartsAt: 300,
+                    secondsEndsAt: 900,
+                    secondsDuration: 600
+                }
+            ]
+        };
+
+        expectGroupsClash(a, b, 900);
+    });
+
+
 });
 
 
