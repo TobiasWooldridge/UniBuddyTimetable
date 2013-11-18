@@ -197,25 +197,8 @@ angular.module( 'flap.topics', [
         return that;
     })
 
-    .factory('topicService', function (bookingFactory) {
+    .factory('topicService', function () {
         var that = {};
-
-        that.listBookingsForTopics = function (topics) {
-            var bookings = [];
-
-            angular.forEach(topics, function (topic) {
-                angular.forEach(topic.classes, function (classType) {
-                    if (!classType.activeClassGroup) {
-                        return;
-                    }
-                    angular.forEach(classType.activeClassGroup.classSessions, function (classSession) {
-                        bookings.push(bookingFactory.newBooking(topic, classType, classType.activeClassGroup, classSession));
-                    });
-                });
-            });
-
-            return bookings;
-        };
 
         that.listClassTypesForTopics = function (topics) {
             var classTypes = [];

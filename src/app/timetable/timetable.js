@@ -238,6 +238,23 @@ angular.module('flindersTimetable.timetable', [
             return booking;
         };
 
+        that.createBookingsForTopics = function (topics) {
+            var bookings = [];
+
+            angular.forEach(topics, function (topic) {
+                angular.forEach(topic.classes, function (classType) {
+                    if (!classType.activeClassGroup) {
+                        return;
+                    }
+                    angular.forEach(classType.activeClassGroup.classSessions, function (classSession) {
+                        bookings.push(that.newBooking(topic, classType, classType.activeClassGroup, classSession));
+                    });
+                });
+            });
+
+            return bookings;
+        };
+
         return that;
     })
 
@@ -637,7 +654,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
-    .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, topicService, clashService, clashGroupFactory) {
+    .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
         $scope.chosenTopics = [];
         $scope.days = dayService.days();
         $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
@@ -647,7 +664,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.updateTimetable = function () {
             var timetable = timetableFactory.createEmptyTimetable();
 
-            var bookings = topicService.listBookingsForTopics($scope.chosenTopics);
+            var bookings = bookingFactory.createBookingsForTopics($scope.chosenTopics);
             bookings = sessionsService.sortSessions(bookings);
 
             // Remove duplicate bookings where the only difference between the two bookings is the room they're in
