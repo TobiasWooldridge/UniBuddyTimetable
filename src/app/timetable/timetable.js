@@ -266,13 +266,14 @@ angular.module('flindersTimetable.timetable', [
                 dayOfWeek: firstBooking.dayOfWeek,
                 secondsStartsAt: firstBooking.secondsStartsAt,
                 secondsEndsAt: firstBooking.secondsEndsAt,
+                duration: firstBooking.duration,
 
                 clashColumns: [],
 
                 addBooking: function (booking) {
                     clashGroup.secondsStartsAt = Math.min(clashGroup.secondsStartsAt, booking.secondsStartsAt);
                     clashGroup.secondsEndsAt = Math.max(clashGroup.secondsEndsAt, booking.secondsEndsAt);
-
+                    clashGroup.duration = clashGroup.secondsEndsAt - clashGroup.secondsStartsAt;
 
                     var clashColumn = null;
                     if (clashGroup.clashColumns.length > 0) {
