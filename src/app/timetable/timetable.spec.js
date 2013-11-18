@@ -207,6 +207,28 @@ describe('FlindersTimetable clash service', function () {
 
         expectClash(a, b, 300);
     });
+
+    it('should detect a clash for a wrapped session (a wraps b)', function () {
+        var a = {
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            secondsStartsAt: 0,
+            secondsEndsAt: 1200,
+            secondsDuration: 1200
+        };
+
+        var b = {
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            secondsStartsAt: 300,
+            secondsEndsAt: 900,
+            secondsDuration: 600
+        };
+
+        expectClash(a, b, 600);
+    });
 });
 
 
