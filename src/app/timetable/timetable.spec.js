@@ -11,6 +11,10 @@ describe('FlindersTimetable clash service', function () {
         expect(clashService).toBeDefined();
     }));
 
+    var expectClash = function(a, b, clashDuration) {
+        expect(clashService.sessionsClash(a, b)).toEqual(clashDuration);
+        expect(clashService.sessionsClash(b, a)).toEqual(clashDuration);
+    };
 
     it('should detect a session clashes with itself', function () {
         var a = {
@@ -22,7 +26,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 6600
         };
 
-        expect(clashService.sessionsClash(a, a)).toEqual(6600);
+        expectClash(a, a, 6600);
     });
 
 
@@ -45,7 +49,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toEqual(0);
+        expectClash(a, b, 0);
     });
 
 
@@ -68,11 +72,11 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toEqual(0);
+        expectClash(a, b, 0);
     });
 
 
-    it('should detect no clash for two completely discrete sessions', function () {
+    it('should detect no clash for two completely disjoint sessions', function () {
         var a = {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
@@ -91,7 +95,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toEqual(0);
+        expectClash(a, b, 0);
     });
 
     it('should detect a clash for half-overlapping sessions (b starting mid-a)', function () {
@@ -113,7 +117,7 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toEqual(300);
+        expectClash(a, b, 300);
     });
 
     it('should detect a clash for half-overlapping sessions (b ending mid-a)', function () {
@@ -135,10 +139,10 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toEqual(300);
+        expectClash(a, b, 300);
     });
 
-    it('should detect a clash for half-overlapping sessions (same start, b finishes earlier)', function () {
+    it('should detect a clash for somewhat-overlapping sessions (same start, b finishes earlier)', function () {
         var a = {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
@@ -153,11 +157,11 @@ describe('FlindersTimetable clash service', function () {
             lastDay: "2013-11-05",
             dayOfWeek: "Tuesday",
             secondsStartsAt: 0,
-            secondsEndsAt: 600,
-            secondsDuration: 600
+            secondsEndsAt: 800,
+            secondsDuration: 800
         };
 
-        expect(clashService.sessionsClash(a, b)).toEqual(600);
+        expectClash(a, b, 800);
     });
 
     it('should detect a clash for half-overlapping sessions (b starts AND finishes earlier)', function () {
@@ -179,7 +183,29 @@ describe('FlindersTimetable clash service', function () {
             secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toEqual(300);
+        expectClash(a, b, 300);
+    });
+
+    it('should detect a clash for half-overlapping sessions (b starts earlier, same finish)', function () {
+        var a = {
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600
+        };
+
+        var b = {
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            secondsStartsAt: 300,
+            secondsEndsAt: 600,
+            secondsDuration: 300
+        };
+
+        expectClash(a, b, 300);
     });
 });
 
