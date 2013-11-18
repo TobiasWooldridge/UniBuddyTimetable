@@ -393,38 +393,64 @@ angular.module('flindersTimetable.timetable', [
     .factory('clashService', function (sessionsService) {
         var clashService = {};
 
-        clashService.sessionsClash = function (a, b) {
-            var secondsClash = 0;
+        var startsInInterval = function(a, b) {
+             if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsStartsAt < b.secondsEndsAt) {
+                // a's start is within b's interval
+                return (Math.min(a.secondsEndsAt, b.secondsEndsAt) - a.secondsStartsAt);
+            }
+            return 0;
+        };
 
+        var endsInInterval = function(a, b) {
+            if (b.secondsStartsAt < a.secondsEndsAt && a.secondsEndsAt <= b.secondsEndsAt) {
+                // a's end is within b's interval
+                return (a.secondsEndsAt - Math.min(a.secondsStartsAt, b.secondsStartsAt));
+            }
+            return 0;
+        };
+
+        var wrapsInterval = function(a,b) {
+            if (a.secondsStartsAt <= b.secondsStartsAt && b.secondsEndsAt <= a.secondsEndsAt) {
+                // a wraps b
+                return b.secondsDuration;
+            }
+            return 0;
+        };
+
+
+
+        clashService.sessionsClash = function (a, b) {
             if (a.dayOfWeek !== b.dayOfWeek) {
-                secondsClash = 0;
+                return 0;
             }
             else if (a.secondsStartsAt === b.secondsStartsAt) {
                 // a and b start at the same time
                 // clash's duration is until first ends
-                secondsClash = Math.min(a.secondsDuration, b.secondsDuration);
+                return Math.min(a.secondsDuration, b.secondsDuration);
             }
-            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsStartsAt < b.secondsEndsAt) {
-                // a's start is within b's interval
-                secondsClash = (Math.min(a.secondsEndsAt, b.secondsEndsAt) - a.secondsStartsAt);
+            //start in interval
+            if ((secondsClash = startsInInterval(a,b)) > 0) {
+                return secondsClash;
             }
-            else if (b.secondsStartsAt < a.secondsEndsAt && a.secondsEndsAt <= b.secondsEndsAt) {
-                // a's end is within b's interval
-                secondsClash = (a.secondsEndsAt - Math.min(a.secondsStartsAt, b.secondsStartsAt));
+            if ((secondsClash = startsInInterval(b,a)) > 0) {
+                return secondsClash;
             }
-            else if (a.secondsStartsAt <= b.secondsStartsAt && b.secondsEndsAt <= a.secondsEndsAt) {
-                // a wraps b
-                secondsClash = b.secondsDuration;
+            //end in interval
+            if ((secondsClash = endsInInterval(a,b)) > 0) {
+                return secondsClash;
             }
-            else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsEndsAt <= b.secondsEndsAt) {
-                // b wraps a
-                secondsClash = a.secondsDuration;
+            if ((secondsClash = endsInInterval(b,a)) > 0) {
+                return secondsClash;
             }
-            else {
-                secondsClash = 0;
+            //wraps
+            if ((secondsClash = wrapsInterval(a,b)) > 0) {
+                return secondsClash;
+            }
+            if ((secondsClash = wrapsInterval(b,a)) > 0) {
+                return secondsClash;
             }
 
-            return secondsClash;
+            return 0;
         };
 
         var classClashCache = {};
