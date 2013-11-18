@@ -233,7 +233,7 @@ angular.module('flindersTimetable.timetable', [
             booking.secondsStartsAt = classSession.secondsStartsAt;
             booking.secondsEndsAt = classSession.secondsEndsAt;
             booking.secondsDuration = classSession.secondsDuration;
-            booking.locked = classGroup.locked;
+            booking.locked = classType.classGroups.length == 1;
 
             return booking;
         };
