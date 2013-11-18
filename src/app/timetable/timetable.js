@@ -406,7 +406,7 @@ angular.module('flindersTimetable.timetable', [
             }
             else if (b.secondsStartsAt <= a.secondsStartsAt && a.secondsStartsAt < b.secondsEndsAt) {
                 // a's start is within b's interval
-                secondsClash = (Math.max(a.secondsEndsAt, b.secondsEndsAt) - a.secondsStartsAt);
+                secondsClash = (Math.min(a.secondsEndsAt, b.secondsEndsAt) - a.secondsStartsAt);
             }
             else if (b.secondsStartsAt < a.secondsEndsAt && a.secondsEndsAt <= b.secondsEndsAt) {
                 // a's end is within b's interval
