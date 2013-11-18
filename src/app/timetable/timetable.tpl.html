@@ -149,10 +149,11 @@
 
     <div ng-show="hasGeneratedTimetables">
         <hr/>
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables.<!-- with {{ ( 0 +
+        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with the fewest possible clashes.<!--{{ ( 0 +
             fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.--></p>
 
         <p>This took {{ examineDuration }} seconds.</p>
+
 
         <table class="table table-condensed">
             <tr>

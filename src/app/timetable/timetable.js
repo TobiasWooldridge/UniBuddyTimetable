@@ -474,6 +474,10 @@ angular.module('flindersTimetable.timetable', [
         };
 
         clashService.classGroupsClash = function (a, b) {
+            if (a.id === b.id) {
+                return 0;
+            }
+
             if (typeof classClashCache[a.id + ", " + b.id] === "undefined") {
                 var groupSecondsClash = clashService.sessionArraysClash(a.classSessions, b.classSessions);
                 addToClassClashCache(a.id, b.id, groupSecondsClash);
