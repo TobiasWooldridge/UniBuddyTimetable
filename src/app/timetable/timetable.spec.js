@@ -17,15 +17,12 @@ describe('FlindersTimetable clash service', function () {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
             dayOfWeek: "Tuesday",
-            timeStartsAt: "12:00 PM",
-            timeEndsAt: "1:50 PM",
             secondsStartsAt: 43200,
             secondsEndsAt: 49800,
-            secondsDuration: 6600,
-            room: null
+            secondsDuration: 6600
         };
 
-        expect(clashService.sessionsClash(a, a)).toBeTruthy();
+        expect(clashService.sessionsClash(a, a)).toEqual(6600);
     });
 
 
@@ -34,27 +31,21 @@ describe('FlindersTimetable clash service', function () {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
             dayOfWeek: "Tuesday",
-            timeStartsAt: "12:00 PM",
-            timeEndsAt: "1:50 PM",
             secondsStartsAt: 0,
             secondsEndsAt: 600,
-            secondsDuration: 600,
-            room: null
+            secondsDuration: 600
         };
 
         var b = {
             firstDay: "2013-08-07",
             lastDay: "2013-11-06",
             dayOfWeek: "Wednesday",
-            timeStartsAt: "12:00 PM",
-            timeEndsAt: "1:50 PM",
             secondsStartsAt: 0,
             secondsEndsAt: 600,
-            secondsDuration: 600,
-            room: null
+            secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toBeFalsy();
+        expect(clashService.sessionsClash(a, b)).toEqual(0);
     });
 
 
@@ -63,27 +54,21 @@ describe('FlindersTimetable clash service', function () {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
             dayOfWeek: "Tuesday",
-            timeStartsAt: "12:00 AM",
-            timeEndsAt: "12:10 AM",
             secondsStartsAt: 0,
             secondsEndsAt: 600,
-            secondsDuration: 600,
-            room: null
+            secondsDuration: 600
         };
 
         var b = {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
             dayOfWeek: "Tuesday",
-            timeStartsAt: "12:10 AM",
-            timeEndsAt: "12:20 AM",
             secondsStartsAt: 600,
             secondsEndsAt: 1200,
-            secondsDuration: 600,
-            room: null
+            secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toBeFalsy();
+        expect(clashService.sessionsClash(a, b)).toEqual(0);
     });
 
 
@@ -92,27 +77,43 @@ describe('FlindersTimetable clash service', function () {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
             dayOfWeek: "Tuesday",
-            timeStartsAt: "12:00 AM",
-            timeEndsAt: "12:10 AM",
             secondsStartsAt: 0,
             secondsEndsAt: 600,
-            secondsDuration: 600,
-            room: null
+            secondsDuration: 600
         };
 
         var b = {
             firstDay: "2013-08-06",
             lastDay: "2013-11-05",
             dayOfWeek: "Tuesday",
-            timeStartsAt: "12:20 AM",
-            timeEndsAt: "12:30 AM",
             secondsStartsAt: 1200,
             secondsEndsAt: 1800,
-            secondsDuration: 600,
-            room: null
+            secondsDuration: 600
         };
 
-        expect(clashService.sessionsClash(a, b)).toBeFalsy();
+        expect(clashService.sessionsClash(a, b)).toEqual(0);
+    });
+
+    it('should detect a clash for half-overlapping sessions (b starting mid-a)', function () {
+        var a = {
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600
+        };
+
+        var b = {
+            firstDay: "2013-08-06",
+            lastDay: "2013-11-05",
+            dayOfWeek: "Tuesday",
+            secondsStartsAt: 300,
+            secondsEndsAt: 900,
+            secondsDuration: 600
+        };
+
+        expect(clashService.sessionsClash(a, b)).toEqual(300);
     });
 });
 
