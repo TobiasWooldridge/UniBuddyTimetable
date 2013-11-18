@@ -460,26 +460,21 @@ angular.module('flindersTimetable.timetable', [
             classClashCache[b + ", " + a] = outcome;
         };
 
+        clashService.sessionArraysClash = function (a, b) {
+            var clashDuration = 0;
+
+            angular.forEach(a, function(aSession) {
+                angular.forEach(b, function(bSession) {
+                    clashDuration += clashService.sessionsClash(aSession, bSession);
+                });
+            });
+
+            return clashDuration;
+        };
+
         clashService.classGroupsClash = function (a, b) {
             if (typeof classClashCache[a.id + ", " + b.id] === "undefined") {
-                var groupSecondsClash = 0;
-                var aIndex = 0;
-                var bIndex = 0;
-
-                // Assumption: a.classSessions and b.classSessions are sorted
-                while (aIndex < a.classSessions.length && bIndex < b.classSessions.length) {
-                    var sessionSecondsClash = clashService.sessionsClash(a.classSessions[aIndex], b.classSessions[bIndex]);
-                    groupSecondsClash += sessionSecondsClash;
-
-                    // Advance the pointer to whichever class group starts first
-                    if (sessionsService.compareSessions(a.classSessions[aIndex], b.classSessions[bIndex]) < 0) {
-                        aIndex++;
-                    }
-                    else {
-                        bIndex++;
-                    }
-                }
-
+                var groupSecondsClash = clashService.sessionArraysClash(a.classSessions, b.classSessions);
                 addToClassClashCache(a.id, b.id, groupSecondsClash);
             }
 
