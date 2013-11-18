@@ -393,24 +393,6 @@ angular.module('flindersTimetable.timetable', [
     .factory('clashService', function (sessionsService) {
         var clashService = {};
 
-
-        var sessionClashCache = {};
-
-        var addToSessionClashCache = function (a, b, outcome) {
-            if (typeof sessionClashCache[a.id] === "undefined") {
-                sessionClashCache[a.id] = {};
-            }
-
-            sessionClashCache[a.id][b.id] = outcome;
-
-
-            if (typeof sessionClashCache[b.id] === "undefined") {
-                sessionClashCache[b.id] = {};
-            }
-            sessionClashCache[b.id][a.id] = outcome;
-        };
-
-
         clashService.sessionsClash = function (a, b) {
             var secondsClash = 0;
 
