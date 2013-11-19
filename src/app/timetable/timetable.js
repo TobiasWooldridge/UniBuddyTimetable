@@ -765,6 +765,33 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
+    .directive('clashgroup', function() {
+        return {
+            restrict: 'E',
+            scope: {
+                clashGroup: '='
+            },
+            templateUrl: 'timetable/views/clashGroup.tpl.html',
+            link: function(scope, element, attrs) {
+                console.log(element);
+
+            }
+        };
+    })
+
+    .directive('booking', function() {
+        return {
+            restrict: 'E',
+            scope: {
+                booking: '='
+            },
+            templateUrl: 'timetable/views/booking.tpl.html',
+            link: function(scope, element, attrs) {
+
+            }
+        };
+    })
+
     .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.$on('chosenClassesUpdate', function () {

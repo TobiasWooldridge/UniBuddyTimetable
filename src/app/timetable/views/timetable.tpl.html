@@ -16,23 +16,7 @@
                 </table>
             </td>
             <td ng-repeat="day in days" class="timetable-column">
-                <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
-                    <table style="top: 0px; height: 0px; position: relative;" width="100%">
-                        <tr>
-                            <td ng-repeat="clashColumn in clashGroup.clashColumns">
-                                <div ng-repeat="booking in clashColumn" style="position: relative; height: 0px;">
-                                    <div class="booking topic-{{booking.topicHash % 16}}"
-                                         ng-class="{'locked': booking.locked }"
-                                         ng-style="{ height: (booking.secondsDuration / 60) + 'px', top: ((booking.secondsStartsAt - 28800) / 60) + 'px' }">
-                                        <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
-
-                                        <p>{{ booking.topicCode }} {{ booking.className }}</p>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                <clashgroup clash-Group="clashGroup" ng-repeat="clashGroup in timetable[day]"></clashgroup>
                 <table class="grid">
                     <tr ng-repeat="hours in hours" class="half-hour-marker">
                         <td>&nbsp;</td>
