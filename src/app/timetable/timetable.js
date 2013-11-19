@@ -240,40 +240,36 @@ angular.module('flindersTimetable.timetable', [
             return booking;
         };
 
-        var findTopic = function(topics, selectedClassType) {
-            var topicSup;
+        var findTopicForClassType = function(topics, selectedClassType) {
+            var foundTopic;
+
             angular.forEach(topics, function(topic) {
-                if (typeof topicSup !== 'undefined') {
-                    return;
-                }
                 angular.forEach(topic.classes, function(classType) {
-                    if (typeof topicSup !== 'undefined') {
-                        return;
-                    }
                     if (classType.$$hashKey == selectedClassType.$$hashKey) {
-                        topicSup = {
-                            getHash: function() {return this.hash;},
-                            hash: topic.getHash(),
-                            code: topic.code
-                        };
-                        //console.log(topicSup);
-                        return topicSup;
+                        foundTopic = topic;
+                        return false;
                     }
                 });
+
+                if (foundTopic !== undefined) {
+                    return false;
+                }
             });
-            return topicSup;
+
+            return foundTopic;
         };
 
         that.createBookingsForTopics = function (topics, classSelections) {
             var bookings = [];
+
             angular.forEach(classSelections, function(selection) {
                 angular.forEach(selection.classGroup.classSessions, function (classSession) {
-                    //get topic for this class group
-                    var topic = findTopic(topics, selection.classType);
+                    var topic = findTopicForClassType(topics, selection.classType);
                     bookings.push(that.newBooking(topic, selection.classType, selection.classGroup, classSession));
                 });
             });
 
+            // TODO: Remove all of the following when the current timetable is stored in a classSelection object (instead just return bookings)
             if (bookings.length > 0) {
                 return bookings;
             }
@@ -771,10 +767,10 @@ angular.module('flindersTimetable.timetable', [
 
     .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
         $scope.chosenTopics = chosenTopicService.getTopics();
-        $scope.timetable = 0;
         $scope.$on('chosenClassesUpdate', function () {
-            $scope.timetable++;
-            $scope.chosenTopics = chosenTopicService.getTopics();
+            // Note: The slice(0) is used to duplicate the array object to work around angularJS caching the rendered timetable for a given chosenTopics object
+            // TODO: Remove this hack, make getTopics() return a new instance of the array every time.
+                $scope.chosenTopics = chosenTopicService.getTopics().slice(0);
         });
     })
 
