@@ -178,7 +178,8 @@
                 <td>
                     <button class="btn btn-primary btn-sm"
                             ng-click="applyClassGroupSelection(candidate.classPicks)">
-                        Apply Classes
+                        <timetable topics="chosenTopics" class-Selections="candidate.classPicks" height="" width=""></timetable>
+                        <!--Apply Classes-->
                     </button>
                 </td>
             </tr>
@@ -187,54 +188,8 @@
 </div>
 
 <div class="container" ng-controller="TimetableController" ng-show="chosenTopics.length">
-    <table class="timetable table">
-        <thead>
-        <tr>
-            <th class="times"></th>
-            <th ng-repeat="day in days">{{ day }}</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td class="timetable-column">
-                <table>
-                    <tr ng-repeat="hour in hours">
-                        <th class="hour"><span>{{ hour }}</span></th>
-                    </tr>
-                </table>
-            </td>
-            <td ng-repeat="day in days" class="timetable-column">
-                <div class="clashGroup" ng-repeat="clashGroup in timetable[day]">
-                    <table style="top: 0px; height: 0px; position: relative;" width="100%">
-                        <tr>
-                            <td ng-repeat="clashColumn in clashGroup.clashColumns">
-                                <div ng-repeat="booking in clashColumn" style="position: relative; height: 0px;">
-                                    <div class="booking topic-{{booking.topicHash % 16}}"
-                                         ng-class="{'locked': booking.locked }"
-                                         ng-style="{ height: (booking.secondsDuration / 60) + 'px', top: ((booking.secondsStartsAt - 28800) / 60) + 'px' }">
-                                        <span ng-show="booking.locked" class="glyphicon glyphicon-lock"></span>
-
-                                        <p>{{ booking.topicCode }} {{ booking.className }}</p>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <table class="grid">
-                    <tr ng-repeat="hours in hours" class="half-hour-marker">
-                        <td>&nbsp;</td>
-                    </tr>
-                    <tr ng-repeat="hours in hours" class="half-hour-marker">
-                        <td>&nbsp;</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <timetable topics="chosenTopics" class-selections="timetable" height="" width=""></timetable>
 </div>
-
 
 <div class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
     <div class="chosen-topics">

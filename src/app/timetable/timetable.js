@@ -89,6 +89,8 @@ angular.module('flindersTimetable.timetable', [
 
 
         loadFromUrl();
+
+        $scope.testScope = 'fred';
     })
 
     .filter('secondsToTime', function (moment) {
@@ -238,8 +240,43 @@ angular.module('flindersTimetable.timetable', [
             return booking;
         };
 
-        that.createBookingsForTopics = function (topics) {
+        var findTopic = function(topics, selectedClassType) {
+            var topicSup;
+            angular.forEach(topics, function(topic) {
+                if (typeof topicSup !== 'undefined') {
+                    return;
+                }
+                angular.forEach(topic.classes, function(classType) {
+                    if (typeof topicSup !== 'undefined') {
+                        return;
+                    }
+                    if (classType.$$hashKey == selectedClassType.$$hashKey) {
+                        topicSup = {
+                            getHash: function() {return this.hash;},
+                            hash: topic.getHash(),
+                            code: topic.code
+                        };
+                        //console.log(topicSup);
+                        return topicSup;
+                    }
+                });
+            });
+            return topicSup;
+        };
+
+        that.createBookingsForTopics = function (topics, classSelections) {
             var bookings = [];
+            angular.forEach(classSelections, function(selection) {
+                angular.forEach(selection.classGroup.classSessions, function (classSession) {
+                    //get topic for this class group
+                    var topic = findTopic(topics, selection.classType);
+                    bookings.push(that.newBooking(topic, selection.classType, selection.classGroup, classSession));
+                });
+            });
+
+            if (bookings.length > 0) {
+                return bookings;
+            }
 
             angular.forEach(topics, function (topic) {
                 angular.forEach(topic.classes, function (classType) {
@@ -658,64 +695,82 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
-    .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
-        $scope.chosenTopics = [];
-        $scope.days = dayService.days();
-        $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
-        $scope.timetable = timetableFactory.createEmptyTimetable();
+    .directive('timetable', function(bookingFactory, timetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
+        return {
+            restrict: 'E',
+            scope: {
+                topics: '=',
+                classSelections: '=',
+                height: '=',
+                width: '='
+            },
+            templateUrl: 'timetable/views/timetable.tpl.html',
+            link: function(scope, element, attrs) {
+                scope.days = dayService.days();
+                scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
+                scope.timetable = timetableFactory.createEmptyTimetable();
+
+                scope.updateTimetable = function() {
+                            scope.timetable = timetableFactory.createEmptyTimetable();
+                            //create timetable stuff
+                            var bookings = bookingFactory.createBookingsForTopics(scope.topics, scope.classSelections);
+                            bookings = sessionsService.sortSessions(bookings);
+
+                            // Remove duplicate bookings where the only difference between the two bookings is the room they're in
+                            for (var i = 0; i < (bookings.length - 1); i++) {
+                                var a = bookings[i];
+                                var b = bookings[i + 1];
+
+                                var sessionComparisonFields = ['topicId', 'className', 'dayOfWeek', 'secondsStartsAt', 'secondsEndsAt'];
+
+                                var found = true;
+                                for (var j = 0; j < sessionComparisonFields.length; j++) {
+                                    var field = sessionComparisonFields[j];
+                                    if (a[field] !== b[field]) {
+                                        found = false;
+                                        break;
+                                    }
+                                }
+
+                                // Remove the duplicate
+                                if (found) {
+                                    bookings.splice(i, 1);
+                                }
+                            }
 
 
-        $scope.updateTimetable = function () {
-            var timetable = timetableFactory.createEmptyTimetable();
+                            angular.forEach(bookings, function (booking) {
+                                var day = booking.dayOfWeek;
 
-            var bookings = bookingFactory.createBookingsForTopics($scope.chosenTopics);
-            bookings = sessionsService.sortSessions(bookings);
+                                var clashGroups = scope.timetable[day];
+                                var clashGroup = clashGroups[clashGroups.length - 1];
 
-            // Remove duplicate bookings where the only difference between the two bookings is the room they're in
-            for (var i = 0; i < (bookings.length - 1); i++) {
-                var a = bookings[i];
-                var b = bookings[i + 1];
+                                if (typeof clashGroup === "undefined" || clashService.sessionsClash(clashGroup, booking) === 0) {
+                                    clashGroup = clashGroupFactory.newClashGroup(booking);
+                                    scope.timetable[day].push(clashGroup);
+                                }
+                                else {
+                                    clashGroup.addBooking(booking);
+                                }
+                            });
+                        };
 
-                var sessionComparisonFields = ['topicId', 'className', 'dayOfWeek', 'secondsStartsAt', 'secondsEndsAt'];
+                scope.updateTimetable();
 
-                var found = true;
-                for (var j = 0; j < sessionComparisonFields.length; j++) {
-                    var field = sessionComparisonFields[j];
-                    if (a[field] !== b[field]) {
-                        found = false;
-                        break;
-                    }
-                }
+                scope.$watch('classSelections', scope.updateTimetable);
 
-                // Remove the duplicate
-                if (found) {
-                    bookings.splice(i, 1);
-                }
+                scope.$watch('topics', scope.updateTimetable);
+
             }
-
-
-            angular.forEach(bookings, function (booking) {
-                var day = booking.dayOfWeek;
-
-                var clashGroups = timetable[day];
-                var clashGroup = clashGroups[clashGroups.length - 1];
-
-                if (typeof clashGroup === "undefined" || clashService.sessionsClash(clashGroup, booking) === 0) {
-                    clashGroup = clashGroupFactory.newClashGroup(booking);
-                    timetable[day].push(clashGroup);
-                }
-                else {
-                    clashGroup.addBooking(booking);
-                }
-            });
-
-            $scope.timetable = timetable;
         };
+    })
 
+    .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
         $scope.chosenTopics = chosenTopicService.getTopics();
-
+        $scope.timetable = 0;
         $scope.$on('chosenClassesUpdate', function () {
-            $scope.updateTimetable();
+            $scope.timetable++;
+            $scope.chosenTopics = chosenTopicService.getTopics();
         });
     })
 
@@ -767,7 +822,7 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetableSuggestions, dayService) {
-        var chosenTopics = chosenTopicService.getTopics();
+        $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
         $scope.generatingTimetables = false;
 
