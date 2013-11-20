@@ -773,40 +773,38 @@ angular.module('flindersTimetable.timetable', [
             scope: {
                 clashGroup: '='
             },
-            templateUrl: 'timetable/views/clashGroup.tpl.html',
-            link: function(scope, element, attrs) {
-                //console.log(element);
-
-            }
+            templateUrl: 'timetable/views/clashGroup.tpl.html'
         };
     })
 
     .directive('booking', function() {
-        return {
+        var booking = {
             restrict: 'E',
             scope: {
                 booking: '='
             },
             templateUrl: 'timetable/views/booking.tpl.html',
-            link: function(scope, element, attrs) {
-                scope.getClass = function() {
-                    var classString = 'booking topic-';
-                    classString += (scope.booking.topicHash % 16);
-                    if (scope.booking.locked) {
-                        classString += ' locked';
+            link: function($scope, element, attrs) {
+                $scope.getClass = function() {
+                    var className = 'booking topic-';
+                    className += ($scope.booking.topicHash % 16);
+                    if ($scope.booking.locked) {
+                        className += ' locked';
                     }
-                    return classString;
+                    return className;
                 };
 
-                scope.getStyle = function() {
+                $scope.getStyle = function() {
                     return { 
-                        height: (scope.booking.secondsDuration / 60) + 'px', 
-                        top: ((scope.booking.secondsStartsAt - 28800) / 60) + 'px'
+                        height: ($scope.booking.secondsDuration / 60) + 'px',
+                        top: (($scope.booking.secondsStartsAt - 28800) / 60) + 'px'
                     };
                 };
 
             }
         };
+
+        return booking;
     })
 
     .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {

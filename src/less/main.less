@@ -217,11 +217,6 @@ timetable  {
     .half-hour-marker {
       height: @half-hour-height;
     }
-    booking {
-      p {
-        display: block;
-      }
-    }
   }
 
 
@@ -233,10 +228,11 @@ timetable  {
       height: @half-hour-height;
     }
     booking {
-      p, .glyphicon {
+      .glyphicon {
         display: none;
       }
     }
+    font-size: 0.8em;
   }
 
 
@@ -328,6 +324,7 @@ timetable  {
         }
 
         p {
+          display: block;
           padding: 4px;
           font-size: 0.95em;
         }
