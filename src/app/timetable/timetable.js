@@ -708,13 +708,14 @@ angular.module('flindersTimetable.timetable', [
             link: function($scope, element, attrs) {
                 $scope.days = dayService.days();
                 $scope.timetable = timetableFactory.createEmptyTimetable();
-                $scope.booking = $scope.candidate.classPicks;
+                $scope.classSelections = $scope.candidate.classPicks;
 
                 var duration = Math.max.apply(null, $scope.candidate.secondsAtUniByDay);
                 duration = duration / 3600; //convert to hours
                 console.log(duration);
 
                 $scope.startOffset = Math.min.apply(null, $scope.candidate.startTimes);
+                console.log($scope.startOffset);
 
                 $scope.getStyle = function() {
                     return {height : duration * 4 + 'em'};
