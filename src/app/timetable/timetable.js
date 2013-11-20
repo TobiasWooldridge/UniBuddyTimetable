@@ -775,7 +775,7 @@ angular.module('flindersTimetable.timetable', [
             },
             templateUrl: 'timetable/views/clashGroup.tpl.html',
             link: function(scope, element, attrs) {
-                console.log(element);
+                //console.log(element);
 
             }
         };
@@ -789,6 +789,21 @@ angular.module('flindersTimetable.timetable', [
             },
             templateUrl: 'timetable/views/booking.tpl.html',
             link: function(scope, element, attrs) {
+                scope.getClass = function() {
+                    var classString = 'booking topic-';
+                    classString += (scope.booking.topicHash % 16);
+                    if (scope.booking.locked) {
+                        classString += ' locked';
+                    }
+                    return classString;
+                };
+
+                scope.getStyle = function() {
+                    return { 
+                        height: (scope.booking.secondsDuration / 60) + 'px', 
+                        top: ((scope.booking.secondsStartsAt - 28800) / 60) + 'px'
+                    };
+                };
 
             }
         };
