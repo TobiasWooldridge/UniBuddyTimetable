@@ -173,7 +173,7 @@
                     {{ candidate.averageEndTime | secondsToTime }}
                 </td>
                 <td>
-                    <timetable-mini topics="chosenTopics" class-Selections="candidate.classPicks" class="mini"></timetable-mini>
+                    <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
                 </td>
                 <td>
                     <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">Apply</button>

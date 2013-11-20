@@ -701,13 +701,24 @@ angular.module('flindersTimetable.timetable', [
 
             scope: {
                 topics: '=',
-                classSelections: '='
+                candidate: '='
             },
             templateUrl: 'timetable/views/timetable-mini.tpl.html',
 
             link: function($scope, element, attrs) {
                 $scope.days = dayService.days();
                 $scope.timetable = timetableFactory.createEmptyTimetable();
+                $scope.booking = $scope.candidate.classPicks;
+
+                var duration = Math.max.apply(null, $scope.candidate.secondsAtUniByDay);
+                duration = duration / 3600; //convert to hours
+                console.log(duration);
+
+                $scope.startOffset = Math.min.apply(null, $scope.candidate.startTimes);
+
+                $scope.getStyle = function() {
+                    return {height : duration * 4 + 'em'};
+                };
 
                 $scope.updateTimetable = function() {
                             $scope.timetable = timetableFactory.createEmptyTimetable();
@@ -840,7 +851,8 @@ angular.module('flindersTimetable.timetable', [
         return {
             restrict: 'E',
             scope: {
-                clashGroup: '='
+                clashGroup: '=',
+                startOffset: '='
             },
             templateUrl: 'timetable/views/clashGroup.tpl.html'
         };
@@ -850,10 +862,14 @@ angular.module('flindersTimetable.timetable', [
         var booking = {
             restrict: 'E',
             scope: {
-                booking: '='
+                booking: '=',
+                startOffset: '='
             },
             templateUrl: 'timetable/views/booking.tpl.html',
             link: function($scope, element, attrs) {
+                if ($scope.startOffset === undefined) {
+                    $scope.startOffset = 28800;
+                }
                 $scope.getClass = function() {
                     var className = 'booking topic-';
                     className += ($scope.booking.topicHash % 16);
@@ -866,7 +882,7 @@ angular.module('flindersTimetable.timetable', [
                 $scope.getStyle = function() {
                     return { 
                         height: ($scope.booking.secondsDuration / (20 * 60)) + 'em',
-                        top: (($scope.booking.secondsStartsAt - 28800) / (20 * 60)) + 'em'
+                        top: (($scope.booking.secondsStartsAt - $scope.startOffset) / (20 * 60)) + 'em'
                     };
                 };
 
@@ -1200,6 +1216,8 @@ angular.module('flindersTimetable.timetable', [
                     weekendStartsAt = Math.max(weekendStartsAt, dayOfWeek * secondsInDay + day.secondsEndsAt);
                 });
 
+                timetable.startTimes = startTimes;
+                timetable.endTimes = endTimes;
                 timetable.secondsAtUniByDay = secondsAtUni;
                 timetable.secondsAtUni = ArrayMath.sum(secondsAtUni);
                 timetable.averageStartTime = ArrayMath.mean(startTimes);
