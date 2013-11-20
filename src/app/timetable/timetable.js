@@ -796,8 +796,8 @@ angular.module('flindersTimetable.timetable', [
 
                 $scope.getStyle = function() {
                     return { 
-                        height: ($scope.booking.secondsDuration / 60) + 'px',
-                        top: (($scope.booking.secondsStartsAt - 28800) / 60) + 'px'
+                        height: ($scope.booking.secondsDuration / (20 * 60)) + 'em',
+                        top: (($scope.booking.secondsStartsAt - 28800) / (20 * 60)) + 'em'
                     };
                 };
 

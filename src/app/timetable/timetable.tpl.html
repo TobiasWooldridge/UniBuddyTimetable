@@ -163,6 +163,7 @@
                 <th>Time at uni</th>
                 <th>Average start time</th>
                 <th>Average end time</th>
+                <th>Preview</th>
                 <th>Apply</th>
             </tr>
             <tr ng-repeat="candidate in topTimetableCandidates">
@@ -180,6 +181,8 @@
                 </td>
                 <td>
                     <timetable topics="chosenTopics" class-Selections="candidate.classPicks" class="mini"></timetable>
+                </td>
+                <td>
                     <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">Apply</button>
                 </td>
             </tr>
