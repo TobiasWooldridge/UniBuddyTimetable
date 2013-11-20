@@ -200,7 +200,7 @@ table.topics {
 
 @timetable-column-height: @hours-in-day * 2 * @half-hour-height;
 
-timetable  {
+timetable, timetable-mini {
   .hour {
     height: @hour-height;
   }
@@ -237,6 +237,10 @@ timetable  {
     tr .timetable-column:first-child {
       width: 0;
       overflow: hidden;
+    }
+
+    table.timetable {
+      height: @hour-height * @hours-in-day;
     }
 
     table.timetable, td {
