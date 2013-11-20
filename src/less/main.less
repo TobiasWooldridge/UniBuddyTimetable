@@ -188,31 +188,57 @@ table.timetable > thead > tr:first-of-type > th {
   text-align: center;
 }
 
-table.timetable {
-  background: #ffffff;
 
-  thead > tr > th,
-  tbody > tr > th,
-  tfoot > tr > th,
-  thead > tr > td,
-  tbody > tr > td,
-  tfoot > tr > td {
-    padding: 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@hours-in-day: 13;
+@half-hour-height: 30px;
+
+@timetable-column-height: @hours-in-day * 2 * @half-hour-height;
+
+timetable  {
+  &.normal {
+    .hour {
+      height: @half-hour-height * 2;
+    }
+    .half-hour-marker {
+      height: @half-hour-height;
+    }
+    booking {
+      p {
+        display: block;
+      }
+    }
   }
 
-  thead > tr > td,
-  tbody > tr > th {
-    text-align: center;
+
+  &.mini {
+    .hour {
+      height: @half-hour-height * 2;
+    }
+    .half-hour-marker {
+      height: @half-hour-height;
+    }
+    booking {
+      p, .glyphicon {
+        display: none;
+      }
+    }
   }
 
-  table-layout: fixed;
-  border-collapse: collapse;
-
-  border: 1px solid @table-border-color;
-
-  .times {
-    width: 100px;
-  }
 
   table {
     width: 100%;
@@ -220,70 +246,98 @@ table.timetable {
     padding: 0;
     border: 0;
     table-layout: fixed;
-    border-collapse: collapse;
   }
 
-  table.grid {
-    border-top: 1px solid @table-border-color;
-    border-left: 1px solid @table-border-color;
-    border-right: 0px;
-    border-bottom: 0px;
-  }
+  table.timetable {
+    background: #ffffff;
+    border: 1px solid @table-border-color;
 
-  .hour {
-    height: 60px;
-  }
-  .half-hour-marker {
-    height: 30px;
-    border-top: 1px solid @table-border-color !important;
-  }
-  .half-hour-marker:nth-child(even) td {
-    height: 30px;
-    border-top: 1px solid lighten(@table-border-color, 5%) !important;
-  }
 
-  .timetable-column {
-    position: relative;
-    padding: 0;
-    border-top-width: 0;
-  }
+    thead > tr > th,
+    tbody > tr > th,
+    tfoot > tr > th,
+    thead > tr > td,
+    tbody > tr > td,
+    tfoot > tr > td {
+      padding: 0;
+    }
 
-  .clashGroup {
-    position: relative;
-    height: 0;
-  }
+    thead > tr > td,
+    tbody > tr > th {
+      text-align: center;
+    }
 
-  .clashGroup td:first-of-type {
-    padding-left: 10px;
-  }
-  .clashGroup td {
-    padding-right: 5px;
-  }
-  .clashGroup td:last-of-type {
-    padding-right: 10px;
-  }
+    table {
+      border: 0;
+    }
 
-  .clashGroup {
+    table.grid {
+      border-top: 1px solid @table-border-color;
+      border-left: 1px solid @table-border-color;
+      border-right: 0px;
+      border-bottom: 0px;
+    }
 
-    .booking {
+    .times {
+      width: 5em;
+    }
+
+
+    .half-hour-marker {
+      border-top: 1px solid @table-border-color !important;
+
+      &:nth-child(even) td {
+        border-top: 1px solid lighten(@table-border-color, 6%) !important;
+      }
+    }
+
+    .timetable-column {
       position: relative;
-      border-radius: @border-radius-base;
+      padding: 0;
+      border-top-width: 0;
+
+      table {
+        height: 100%;
+      }
     }
 
-    .locked {
-      background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15) 10px, rgba(255, 255, 255, 0.3) 10px, rgba(255, 255, 255, 0.3) 20px);
-    }
+    .clashGroup {
+      position: relative;
+      height: 0;
 
-    .booking .glyphicon-lock {
-      float: right;
-      margin: 4px 4px 4px 10px;
-      font-size: 9px;
-    }
+      // Padding between bookings in a clashgroup
+      td {
+        padding-right: 5%;
 
-    .booking p {
-      display: block;
-      padding: 4px;
-      font-size: 0.95em;
+        &:first-of-type {
+          padding-left: 5%;
+        }
+        &:last-of-type {
+          padding-right: 5%;
+        }
+      }
+
+      .booking {
+        position: relative;
+        border-radius: @border-radius-base;
+
+        .glyphicon-lock {
+          float: right;
+          margin: 4px 4px 4px 10px;
+          font-size: 9px;
+        }
+
+        p {
+          padding: 4px;
+          font-size: 0.95em;
+        }
+
+        &.locked {
+          background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15) 10px, rgba(255, 255, 255, 0.3) 10px, rgba(255, 255, 255, 0.3) 20px);
+        }
+      }
+
+
     }
   }
 }
