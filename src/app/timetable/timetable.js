@@ -710,15 +710,16 @@ angular.module('flindersTimetable.timetable', [
                 $scope.timetable = timetableFactory.createEmptyTimetable();
                 $scope.classSelections = $scope.candidate.classPicks;
 
-                var duration = Math.max.apply(null, $scope.candidate.secondsAtUniByDay);
-                duration = duration / 3600; //convert to hours
-                console.log(duration);
-
                 $scope.startOffset = Math.min.apply(null, $scope.candidate.startTimes);
-                console.log($scope.startOffset);
+                //console.log($scope.startOffset);
+
+                var endTime = Math.max.apply(null, $scope.candidate.endTimes);
+                //console.log(endTime - $scope.startOffset);
+                var duration = endTime - $scope.startOffset;
+                duration = duration / 3600;
 
                 $scope.getStyle = function() {
-                    return {height : duration * 4 + 'em'};
+                    return {height : duration * 3 + 'em'};
                 };
 
                 $scope.updateTimetable = function() {
