@@ -16,10 +16,9 @@
   color: #FFFFFF !important;
   text-shadow: 0px 0px 5px darken(@color, 30%);
 
-  &:hover {
-    background-image: linear-gradient(to bottom, darken(@color, 5%) 0%, darken(@color, 9%) 100%);
-
-  }
+//  &:hover {
+//    background-image: linear-gradient(to bottom, darken(@color, 5%) 0%, darken(@color, 9%) 100%);
+//  }
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -225,9 +224,6 @@ timetable, timetable-mini {
       }
 
     }
-    .locked {
-      opacity: 0.3;
-    }
 
     .half-hour-marker,
     thead {
@@ -324,10 +320,10 @@ timetable, timetable-mini {
 
       // Padding between bookings in a clashgroup
       td {
-        padding-right: 5%;
+        padding-right: 2.5%;
 
         &:first-of-type {
-          padding-left: 5%;
+          padding-left: 2.5%;
         }
         &:last-of-type {
           padding-right: 5%;
@@ -340,8 +336,8 @@ timetable, timetable-mini {
 
         .glyphicon-lock {
           float: right;
-          margin: 0.5em 0.5em 0.5em 1em;
-          font-size: 0.8em;
+          margin: 0.4em;
+          font-size: 0.7em;
         }
 
         p {
