@@ -696,24 +696,25 @@ angular.module('flindersTimetable.timetable', [
     })
 
     .directive('timetable', function(bookingFactory, timetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
-        return {
+        var timetable = {
             restrict: 'E',
+
             scope: {
                 topics: '=',
-                classSelections: '=',
-                height: '=',
-                width: '='
+                classSelections: '='
             },
-            templateUrl: 'timetable/views/timetable.tpl.html',
-            link: function(scope, element, attrs) {
-                scope.days = dayService.days();
-                scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
-                scope.timetable = timetableFactory.createEmptyTimetable();
 
-                scope.updateTimetable = function() {
-                            scope.timetable = timetableFactory.createEmptyTimetable();
+            templateUrl: 'timetable/views/timetable.tpl.html',
+
+            link: function($scope, element, attrs) {
+                $scope.days = dayService.days();
+                $scope.hours = ["8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM"];
+                $scope.timetable = timetableFactory.createEmptyTimetable();
+
+                $scope.updateTimetable = function() {
+                            $scope.timetable = timetableFactory.createEmptyTimetable();
                             //create timetable stuff
-                            var bookings = bookingFactory.createBookingsForTopics(scope.topics, scope.classSelections);
+                            var bookings = bookingFactory.createBookingsForTopics($scope.topics, $scope.classSelections);
                             bookings = sessionsService.sortSessions(bookings);
 
                             // Remove duplicate bookings where the only difference between the two bookings is the room they're in
@@ -738,16 +739,15 @@ angular.module('flindersTimetable.timetable', [
                                 }
                             }
 
-
                             angular.forEach(bookings, function (booking) {
                                 var day = booking.dayOfWeek;
 
-                                var clashGroups = scope.timetable[day];
+                                var clashGroups = $scope.timetable[day];
                                 var clashGroup = clashGroups[clashGroups.length - 1];
 
                                 if (typeof clashGroup === "undefined" || clashService.sessionsClash(clashGroup, booking) === 0) {
                                     clashGroup = clashGroupFactory.newClashGroup(booking);
-                                    scope.timetable[day].push(clashGroup);
+                                    $scope.timetable[day].push(clashGroup);
                                 }
                                 else {
                                     clashGroup.addBooking(booking);
@@ -755,14 +755,16 @@ angular.module('flindersTimetable.timetable', [
                             });
                         };
 
-                scope.updateTimetable();
+                $scope.updateTimetable();
 
-                scope.$watch('classSelections', scope.updateTimetable);
+                $scope.$watch('classSelections', $scope.updateTimetable);
 
-                scope.$watch('topics', scope.updateTimetable);
+                $scope.$watch('topics', $scope.updateTimetable);
 
             }
         };
+
+        return timetable;
     })
 
     .directive('clashgroup', function() {
@@ -797,7 +799,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.$on('chosenClassesUpdate', function () {
             // Note: The slice(0) is used to duplicate the array object to work around angularJS caching the rendered timetable for a given chosenTopics object
             // TODO: Remove this hack, make getTopics() return a new instance of the array every time.
-                $scope.chosenTopics = chosenTopicService.getTopics().slice(0);
+            $scope.chosenTopics = chosenTopicService.getTopics().slice(0);
         });
     })
 
