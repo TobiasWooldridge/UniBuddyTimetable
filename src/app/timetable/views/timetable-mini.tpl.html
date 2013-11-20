@@ -1,0 +1,11 @@
+<div ng-show="topics.length">
+    <table class="timetable table">
+        <tbody>
+        <tr class="timetable-row">
+            <td ng-repeat="day in days" class="timetable-column">
+                <clashgroup clash-group="clashGroup" ng-repeat="clashGroup in timetable[day]"></clashgroup>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

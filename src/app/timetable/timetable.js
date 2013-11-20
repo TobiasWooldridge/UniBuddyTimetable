@@ -695,6 +695,75 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
+    .directive('timetableMini', function(bookingFactory, timetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
+        var timetableMini = {
+            restrict: 'E',
+
+            scope: {
+                topics: '=',
+                classSelections: '='
+            },
+            templateUrl: 'timetable/views/timetable-mini.tpl.html',
+
+            link: function($scope, element, attrs) {
+                $scope.days = dayService.days();
+                $scope.timetable = timetableFactory.createEmptyTimetable();
+
+                $scope.updateTimetable = function() {
+                            $scope.timetable = timetableFactory.createEmptyTimetable();
+                            //create timetable stuff
+                            var bookings = bookingFactory.createBookingsForTopics($scope.topics, $scope.classSelections);
+                            bookings = sessionsService.sortSessions(bookings);
+
+                            // Remove duplicate bookings where the only difference between the two bookings is the room they're in
+                            for (var i = 0; i < (bookings.length - 1); i++) {
+                                var a = bookings[i];
+                                var b = bookings[i + 1];
+
+                                var sessionComparisonFields = ['topicId', 'className', 'dayOfWeek', 'secondsStartsAt', 'secondsEndsAt'];
+
+                                var found = true;
+                                for (var j = 0; j < sessionComparisonFields.length; j++) {
+                                    var field = sessionComparisonFields[j];
+                                    if (a[field] !== b[field]) {
+                                        found = false;
+                                        break;
+                                    }
+                                }
+
+                                // Remove the duplicate
+                                if (found) {
+                                    bookings.splice(i, 1);
+                                }
+                            }
+
+                            angular.forEach(bookings, function (booking) {
+                                var day = booking.dayOfWeek;
+
+                                var clashGroups = $scope.timetable[day];
+                                var clashGroup = clashGroups[clashGroups.length - 1];
+
+                                if (typeof clashGroup === "undefined" || clashService.sessionsClash(clashGroup, booking) === 0) {
+                                    clashGroup = clashGroupFactory.newClashGroup(booking);
+                                    $scope.timetable[day].push(clashGroup);
+                                }
+                                else {
+                                    clashGroup.addBooking(booking);
+                                }
+                            });
+                        };
+
+                $scope.updateTimetable();
+
+                $scope.$watch('classSelections', $scope.updateTimetable);
+
+                $scope.$watch('topics', $scope.updateTimetable);
+            }
+        };
+
+        return timetableMini;
+    })
+
     .directive('timetable', function(bookingFactory, timetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
         var timetable = {
             restrict: 'E',
