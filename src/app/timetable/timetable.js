@@ -9,7 +9,8 @@ angular.module('flindersTimetable.timetable', [
         semesters: ["S1", "NS1", "S2", "NS2"],
         defaultSemester: "S2"
     })
-    .constant('maxTimetableSuggestions', 3)
+    .constant('timetablesPerPage', 3)
+    .constant('maxTimetablePages', 10)
 
     .config(function config($stateProvider) {
         $stateProvider.state('home', {
@@ -87,6 +88,10 @@ angular.module('flindersTimetable.timetable', [
 
     .filter('paginate', function() {
         return function(input, pageIndex, itemsPerPage) {
+            if (typeof input === "undefined") {
+                return input;
+            }
+
             return input.slice(pageIndex * itemsPerPage, (pageIndex + 1) * itemsPerPage);
         };
     })
@@ -948,7 +953,7 @@ angular.module('flindersTimetable.timetable', [
         return self;
     })
 
-    .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetableSuggestions, dayService) {
+    .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetablePages, timetablesPerPage, dayService) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
         $scope.generatingTimetables = false;
@@ -1270,8 +1275,8 @@ angular.module('flindersTimetable.timetable', [
 
             $scope.topTimetableCandidates = allGeneratedTimetables;
             $scope.pageIndex = 0;
-            $scope.numPages = Math.min(5, allGeneratedTimetables.length/maxTimetableSuggestions);
-            $scope.suggestionsPerPage = maxTimetableSuggestions;
+            $scope.numPages = Math.min(maxTimetablePages, allGeneratedTimetables.length/timetablesPerPage);
+            $scope.suggestionsPerPage = timetablesPerPage;
 
             $scope.hasGeneratedTimetables = true;
         };

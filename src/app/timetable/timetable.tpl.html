@@ -180,8 +180,9 @@
                 </td>
             </tr>
         </table>
-        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-show="pageIndex > 0">Show previous suggestions</button>
-        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1" ng-show="pageIndex < numPages">Show more suggestions</button>
+        <p>Showing page {{pageIndex + 1}} of {{ numPages }}</p>
+        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show previous suggestions</button>
+        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1" ng-disabled="pageIndex >= (numPages - 1)">Show more suggestions</button>
     </div>
 </div>
 
