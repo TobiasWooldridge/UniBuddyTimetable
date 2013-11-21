@@ -9,7 +9,7 @@ angular.module('flindersTimetable.timetable', [
         semesters: ["S1", "NS1", "S2", "NS2"],
         defaultSemester: "S2"
     })
-    .constant('timetablesPerPage', 3)
+    .constant('timetablesPerPage', 5)
     .constant('maxTimetablePages', 10)
 
     .config(function config($stateProvider) {
