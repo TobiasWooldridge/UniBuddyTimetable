@@ -159,7 +159,7 @@
                 <th>Preview</th>
                 <th>Apply</th>
             </tr>
-            <tr ng-repeat="candidate in topTimetableCandidates">
+            <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
                 <td>
                     {{ candidate.daysAtUni }}
                 </td>
@@ -180,6 +180,8 @@
                 </td>
             </tr>
         </table>
+        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-show="pageIndex > 0">Show previous suggestions</button>
+        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1" ng-show="pageIndex < numPages">Show more suggestions</button>
     </div>
 </div>
 

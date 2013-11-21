@@ -1,10 +1,3 @@
-var appConfig = {
-    years: [2011, 2012, 2013],
-    defaultYear: 2013,
-    semesters: ["S1", "NS1", "S2", "NS2"],
-    defaultSemester: "S2"
-};
-
 angular.module('flindersTimetable.timetable', [
         'ui.state',
         'ui.sortable',
@@ -16,7 +9,7 @@ angular.module('flindersTimetable.timetable', [
         semesters: ["S1", "NS1", "S2", "NS2"],
         defaultSemester: "S2"
     })
-    .constant('maxTimetableSuggestions', 7)
+    .constant('maxTimetableSuggestions', 3)
 
     .config(function config($stateProvider) {
         $stateProvider.state('home', {
@@ -89,8 +82,13 @@ angular.module('flindersTimetable.timetable', [
 
 
         loadFromUrl();
+    })
 
-        $scope.testScope = 'fred';
+
+    .filter('paginate', function() {
+        return function(input, pageIndex, itemsPerPage) {
+            return input.slice(pageIndex * itemsPerPage, (pageIndex + 1) * itemsPerPage);
+        };
     })
 
     .filter('secondsToTime', function (moment) {
@@ -554,11 +552,11 @@ angular.module('flindersTimetable.timetable', [
         return dayService;
     })
 
-    .controller('TopicController', function ($scope, chosenTopicService, topicFactory, urlService) {
-        $scope.years = appConfig.years;
+    .controller('TopicController', function ($scope, times, chosenTopicService, topicFactory, urlService) {
+        $scope.years = times.years;
         $scope.activeYear = urlService.getYear();
 
-        $scope.semesters = appConfig.semesters;
+        $scope.semesters = times.semesters;
         $scope.activeSemester = urlService.getSemester();
 
         $scope.topicSearch = "";
@@ -1270,7 +1268,10 @@ angular.module('flindersTimetable.timetable', [
 
             allGeneratedTimetables = sortTimetablesByPriorities(allGeneratedTimetables);
 
-            $scope.topTimetableCandidates = allGeneratedTimetables.slice(0, maxTimetableSuggestions);
+            $scope.topTimetableCandidates = allGeneratedTimetables;
+            $scope.pageIndex = 0;
+            $scope.numPages = Math.min(5, allGeneratedTimetables.length/maxTimetableSuggestions);
+            $scope.suggestionsPerPage = maxTimetableSuggestions;
 
             $scope.hasGeneratedTimetables = true;
         };
