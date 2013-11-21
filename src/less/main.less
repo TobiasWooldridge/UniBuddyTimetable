@@ -5,20 +5,12 @@
   transform: all 1s ease-in-out;
 }
 
-.flinders-background {
-  background: @flinders-dark-background;
-}
-
 .booking-highlight(@color: blue) {
   border-color: darken(@color, 10%);
   background: darken(@color, 2%);
   background-image: linear-gradient(to bottom, lighten(@color, 2%) 0%, darken(@color, 5%) 100%);
   color: #FFFFFF !important;
   text-shadow: 0px 0px 5px darken(@color, 30%);
-
-//  &:hover {
-//    background-image: linear-gradient(to bottom, darken(@color, 5%) 0%, darken(@color, 9%) 100%);
-//  }
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -100,17 +92,25 @@ header.container {
     }
   }
 }
-#page > .container {
-  background: #FFF;
-  box-shadow: 0px 1px 3px #DDD;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  padding: 10px 20px 20px;
-  border-radius: @border-radius-large;
 
-  @media (max-width: @screen-xs-max) {
-    border-radius: 0;
+#page {
+
+  & > .container {
+    background: #FFF;
+    box-shadow: 0px 1px 3px #DDD;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding: 10px 20px 20px;
+    border-radius: @border-radius-large;
+
+    @media (max-width: @screen-xs-max) {
+      border-radius: 0;
+    }
   }
+}
+
+.page-header {
+  margin: 20px 0 10px;
 }
 
 .generator-priorities {
@@ -146,6 +146,7 @@ header.container {
 
 a.list-group-item {
   cursor: pointer;
+  padding: 5px 15px;
 }
 
 .list-group-item.active .list-group-item-text, .list-group-item.active:hover .list-group-item-text, .list-group-item.active:focus .list-group-item-text, .active a.list-group-item {
@@ -223,7 +224,8 @@ timetable, timetable-mini {
 
     booking {
       .glyphicon, p {
-        opacity: 0.01;
+        opacity: 0;
+        display: none;
       }
 
     }
@@ -251,10 +253,10 @@ timetable, timetable-mini {
     table-layout: fixed;
   }
 
-  table.timetable {
-    background: #ffffff;
+  .timetable {
     border: 1px solid @table-border-color;
 
+    background: none;
 
     thead > tr:first-of-type > th {
       border: 1px solid @table-border-color;

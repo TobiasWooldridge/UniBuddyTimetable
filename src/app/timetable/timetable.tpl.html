@@ -29,9 +29,9 @@
     <p>If you find this tool useful, or even just nifty, thank us by sharing it with your friends.</p>
     <p>Or just post it to Facebook to make your friends from Adelaide/UniSA jealous <small>(don't worry, though, we'll try and add you guys soon)</small></p>
 
-    <div class="fb-like" data-href="https://www.facebook.com/pages/Flinders-Timetable-Planner/700975646582040" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
+    <div class="fb-like" data-href="https://www.facebook.com/timetableplanner" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
 
-    <p>If you find a bug or have other feedback, let us know on our Facebook page <a href="https://www.facebook.com/pages/Flinders-Timetable-Planner/700975646582040">here</a>.</p>
+    <p>If you find a bug or have other feedback, let us know on our Facebook page <a href="https://www.facebook.com/timetableplanner">here</a>.</p>
 </div>
 
 <div class="container" ng-controller="TopicController">
@@ -152,25 +152,21 @@
 
         <table class="table table-condensed">
             <tr>
-                <th>Days at uni</th>
                 <th>Time at uni</th>
-                <th>Average start time</th>
-                <th>Average end time</th>
+                <th>Earliest start time</th>
+                <th>Latest end time</th>
                 <th>Preview</th>
                 <th>Apply</th>
             </tr>
             <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
                 <td>
-                    {{ candidate.daysAtUni }}
+                    {{ candidate.stats.secondsAtUni | secondsToHours }} hours
                 </td>
                 <td>
-                    {{ candidate.secondsAtUni | secondsToHours }} hours
+                    {{ candidate.stats.earliestStartTime | secondsToTime }}
                 </td>
                 <td>
-                    {{ candidate.averageStartTime | secondsToTime }}
-                </td>
-                <td>
-                    {{ candidate.averageEndTime | secondsToTime }}
+                    {{ candidate.stats.latestEndTime | secondsToTime }}
                 </td>
                 <td>
                     <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
@@ -182,7 +178,7 @@
         </table>
         <p>Showing page {{pageIndex + 1}} of {{ numPages }}</p>
         <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show previous suggestions</button>
-        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1" ng-disabled="pageIndex >= (numPages - 1)">Show more suggestions</button>
+        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1" ng-disabled="pageIndex >= (numPages - 1)">Show next suggestions</button>
     </div>
 </div>
 
@@ -199,12 +195,10 @@
         <div class="row">
             <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded"
                  class="col-md-3 topic topic-{{topic.getHash() % 16}}">
-                <h3>{{ topic.code }} {{ topic.name }}</h3>
+                <h4>{{ topic.code }} {{ topic.name }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
-                    <h4>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) /
-                        60}}
-                        minutes)</h4>
+                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) / 60}} minutes)</h5>
 
                     <div ng-show="class.classGroups" class="list-group">
                         <a ng-repeat="classGroup in class.classGroups" class="list-group-item"

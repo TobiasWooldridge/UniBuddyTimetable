@@ -9,7 +9,7 @@ angular.module('flindersTimetable.timetable', [
         semesters: ["S1", "NS1", "S2", "NS2"],
         defaultSemester: "S2"
     })
-    .constant('timetablesPerPage', 5)
+    .constant('timetablesPerPage', 4)
     .constant('maxTimetablePages', 10)
 
     .config(function config($stateProvider) {
@@ -713,11 +713,10 @@ angular.module('flindersTimetable.timetable', [
                 $scope.timetable = timetableFactory.createEmptyTimetable();
                 $scope.classSelections = $scope.candidate.classPicks;
 
-                $scope.startOffset = Math.min.apply(null, $scope.candidate.startTimes);
-                //console.log($scope.startOffset);
+                $scope.startOffset = $scope.candidate.earliestStartTime;
 
-                var endTime = Math.max.apply(null, $scope.candidate.endTimes);
-                //console.log(endTime - $scope.startOffset);
+                var endTime = $scope.candidate.latestEndTime;
+
                 var duration = endTime - $scope.startOffset;
                 duration = duration / 3600;
 
@@ -908,6 +907,12 @@ angular.module('flindersTimetable.timetable', [
 
     .factory('ArrayMath', function () {
         var self = {
+            max: function(arr) {
+                return Math.max.apply(null, arr);
+            },
+            min: function(arr) {
+                return Math.min.apply(null, arr);
+            },
             sum: function (arr) {
                 var sum = 0;
 
@@ -1187,6 +1192,8 @@ angular.module('flindersTimetable.timetable', [
 
                 var days = { };
 
+                var secondsOfClasses = [0, 0, 0, 0, 0]
+
                 angular.forEach(timetable.classSessions, function (session) {
                     if (typeof days[session.dayOfWeek] === "undefined") {
                         days[session.dayOfWeek] = {
@@ -1198,10 +1205,9 @@ angular.module('flindersTimetable.timetable', [
                         days[session.dayOfWeek].secondsStartsAt = Math.min(days[session.dayOfWeek].secondsStartsAt, session.secondsStartsAt);
                         days[session.dayOfWeek].secondsEndsAt = Math.max(days[session.dayOfWeek].secondsEndsAt, session.secondsEndsAt);
                     }
-                });
 
-                timetable.daysAtUni = 0;
-                timetable.secondsAtUni = 0;
+                    seoncdsOfClasses[session.dayOfWeek] +=
+                });
 
                 var startTimes = [];
                 var endTimes = [];
@@ -1209,8 +1215,6 @@ angular.module('flindersTimetable.timetable', [
                 var weekendStartsAt = 0;
 
                 angular.forEach(days, function (day, dayName) {
-                    timetable.daysAtUni++;
-
                     var dayOfWeek = dayService.dayNameToDayOfWeek(dayName);
 
                     secondsAtUni[dayOfWeek] = day.secondsEndsAt - day.secondsStartsAt;
@@ -1221,16 +1225,26 @@ angular.module('flindersTimetable.timetable', [
                     weekendStartsAt = Math.max(weekendStartsAt, dayOfWeek * secondsInDay + day.secondsEndsAt);
                 });
 
-                timetable.startTimes = startTimes;
-                timetable.endTimes = endTimes;
-                timetable.secondsAtUniByDay = secondsAtUni;
-                timetable.secondsAtUni = ArrayMath.sum(secondsAtUni);
-                timetable.averageStartTime = ArrayMath.mean(startTimes);
-                timetable.averageEndTime = ArrayMath.mean(endTimes);
-                timetable.startTimeVariability = ArrayMath.variability(startTimes);
-                timetable.weekendStartsAt = weekendStartsAt;
+                var stats = {};
 
-                return timetable;
+                stats.daysAtUni = startTimes.length;
+
+                stats.startTimes = startTimes;
+                stats.endTimes = endTimes;
+
+                stats.secondsAtUniByDay = secondsAtUni;
+                stats.secondsAtUni = ArrayMath.sum(secondsAtUni);
+
+                stats.earliestStartTime = ArrayMath.min(startTimes);
+                stats.latestEndTime = ArrayMath.max(endTimes);
+
+                stats.averageStartTime = ArrayMath.mean(startTimes);
+                stats.averageEndTime = ArrayMath.mean(endTimes);
+
+                stats.startTimeVariability = ArrayMath.variability(startTimes);
+                stats.weekendStartsAt = weekendStartsAt;
+
+                return stats;
             };
 
             var timetables = [];
@@ -1242,7 +1256,7 @@ angular.module('flindersTimetable.timetable', [
                 timetable.classPicks = generatedTimetable;
                 timetable.classSessions = classSessionsForClassPicks(generatedTimetable);
 
-                calculateTimeMetrics(timetable);
+                timetable.stats = calculateTimeMetrics(timetable);
 
                 timetables.push(timetable);
             });
@@ -1254,7 +1268,7 @@ angular.module('flindersTimetable.timetable', [
                 for (var i = 0; i < $scope.timetablePriorities.length; i++) {
                     var priority = $scope.timetablePriorities[i];
 
-                    difference = priority.sorter(a, b);
+                    difference = priority.sorter(a.stats, b.stats);
 
                     if (difference !== 0) {
                         break;
