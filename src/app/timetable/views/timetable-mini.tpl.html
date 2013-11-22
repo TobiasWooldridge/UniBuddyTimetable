@@ -3,7 +3,8 @@
         <tbody>
         <tr class="timetable-row">
             <td ng-repeat="day in days" class="timetable-column">
-                <clashgroup clash-group="clashGroup" start-offset="startOffset" ng-repeat="clashGroup in timetable[day]"></clashgroup>
+                <clashgroup clash-group="clashGroup" start-offset="startOffset"
+                            ng-repeat="clashGroup in timetable[day]"></clashgroup>
             </td>
         </tr>
         </tbody>

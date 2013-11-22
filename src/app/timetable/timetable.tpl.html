@@ -1,8 +1,9 @@
 <div id="fb-root"></div>
-<script>(function(d, s, id) {
+<script>(function (d, s, id) {
     var js, fjs = d.getElementsByTagName(s)[0];
     if (d.getElementById(id)) return;
-    js = d.createElement(s); js.id = id;
+    js = d.createElement(s);
+    js.id = id;
     js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
@@ -24,14 +25,23 @@
 
 <div class="container">
     <h2>Spread the word</h2>
+
     <p>This tool has been made independently of the university, without any expectation of reimbursement.</p>
-    <p>All that we get out of making this timetable planner is the satisfaction that we've helped you make the best timetable possible for this semester.</p>
+
+    <p>All that we get out of making this timetable planner is the satisfaction that we've helped you make the best
+        timetable possible for this semester.</p>
+
     <p>If you find this tool useful, or even just nifty, thank us by sharing it with your friends.</p>
-    <p>Or just post it to Facebook to make your friends from Adelaide/UniSA jealous <small>(don't worry, though, we'll try and add you guys soon)</small></p>
 
-    <div class="fb-like" data-href="https://www.facebook.com/timetableplanner" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
+    <p>Or just post it to Facebook to make your friends from Adelaide/UniSA jealous
+        <small>(don't worry, though, we'll try and add you guys soon)</small>
+    </p>
 
-    <p>If you find a bug or have other feedback, let us know on our Facebook page <a href="https://www.facebook.com/timetableplanner">here</a>.</p>
+    <div class="fb-like" data-href="https://www.facebook.com/timetableplanner" data-layout="standard" data-action="like"
+         data-show-faces="true" data-share="true"></div>
+
+    <p>If you find a bug or have other feedback, let us know on our Facebook page <a
+            href="https://www.facebook.com/timetableplanner">here</a>.</p>
 </div>
 
 <div class="container" ng-controller="TopicController">
@@ -78,18 +88,22 @@
                     <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
                 </td>
                 <td width="*">
-                    <p ng-show="topicSearch.length >= 3"><span ng-show="!availableTopics.length"><img src="assets/images/ajax-loader.gif" alt="Loading"
-                                                              class="ajax-loader"/>
+                    <p ng-show="topicSearch.length >= 3"><span ng-show="!availableTopics.length"><img
+                            src="assets/images/ajax-loader.gif" alt="Loading"
+                            class="ajax-loader"/>
                     </span>
-                    <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
-                            ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 100">
-                    </select>
+                        <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
+                                ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 100">
+                        </select>
                     </p>
-                    <p ng-show="topicSearch.length < 3" class="hint hint-filter">Type a few letters of a topic code or topic name to the left to search for topics</p>
+
+                    <p ng-show="topicSearch.length < 3" class="hint hint-filter">Type a few letters of a topic code or
+                        topic name to the left to search for topics</p>
                 </td>
 
                 <td class="action">
-                    <button ng-show="topicSearch.length >= 3" type="submit" class="btn btn-primary" ng-click="addTopic(activeTopic)"
+                    <button ng-show="topicSearch.length >= 3" type="submit" class="btn btn-primary"
+                            ng-click="addTopic(activeTopic)"
                             ng-disabled="!validateTopic(activeTopic)">
                         Add
                     </button>
@@ -114,13 +128,15 @@
         <h4>Sort your preference</h4>
     </div>
     <p>Drag the preferences to sort them</p>
+
     <div class="row">
         <ol ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
             class="col-md-8 generator-priorities">
             <li ng-repeat="priority in timetablePriorities">
                 {{ $index + 1 }}. {{ priority.label }}
 
-                <select ng-show="priority.options" ng-model="priority.selectedOption" ng-options="p as p for p in priority.options">
+                <select ng-show="priority.options" ng-model="priority.selectedOption"
+                        ng-options="p as p for p in priority.options">
                 </select>
 
                 <span class="hint" ng-show="$first">(Most important)</span>
@@ -144,7 +160,8 @@
 
     <div ng-show="hasGeneratedTimetables" class="generated-timetables">
         <hr/>
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with the fewest possible clashes.<!--{{ ( 0 +
+        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with the fewest possible
+            clashes.<!--{{ ( 0 +
             fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.--></p>
 
         <p>This took {{ examineDuration }} seconds.</p>
@@ -152,37 +169,43 @@
 
         <table class="table table-condensed">
             <thead>
-                <tr>
-                    <th>Time at uni</th>
-                    <th>Earliest start</th>
-                    <th>Latest end</th>
-                    <th>Timetable Preview</th>
-                    <th></th>
-                </tr>
+            <tr>
+                <th>Time at uni</th>
+                <th>Earliest start</th>
+                <th>Latest end</th>
+                <th>Timetable Preview</th>
+                <th></th>
+            </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
-                    <td>
-                        {{ candidate.stats.secondsAtUni | secondsToHours }} hours
-                    </td>
-                    <td>
-                        {{ candidate.stats.earliestStartTime | secondsToTime }}
-                    </td>
-                    <td>
-                        {{ candidate.stats.latestEndTime | secondsToTime }}
-                    </td>
-                    <td>
-                        <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
-                    </td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">Apply</button>
-                    </td>
-                </tr>
+            <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
+                <td>
+                    {{ candidate.stats.secondsAtUni | secondsToHours }} hours
+                </td>
+                <td>
+                    {{ candidate.stats.earliestStartTime | secondsToTime }}
+                </td>
+                <td>
+                    {{ candidate.stats.latestEndTime | secondsToTime }}
+                </td>
+                <td>
+                    <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
+                        Apply
+                    </button>
+                </td>
+            </tr>
             </tbody>
         </table>
         <p>Showing page {{pageIndex + 1}} of {{ numPages }}</p>
-        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show previous suggestions</button>
-        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1" ng-disabled="pageIndex >= (numPages - 1)">Show next suggestions</button>
+        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show
+            previous suggestions
+        </button>
+        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1"
+                ng-disabled="pageIndex >= (numPages - 1)">Show next suggestions
+        </button>
     </div>
 </div>
 
@@ -202,7 +225,8 @@
                 <h4>{{ topic.code }} {{ topic.name }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
-                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) / 60}} minutes)</h5>
+                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) / 60}}
+                        minutes)</h5>
 
                     <div ng-show="class.classGroups" class="list-group">
                         <a ng-repeat="classGroup in class.classGroups" class="list-group-item"
