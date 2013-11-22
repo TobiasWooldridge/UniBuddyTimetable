@@ -142,7 +142,7 @@
         <p>Generating timetables</p>
     </div>
 
-    <div ng-show="hasGeneratedTimetables">
+    <div ng-show="hasGeneratedTimetables" class="generated-timetables">
         <hr/>
         <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with the fewest possible clashes.<!--{{ ( 0 +
             fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.--></p>
@@ -151,30 +151,34 @@
 
 
         <table class="table table-condensed">
-            <tr>
-                <th>Time at uni</th>
-                <th>Earliest start time</th>
-                <th>Latest end time</th>
-                <th>Preview</th>
-                <th>Apply</th>
-            </tr>
-            <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
-                <td>
-                    {{ candidate.stats.secondsAtUni | secondsToHours }} hours
-                </td>
-                <td>
-                    {{ candidate.stats.earliestStartTime | secondsToTime }}
-                </td>
-                <td>
-                    {{ candidate.stats.latestEndTime | secondsToTime }}
-                </td>
-                <td>
-                    <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
-                </td>
-                <td>
-                    <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">Apply</button>
-                </td>
-            </tr>
+            <thead>
+                <tr>
+                    <th>Time at uni</th>
+                    <th>Earliest start</th>
+                    <th>Latest end</th>
+                    <th>Timetable Preview</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
+                    <td>
+                        {{ candidate.stats.secondsAtUni | secondsToHours }} hours
+                    </td>
+                    <td>
+                        {{ candidate.stats.earliestStartTime | secondsToTime }}
+                    </td>
+                    <td>
+                        {{ candidate.stats.latestEndTime | secondsToTime }}
+                    </td>
+                    <td>
+                        <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">Apply</button>
+                    </td>
+                </tr>
+            </tbody>
         </table>
         <p>Showing page {{pageIndex + 1}} of {{ numPages }}</p>
         <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show previous suggestions</button>
@@ -182,7 +186,7 @@
     </div>
 </div>
 
-<div class="container" ng-controller="TimetableController" ng-show="chosenTopics.length">
+<div class="container" ng-controller="TimetableController" ng-show="chosenTopics.length" id="show-timetable">
     <timetable topics="chosenTopics" class-selections="" class="normal"></timetable>
 </div>
 

@@ -186,10 +186,22 @@ table.topics {
 
 
 
+.generated-timetables {
+  & > .table {
+    width: auto;
 
+    & > thead > tr > th, & > tbody > tr > td {
+      padding: 0 1em;
+    }
+    & > tbody > tr > td {
+      padding: 1em 1em;
+    }
 
-
-
+    table.timetable {
+      margin-bottom: 0;
+    }
+  }
+}
 
 
 
@@ -217,10 +229,10 @@ timetable, timetable-mini {
 
   &.mini {
     & > div {
-      max-width: 400px;
+      width: 100em;
     }
 
-    font-size: 0.4em;
+    font-size: 0.25em;
 
     booking {
       .glyphicon, p {
@@ -228,6 +240,9 @@ timetable, timetable-mini {
         display: none;
       }
 
+      &.locked {
+        opacity: 0.5;
+      }
     }
 
     .half-hour-marker,
@@ -323,7 +338,7 @@ timetable, timetable-mini {
         padding-right: 2.5%;
 
         &:first-of-type {
-          padding-left: 2.5%;
+          padding-left: 5%;
         }
         &:last-of-type {
           padding-right: 5%;
@@ -353,6 +368,15 @@ timetable, timetable-mini {
 
 
     }
+  }
+}
+
+
+#page #show-timetable {
+  padding: 10px;
+
+  .timetable {
+    margin: 0;
   }
 }
 

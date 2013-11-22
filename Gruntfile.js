@@ -16,6 +16,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-recess');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-ngmin');
+    grunt.loadNpmTasks('grunt-notify');
     grunt.loadNpmTasks('grunt-html2js');
 
     /**

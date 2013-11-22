@@ -9,7 +9,7 @@ angular.module('flindersTimetable.timetable', [
         semesters: ["S1", "NS1", "S2", "NS2"],
         defaultSemester: "S2"
     })
-    .constant('timetablesPerPage', 4)
+    .constant('timetablesPerPage', 5)
     .constant('maxTimetablePages', 10)
 
     .config(function config($stateProvider) {
@@ -713,16 +713,17 @@ angular.module('flindersTimetable.timetable', [
                 $scope.timetable = timetableFactory.createEmptyTimetable();
                 $scope.classSelections = $scope.candidate.classPicks;
 
-                $scope.startOffset = $scope.candidate.earliestStartTime;
 
-                var endTime = $scope.candidate.latestEndTime;
+                $scope.startOffset = $scope.candidate.stats.earliestStartTime;
+
+                var endTime = $scope.candidate.stats.latestEndTime;
 
                 var duration = endTime - $scope.startOffset;
                 duration = duration / 3600;
 
-                $scope.getStyle = function() {
-                    return {height : duration * 3 + 'em'};
-                };
+                $scope.timetableStyle = { height : (duration * 3) + 'em' };
+
+                console.log($scope.timetableStyle);
 
                 $scope.updateTimetable = function() {
                             $scope.timetable = timetableFactory.createEmptyTimetable();
@@ -958,7 +959,7 @@ angular.module('flindersTimetable.timetable', [
         return self;
     })
 
-    .controller('TimetableGeneratorController', function ($scope, ArrayMath, chosenTopicService, topicService, clashService, maxTimetablePages, timetablesPerPage, dayService) {
+    .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, ArrayMath, chosenTopicService, topicService, clashService, maxTimetablePages, timetablesPerPage, dayService) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
         $scope.generatingTimetables = false;
@@ -1087,6 +1088,10 @@ angular.module('flindersTimetable.timetable', [
             });
 
             chosenTopicService.broadcastClassesUpdate();
+
+            $location.hash('show-timetable');
+            $anchorScroll();
+            $location.hash('');
         };
 
         var findTimetablesWithMinimumClashes = function (topics) {
@@ -1192,7 +1197,7 @@ angular.module('flindersTimetable.timetable', [
 
                 var days = { };
 
-                var secondsOfClasses = [0, 0, 0, 0, 0]
+                var secondsOfClassesByDay = [0, 0, 0, 0, 0];
 
                 angular.forEach(timetable.classSessions, function (session) {
                     if (typeof days[session.dayOfWeek] === "undefined") {
@@ -1206,7 +1211,7 @@ angular.module('flindersTimetable.timetable', [
                         days[session.dayOfWeek].secondsEndsAt = Math.max(days[session.dayOfWeek].secondsEndsAt, session.secondsEndsAt);
                     }
 
-                    seoncdsOfClasses[session.dayOfWeek] +=
+                    secondsOfClassesByDay[session.dayOfWeek] += session.secondsDuration;
                 });
 
                 var startTimes = [];
@@ -1228,6 +1233,8 @@ angular.module('flindersTimetable.timetable', [
                 var stats = {};
 
                 stats.daysAtUni = startTimes.length;
+
+                stats.secondsOfClassesByDay = secondsOfClassesByDay;
 
                 stats.startTimes = startTimes;
                 stats.endTimes = endTimes;
