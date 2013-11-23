@@ -1,7 +1,8 @@
 angular.module('flindersTimetable.timetable', [
         'ui.state',
         'ui.sortable',
-        'flap.topics'
+        'flap.topics',
+        'arrayMath'
     ])
 
     .constant('times', {
@@ -211,10 +212,10 @@ angular.module('flindersTimetable.timetable', [
         return urlService;
     })
 
-    .factory('timetableFactory', function (dayService, clashService, sessionsService, clashGroupFactory) {
-        var timetableFactory = {};
+    .factory('displayableTimetableFactory', function (dayService, clashService, sessionsService, clashGroupFactory) {
+        var displayableTimetableFactory = {};
 
-        timetableFactory.createEmptyTimetable = function () {
+        displayableTimetableFactory.createEmptyTimetable = function () {
             var timetable = {};
 
             angular.forEach(dayService.days(), function (day) {
@@ -224,8 +225,8 @@ angular.module('flindersTimetable.timetable', [
             return timetable;
         };
 
-        timetableFactory.createTimetableForBookings = function (bookings) {
-            var timetable = timetableFactory.createEmptyTimetable();
+        displayableTimetableFactory.createTimetableForBookings = function (bookings) {
+            var timetable = displayableTimetableFactory.createEmptyTimetable();
 
             //create timetable stuff
             bookings = sessionsService.sortSessions(bookings.slice(0));
@@ -270,7 +271,7 @@ angular.module('flindersTimetable.timetable', [
             return timetable;
         };
 
-        return timetableFactory;
+        return displayableTimetableFactory;
     })
 
     .factory('bookingFactory', function () {
@@ -745,7 +746,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
-    .directive('timetableMini', function (bookingFactory, timetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
+    .directive('timetableMini', function (bookingFactory, displayableTimetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
         var timetableMini = {
             restrict: 'E',
 
@@ -770,7 +771,7 @@ angular.module('flindersTimetable.timetable', [
 
                 $scope.updateTimetable = function () {
                     var bookings = bookingFactory.createBookingsForTopics($scope.topics, $scope.classSelections);
-                    $scope.timetable = timetableFactory.createTimetableForBookings(bookings);
+                    $scope.timetable = displayableTimetableFactory.createTimetableForBookings(bookings);
                 };
                 $scope.updateTimetable();
 
@@ -783,7 +784,7 @@ angular.module('flindersTimetable.timetable', [
         return timetableMini;
     })
 
-    .directive('timetable', function (bookingFactory, timetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
+    .directive('timetable', function (bookingFactory, displayableTimetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
         var timetable = {
             restrict: 'E',
 
@@ -800,14 +801,12 @@ angular.module('flindersTimetable.timetable', [
 
                 $scope.updateTimetable = function () {
                     var bookings = bookingFactory.createBookingsForTopics($scope.topics, $scope.classSelections);
-                    $scope.timetable = timetableFactory.createTimetableForBookings(bookings);
+                    $scope.timetable = displayableTimetableFactory.createTimetableForBookings(bookings);
                 };
                 $scope.updateTimetable();
 
                 $scope.$watch('classSelections', $scope.updateTimetable);
-
                 $scope.$watch('topics', $scope.updateTimetable);
-
             }
         };
 
@@ -859,7 +858,7 @@ angular.module('flindersTimetable.timetable', [
         return booking;
     })
 
-    .controller('TimetableController', function ($scope, chosenTopicService, timetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
+    .controller('TimetableController', function ($scope, chosenTopicService, displayableTimetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.$on('chosenClassesUpdate', function () {
             // Note: The slice(0) is used to duplicate the array object to work around angularJS caching the rendered timetable for a given chosenTopics object
@@ -868,167 +867,125 @@ angular.module('flindersTimetable.timetable', [
         });
     })
 
-    .factory('ArrayMath', function () {
-        var self = {
-            max: function (arr) {
-                return Math.max.apply(null, arr);
-            },
-            min: function (arr) {
-                return Math.min.apply(null, arr);
-            },
-            sum: function (arr) {
-                var sum = 0;
 
-                for (var i = 0; i < arr.length; i++) {
-                    sum += arr[i];
-                }
+    .factory('timetablePriorityFactory', function (dayService) {
+        var timetablePriorityFactory = {};
 
-                return sum;
-            },
-            mean: function (arr) {
-                var sum = self.sum(arr);
-                return sum / arr.length;
-            },
-            variance: function (arr) {
-                var sumOfSquares = 0;
-
-                for (var i = 0; i < arr.length; i++) {
-                    sumOfSquares += Math.pow(arr[i], 2);
-                }
-
-                var variance = sumOfSquares / arr.length - Math.pow(self.mean(arr), 2);
-
-                return variance;
-            },
-            variability: function (arr) {
-                arr = angular.copy(arr);
-
-                arr.sort();
-
-                var previous = arr[0];
-
-                var variability = 0;
-                for (var i = 1; i < arr.length; i++) {
-                    variability += Math.abs(arr[i] - previous);
-
-                    previous = arr[i];
-                }
-
-                return variability;
-            }
+        var createTimetablePriority = function (label, sorter, options, defaultOption) {
+            return {
+                label: label,
+                sorter: sorter,
+                options: options,
+                selectedOption: defaultOption
+            };
         };
 
-        return self;
-    })
-
-    .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, ArrayMath, chosenTopicService, topicService, clashService, maxTimetablePages, timetablesPerPage, dayService) {
-        $scope.chosenTopics = chosenTopicService.getTopics();
-        $scope.numPossibleTimetables = 1;
-        $scope.generatingTimetables = false;
-
-        $scope.timetablePriorities = [];
-
-        $scope.prioritiesSortableOptions = {
-            axis: "y"
+        var minimize = function (a, b) {
+            return a - b;
         };
 
-        var allGeneratedTimetables = [];
+        var maximize = function (a, b) {
+            return -minimize(a, b);
+        };
 
-        var initializeTimetablePriorities = function () {
-            var createTimetablePriority = function (label, sorter, options, defaultOption) {
-                return {
-                    label: label,
-                    sorter: sorter,
-                    options: options,
-                    selectedOption: defaultOption
-                };
+        timetablePriorityFactory.createEarlierLaterPriority = function (label, property, defaultOption) {
+            var priority = createTimetablePriority(label);
+
+            var optionDirections = {
+                'earlier': minimize,
+                'later': maximize
             };
 
-            var minimize = function (a, b) {
-                return a - b;
+            priority.sorter = function (a, b) {
+                return optionDirections[priority.selectedOption](a[property], b[property]);
             };
 
-            var maximize = function (a, b) {
-                return -minimize(a, b);
+            priority.options = ['earlier', 'later'];
+            priority.selectedOption = defaultOption;
+
+            return priority;
+        };
+
+        timetablePriorityFactory.createDayOfWeekProperty = function (label, property) {
+            var priority = createTimetablePriority(label);
+
+
+            priority.sorter = function (a, b) {
+                var dayOfWeek = dayService.dayNameToDayOfWeek(priority.selectedOption);
+                return minimize(a[property][dayOfWeek], b[property][dayOfWeek]);
             };
 
-            var createEarlierLaterPriority = function (label, property, defaultOption) {
-                var priority = createTimetablePriority(label);
+            priority.options = dayService.days();
+            priority.selectedOption = priority.options[0];
 
-                var optionDirections = {
-                    'earlier': minimize,
-                    'later': maximize
-                };
+            return priority;
+        };
 
-                priority.sorter = function (a, b) {
-                    return optionDirections[priority.selectedOption](a[property], b[property]);
-                };
+        timetablePriorityFactory.createAllTimetablePriorities = function() {
+            var timetablePriorities = [];
 
-                priority.options = ['earlier', 'later'];
-                priority.selectedOption = defaultOption;
-
-                return priority;
-            };
-
-            var createDayOfWeekProperty = function (label, property) {
-                var priority = createTimetablePriority(label);
-
-
-                priority.sorter = function (a, b) {
-                    var dayOfWeek = dayService.dayNameToDayOfWeek(priority.selectedOption);
-                    return minimize(a[property][dayOfWeek], b[property][dayOfWeek]);
-                };
-
-                priority.options = dayService.days();
-                priority.selectedOption = priority.options[0];
-
-                return priority;
-            };
-
-
-            $scope.timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
+            timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
                 return minimize(a.daysAtUni, b.daysAtUni);
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Minimize time at uni', function (a, b) {
+            timetablePriorities.push(createTimetablePriority('Minimize time at uni', function (a, b) {
                 return minimize(a.secondsAtUni, b.secondsAtUni);
             }));
 
-            $scope.timetablePriorities.push(createTimetablePriority('Consistent start time', function (a, b) {
+            timetablePriorities.push(createTimetablePriority('Consistent start time', function (a, b) {
                 return minimize(a.startTimeVariability, b.startTimeVariability);
             }));
 
-            $scope.timetablePriorities.push(createEarlierLaterPriority("Start weekend", "weekendStartsAt", "earlier"));
-            $scope.timetablePriorities.push(createEarlierLaterPriority("Start day", "averageStartTime", "later"));
+            timetablePriorities.push(timetablePriorityFactory.createEarlierLaterPriority("Start weekend", "weekendStartsAt", "earlier"));
+            timetablePriorities.push(timetablePriorityFactory.createEarlierLaterPriority("Start day", "averageStartTime", "later"));
 
-            $scope.timetablePriorities.push(createDayOfWeekProperty("Minimize time at uni on", "secondsAtUniByDay", "later"));
+            timetablePriorities.push(timetablePriorityFactory.createDayOfWeekProperty("Minimize time at uni on", "secondsAtUniByDay", "later"));
 
-            $scope.demotePreference = function (index) {
-                if (index == $scope.timetablePriorities.length) {
-                    return;
+            return timetablePriorities;
+        };
+
+
+
+        timetablePriorityFactory.createTimetableComparator = function(priorities) {
+            return function(a, b) {
+                var difference = 0;
+
+                for (var i = 0; i < priorities.length; i++) {
+                    var priority = priorities[i];
+
+                    difference = priority.sorter(a.stats, b.stats);
+
+                    if (difference !== 0) {
+                        break;
+                    }
                 }
 
-
-                var buffer = $scope.timetablePriorities[index];
-                $scope.timetablePriorities[index] = $scope.timetablePriorities[index + 1];
-                $scope.timetablePriorities[index + 1] = buffer;
-            };
-
-            $scope.promotePreference = function (index) {
-                if (index === 0) {
-                    return;
-                }
-
-
-                var buffer = $scope.timetablePriorities[index];
-                $scope.timetablePriorities[index] = $scope.timetablePriorities[index - 1];
-                $scope.timetablePriorities[index - 1] = buffer;
+                return difference;
             };
         };
 
-        initializeTimetablePriorities();
+        return timetablePriorityFactory;
+    })
 
-        var countPossibleTimetables = function (topics) {
+    .factory('timetableSpecFactory', function() {
+        var timetableSpecFactory = {};
+
+        timetableSpecFactory.newTimetableSpec = function (classType, classGroup) {
+            return {
+                classType: classType,
+                classGroup: classGroup
+            };
+        };
+
+        return timetableSpecFactory;
+    })
+
+
+
+    .factory('timetablePossibilityFactory', function (topicService, timetableSpecFactory, clashService) {
+        var timetablePossibilityFactory = {};
+
+        timetablePossibilityFactory.countPossibleTimetables = function (topics) {
             var possibleTimetables = 1;
 
             angular.forEach(topics, function (topic) {
@@ -1044,47 +1001,29 @@ angular.module('flindersTimetable.timetable', [
         };
 
 
-        $scope.applyClassGroupSelection = function (classGroupSelection) {
-            angular.forEach(classGroupSelection, function (entry) {
-                entry.classType.activeClassGroup = entry.classGroup;
-            });
 
-            chosenTopicService.broadcastClassesUpdate();
-
-            $location.hash('show-timetable');
-            $anchorScroll();
-            $location.hash('');
-        };
-
-        var findTimetablesWithMinimumClashes = function (topics) {
+        timetablePossibilityFactory.findTimetablesWithMinimumClashes = function (topics) {
             if (topics.length === 0) {
-                return;
+                return [];
             }
-
-            var newClassGroupSelection = function (classType, classGroup) {
-                return {
-                    classType: classType,
-                    classGroup: classGroup
-                };
-            };
 
             var allClassGroups = topicService.listClassGroupsForTopics(topics);
 
-            $scope.fewestSecondsClashing = Number.MAX_VALUE;
+            var fewestSecondsClashing = Number.MAX_VALUE;
 
             var generatedTimetables = [];
 
-            var examineTimetable = function (classGroupSelections, numClashes) {
-                if (numClashes < $scope.fewestSecondsClashing) {
-                    $scope.fewestSecondsClashing = numClashes;
+
+            var examineAndAddTimetable = function (classGroupSelections, numClashes) {
+                if (numClashes < fewestSecondsClashing) {
+                    fewestSecondsClashing = numClashes;
                     generatedTimetables = [];
                 }
 
-                if (numClashes <= $scope.fewestSecondsClashing) {
+                if (numClashes <= fewestSecondsClashing) {
                     generatedTimetables.push(angular.extend({}, classGroupSelections));
                 }
             };
-
 
             var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, secondsClashesPrior) {
                 var currentClassType = remainingClassChoices.pop();
@@ -1099,13 +1038,13 @@ angular.module('flindersTimetable.timetable', [
 
 
                     // Make sure we're not exceeding our clash limit
-                    if (secondsClashesCurrent <= $scope.fewestSecondsClashing) {
+                    if (secondsClashesCurrent <= fewestSecondsClashing) {
                         // Work with this group for now
-                        previousClassGroupSelections[currentGroup.id] = newClassGroupSelection(currentClassType, currentGroup);
+                        previousClassGroupSelections[currentGroup.id] = timetableSpecFactory.newTimetableSpec(currentClassType, currentGroup);
 
                         if (remainingClassChoices.length === 0) {
                             // No more choices we can make, check if this timetable is good and move on
-                            examineTimetable(previousClassGroupSelections, secondsClashesCurrent);
+                            examineAndAddTimetable(previousClassGroupSelections, secondsClashesCurrent);
                         } else {
                             // Keep making choices until we find a working timetable
                             searchTimetables(previousClassGroupSelections, remainingClassChoices, secondsClashesCurrent);
@@ -1130,131 +1069,171 @@ angular.module('flindersTimetable.timetable', [
                 }
             });
 
-            // Keep the user informed of progress
-            var startMillis = new Date().getTime();
-
             searchTimetables(chosenClassGroups, remainingClassChoices, 0);
 
-            $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
 
-            $scope.numRefinedPossibleTimetables = generatedTimetables.length;
 
             return generatedTimetables;
         };
 
-        var sortTimetablesByPriorities = function (rawGeneratedTimetables) {
 
-            var classSessionsForClassPicks = function (classPicks) {
-                var classSessions = [];
 
-                angular.forEach(classPicks, function (classPick) {
-                    classSessions = classSessions.concat(classPick.classGroup.classSessions);
-                });
+        return timetablePossibilityFactory;
+    })
 
-                return classSessions;
-            };
 
-            var calculateTimeMetrics = function (timetable) {
-                var secondsInDay = 24 * 60 * 60;
+    .factory('timetableGeneratorService', function(dayService, arrayMath, timetablePriorityFactory, timetableSpecFactory) {
+        var timetableGeneratorService = {};
 
-                var days = { };
+        timetableGeneratorService.calculateTimeMetrics = function (timetable) {
+            var secondsInDay = 24 * 60 * 60;
 
-                var secondsOfClassesByDay = [0, 0, 0, 0, 0];
+            var days = { };
 
-                angular.forEach(timetable.classSessions, function (session) {
-                    if (typeof days[session.dayOfWeek] === "undefined") {
-                        days[session.dayOfWeek] = {
-                            secondsStartsAt: session.secondsStartsAt,
-                            secondsEndsAt: session.secondsEndsAt
-                        };
-                    }
-                    else {
-                        days[session.dayOfWeek].secondsStartsAt = Math.min(days[session.dayOfWeek].secondsStartsAt, session.secondsStartsAt);
-                        days[session.dayOfWeek].secondsEndsAt = Math.max(days[session.dayOfWeek].secondsEndsAt, session.secondsEndsAt);
-                    }
+            var secondsOfClassesByDay = [0, 0, 0, 0, 0];
 
-                    secondsOfClassesByDay[session.dayOfWeek] += session.secondsDuration;
-                });
+            angular.forEach(timetable.classSessions, function (session) {
+                if (typeof days[session.dayOfWeek] === "undefined") {
+                    days[session.dayOfWeek] = {
+                        secondsStartsAt: session.secondsStartsAt,
+                        secondsEndsAt: session.secondsEndsAt
+                    };
+                }
+                else {
+                    days[session.dayOfWeek].secondsStartsAt = Math.min(days[session.dayOfWeek].secondsStartsAt, session.secondsStartsAt);
+                    days[session.dayOfWeek].secondsEndsAt = Math.max(days[session.dayOfWeek].secondsEndsAt, session.secondsEndsAt);
+                }
 
-                var startTimes = [];
-                var endTimes = [];
-                var secondsAtUni = [0, 0, 0, 0, 0];
-                var weekendStartsAt = 0;
+                secondsOfClassesByDay[session.dayOfWeek] += session.secondsDuration;
+            });
 
-                angular.forEach(days, function (day, dayName) {
-                    var dayOfWeek = dayService.dayNameToDayOfWeek(dayName);
+            var startTimes = [];
+            var endTimes = [];
+            var secondsAtUni = [0, 0, 0, 0, 0];
+            var weekendStartsAt = 0;
 
-                    secondsAtUni[dayOfWeek] = day.secondsEndsAt - day.secondsStartsAt;
+            angular.forEach(days, function (day, dayName) {
+                var dayOfWeek = dayService.dayNameToDayOfWeek(dayName);
 
-                    startTimes.push(day.secondsStartsAt);
-                    endTimes.push(day.secondsEndsAt);
+                secondsAtUni[dayOfWeek] = day.secondsEndsAt - day.secondsStartsAt;
 
-                    weekendStartsAt = Math.max(weekendStartsAt, dayOfWeek * secondsInDay + day.secondsEndsAt);
-                });
+                startTimes.push(day.secondsStartsAt);
+                endTimes.push(day.secondsEndsAt);
 
-                var stats = {};
+                weekendStartsAt = Math.max(weekendStartsAt, dayOfWeek * secondsInDay + day.secondsEndsAt);
+            });
 
-                stats.daysAtUni = startTimes.length;
+            var stats = {};
 
-                stats.secondsOfClassesByDay = secondsOfClassesByDay;
+            stats.daysAtUni = startTimes.length;
 
-                stats.startTimes = startTimes;
-                stats.endTimes = endTimes;
+            stats.secondsOfClassesByDay = secondsOfClassesByDay;
 
-                stats.secondsAtUniByDay = secondsAtUni;
-                stats.secondsAtUni = ArrayMath.sum(secondsAtUni);
+            stats.startTimes = startTimes;
+            stats.endTimes = endTimes;
 
-                stats.earliestStartTime = ArrayMath.min(startTimes);
-                stats.latestEndTime = ArrayMath.max(endTimes);
+            stats.secondsAtUniByDay = secondsAtUni;
+            stats.secondsAtUni = arrayMath.sum(secondsAtUni);
 
-                stats.averageStartTime = ArrayMath.mean(startTimes);
-                stats.averageEndTime = ArrayMath.mean(endTimes);
+            stats.earliestStartTime = arrayMath.min(startTimes);
+            stats.latestEndTime = arrayMath.max(endTimes);
 
-                stats.startTimeVariability = ArrayMath.variability(startTimes);
-                stats.weekendStartsAt = weekendStartsAt;
+            stats.averageStartTime = arrayMath.mean(startTimes);
+            stats.averageEndTime = arrayMath.mean(endTimes);
 
-                return stats;
-            };
+            stats.startTimeVariability = arrayMath.variability(startTimes);
+            stats.weekendStartsAt = weekendStartsAt;
 
+            return stats;
+        };
+
+        timetableGeneratorService.classSessionsForClassPicks = function (classPicks) {
+            var classSessions = [];
+
+            angular.forEach(classPicks, function (classPick) {
+                classSessions = classSessions.concat(classPick.classGroup.classSessions);
+            });
+
+            return classSessions;
+        };
+
+        timetableGeneratorService.sortTimetablesByPriorities = function (generatedTimetables, priorities) {
             var timetables = [];
 
             // Wrap each timetable and calculate statistics and stuff
-            angular.forEach(rawGeneratedTimetables, function (generatedTimetable) {
+            angular.forEach(generatedTimetables, function (generatedTimetable) {
                 var timetable = {};
 
                 timetable.classPicks = generatedTimetable;
-                timetable.classSessions = classSessionsForClassPicks(generatedTimetable);
+                timetable.classSessions = timetableGeneratorService.classSessionsForClassPicks(generatedTimetable);
 
-                timetable.stats = calculateTimeMetrics(timetable);
+                timetable.stats = timetableGeneratorService.calculateTimeMetrics(timetable);
 
                 timetables.push(timetable);
             });
 
             // Sort timetables by the user-defined priorities
-            timetables.sort(function (a, b) {
-                var difference = 0;
-
-                for (var i = 0; i < $scope.timetablePriorities.length; i++) {
-                    var priority = $scope.timetablePriorities[i];
-
-                    difference = priority.sorter(a.stats, b.stats);
-
-                    if (difference !== 0) {
-                        break;
-                    }
-                }
-
-
-                return difference;
-            });
+            timetables.sort(timetablePriorityFactory.createTimetableComparator(priorities));
 
             return timetables;
         };
 
-        $scope.generateTimetables = function () {
-            allGeneratedTimetables = findTimetablesWithMinimumClashes(chosenTopics);
+        return timetableGeneratorService;
+    })
 
-            allGeneratedTimetables = sortTimetablesByPriorities(allGeneratedTimetables);
+    .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, timetablePossibilityFactory, chosenTopicService, timetablePriorityFactory, timetableGeneratorService, maxTimetablePages, timetablesPerPage) {
+        $scope.chosenTopics = chosenTopicService.getTopics();
+        $scope.numPossibleTimetables = 1;
+
+        $scope.prioritiesSortableOptions = {
+            axis: "y"
+        };
+
+        $scope.timetablePriorities = timetablePriorityFactory.createAllTimetablePriorities();
+
+
+        var allGeneratedTimetables = [];
+
+        $scope.demotePreference = function (index) {
+            if (index == $scope.timetablePriorities.length) {
+                return;
+            }
+
+            var buffer = $scope.timetablePriorities[index];
+            $scope.timetablePriorities[index] = $scope.timetablePriorities[index + 1];
+            $scope.timetablePriorities[index + 1] = buffer;
+        };
+
+        $scope.promotePreference = function (index) {
+            if (index === 0) {
+                return;
+            }
+
+
+            var buffer = $scope.timetablePriorities[index];
+            $scope.timetablePriorities[index] = $scope.timetablePriorities[index - 1];
+            $scope.timetablePriorities[index - 1] = buffer;
+        };
+
+        $scope.applyClassGroupSelection = function (classGroupSelection) {
+            angular.forEach(classGroupSelection, function (entry) {
+                entry.classType.activeClassGroup = entry.classGroup;
+            });
+
+            chosenTopicService.broadcastClassesUpdate();
+
+            $location.hash('show-timetable');
+            $anchorScroll();
+            $location.hash('');
+        };
+
+        $scope.generateTimetables = function () {
+            var startMillis = new Date().getTime();
+
+            allGeneratedTimetables = timetablePossibilityFactory.findTimetablesWithMinimumClashes(chosenTopics);
+            $scope.numRefinedPossibleTimetables = allGeneratedTimetables.length;
+
+            allGeneratedTimetables = timetableGeneratorService.sortTimetablesByPriorities(allGeneratedTimetables, $scope.timetablePriorities);
 
             $scope.topTimetableCandidates = allGeneratedTimetables;
             $scope.pageIndex = 0;
@@ -1262,13 +1241,15 @@ angular.module('flindersTimetable.timetable', [
             $scope.suggestionsPerPage = timetablesPerPage;
 
             $scope.hasGeneratedTimetables = true;
+
+            $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
         };
 
         $scope.$on('chosenTopicsUpdate', function () {
             chosenTopics = chosenTopicService.getTopics();
             $scope.hasChosenTopics = (chosenTopics.length > 0);
 
-            $scope.numPossibleTimetables = countPossibleTimetables(chosenTopics);
+            $scope.numPossibleTimetables = timetablePossibilityFactory.countPossibleTimetables(chosenTopics);
 
             $scope.hasGeneratedTimetables = false;
         });
