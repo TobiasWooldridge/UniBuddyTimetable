@@ -86,7 +86,7 @@ body {
 header.container {
   padding: 0;
 
-  @media (max-width: @screen-xs-max) {
+  @media (max-width: @screen-md-max) {
     h1 {
       padding: 0 10px;
     }
@@ -228,6 +228,8 @@ timetable, timetable-mini {
       border: @table-border-color solid;
       border-width: 1px 0;
     }
+
+    min-width: 400px;
   }
 
 
@@ -397,3 +399,9 @@ timetable, timetable-mini {
   font-style: italic;
   opacity: 0.5;
 }
+
+
+
+
+@container-tablet:             auto;
+@container-sm:                 @container-tablet;
