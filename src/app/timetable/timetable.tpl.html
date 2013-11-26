@@ -47,10 +47,15 @@
 <div class="container" ng-controller="TopicController">
     <form class="form-inline">
         <div class="page-header">
-            <h3>When are we planning for?</h3>
+            <h3>what are we planning for?</h3>
         </div>
 
         <fieldset>
+            <label class="select inline">Institution
+                <select class="form-control" disabled="disabled">
+                    <option>Flinders</option>
+                </select>
+            </label>
             <label class="select inline">Year
                 <select class="form-control" ng-model="activeYear" ng-change="updateAvailableTopics()"
                         ng-options="y as y for y in years">
@@ -98,7 +103,7 @@
                     </p>
 
                     <p ng-show="topicSearch.length < 3" class="hint hint-filter">Type a few letters of a topic code or
-                        topic name to the left to search for topics</p>
+                        topic name to the left to search for topics, e.g. "software engineering"</p>
                 </td>
 
                 <td class="action">
@@ -124,28 +129,40 @@
 
     <p>Order the below list in terms of what's important to you, most important first.</p>
 
-    <div class="page-header">
-        <h4>Sort your preference</h4>
-    </div>
-    <p>Drag the preferences to sort them</p>
 
     <div class="row">
-        <ol ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities"
-            class="col-md-8 generator-priorities">
-            <li ng-repeat="priority in timetablePriorities">
-                {{ $index + 1 }}. {{ priority.label }}
+        <div class="col-md-7 generator-priorities">
+            <div class="page-header">
+                <h4>Sort your preference</h4>
+            </div>
 
-                <select ng-show="priority.options" ng-model="priority.selectedOption"
-                        ng-options="p as p for p in priority.options">
-                </select>
+            <p>Drag the preferences to sort them</p>
+            <ol ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities">
+                <li ng-repeat="priority in timetablePriorities">
+                    {{ $index + 1 }}. {{ priority.label }}
 
-                <span class="hint" ng-show="$first">(Most important)</span>
-                <span class="hint" ng-show="$last">(Least important)</span>
+                    <select ng-show="priority.options" ng-model="priority.selectedOption"
+                            ng-options="p as p for p in priority.options">
+                    </select>
 
-                <span class="glyphicon glyphicon-arrow-down pull-right" ng-click="demotePreference($index)"></span>
-                <span class="glyphicon glyphicon-arrow-up pull-right" ng-click="promotePreference($index)"></span>
-            </li>
-        </ol>
+                    <span class="hint" ng-show="$first">(Most important)</span>
+                    <span class="hint" ng-show="$last">(Least important)</span>
+
+                    <span class="glyphicon glyphicon-arrow-down pull-right"
+                          ng-click="movePreference($index, 1)"></span>
+                    <span class="glyphicon glyphicon-arrow-up pull-right" ng-click="movePreference($index, -1)"></span>
+                </li>
+            </ol>
+        </div>
+        <div class="col-md-5 generator-configuration">
+            <div class="page-header">
+                <h4>Generator Settings</h4>
+            </div>
+            <form>
+                <label><input type="checkbox" value="{{ config.avoidFullClasses }}"> Avoid Full Classes</label>
+            </form>
+
+        </div>
     </div>
 
     <div ng-show="!generatingTimetables">
@@ -225,13 +242,17 @@
                 <h4>{{ topic.code }} {{ topic.name }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
-                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) / 60}}
-                        minutes)</h5>
+                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) /
+                        60}} minutes)</h5>
 
-                    <div ng-show="class.classGroups" class="list-group">
-                        <a ng-repeat="classGroup in class.classGroups" class="list-group-item"
-                           ng-class="{ active: (classGroup == class.activeClassGroup) }"
+                    <div ng-show="class.classGroups" class="list-group class-group">
+                        <a ng-repeat="classGroup in class.classGroups" class="list-group-item class-session"
+                           ng-class="{ active: (classGroup == class.activeClassGroup), full: classGroup.full }"
                            ng-click="(class.activeClassGroup = classGroup) && broadcastClassesUpdate()">
+
+                            <span class="full pull-right" ng-show="classGroup.full">
+                                <span class="glyphicon glyphicon-warning-sign" ng-show="classGroup.full"></span> Full
+                            </span>
                             <p class="list-group-item-text"
                                ng-repeat="classSession in classGroup.classSessions">
                                 {{ classSession.dayOfWeek }} {{ classSession.timeStartsAt }}

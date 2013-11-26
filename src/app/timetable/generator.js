@@ -1,7 +1,18 @@
 angular.module('flindersTimetable.generator', [])
+    /**
+     * Factory for creating one or many TimetablePrioritys, which are ways to comparing two Timetables.
+     */
     .factory('timetablePriorityFactory', function (dayService) {
         var timetablePriorityFactory = {};
 
+        /**
+         * Create a TimetablePriority
+         * @param label The text that'll be displayed for this TimetablePriority
+         * @param sorter The method this TimetablePriority will compare timetables by
+         * @param options The options that will be shown in a dropdown for this TimetablePriority
+         * @param defaultOption The option which will be selected by default for this TimetablePriority
+         * @returns TimetablePriority
+         */
         var createTimetablePriority = function (label, sorter, options, defaultOption) {
             return {
                 label: label,
@@ -19,6 +30,14 @@ angular.module('flindersTimetable.generator', [])
             return -minimize(a, b);
         };
 
+        /**
+         * Create a timetablePriority which can be configured for 'earlier' or 'later' by the user
+         *
+         * @param label The name of the priority. Should be an incomplete sentence that can be ended by 'earlier' or 'later'
+         * @param property The stat to sort timetables by based on this earlier/later value
+         * @param defaultOption The default value (earlier/later) for this prioritys
+         * @returns TimetablePriority
+         */
         timetablePriorityFactory.createEarlierLaterPriority = function (label, property, defaultOption) {
             var priority = createTimetablePriority(label);
 
@@ -37,6 +56,13 @@ angular.module('flindersTimetable.generator', [])
             return priority;
         };
 
+        /**
+         * Create a timetablePriority which can be configured for some day of week by the user
+         *
+         * @param label The name of the priority. Should be an incomplete sentence that can be ended by a day of week
+         * @param property The stat to sort timetables by based on this day value
+         * @returns TimetablePriority
+         */
         timetablePriorityFactory.createDayOfWeekProperty = function (label, property) {
             var priority = createTimetablePriority(label);
 
@@ -52,6 +78,10 @@ angular.module('flindersTimetable.generator', [])
             return priority;
         };
 
+        /**
+         * Create a list containing one of every timetablePriority
+         * @returns {Array} of timetablePrioritys
+         */
         timetablePriorityFactory.createAllTimetablePriorities = function() {
             var timetablePriorities = [];
 
@@ -76,7 +106,12 @@ angular.module('flindersTimetable.generator', [])
         };
 
 
-
+        /**
+         * Create a method which compares two timetables for the purposes of sorting, based on the list of priorities provided.
+         *
+         * @param An ordered list of priorities to sort by (highest preference at start)
+         * @returns {Function} which can be used to compare two timetables with stats
+         */
         timetablePriorityFactory.createTimetableComparator = function(priorities) {
             return function(a, b) {
                 var difference = 0;
@@ -156,6 +191,12 @@ angular.module('flindersTimetable.generator', [])
                 }
             };
 
+            /**
+             * Recursive method used for enumerating every possible timetable. Uses 'secondsClashesPrior' to skip some timetables where sensible.
+             * @param previousClassGroupSelections
+             * @param remainingClassChoices
+             * @param secondsClashesPrior
+             */
             var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, secondsClashesPrior) {
                 var currentClassType = remainingClassChoices.pop();
 
@@ -202,12 +243,8 @@ angular.module('flindersTimetable.generator', [])
 
             searchTimetables(chosenClassGroups, remainingClassChoices, 0);
 
-
-
             return generatedTimetables;
         };
-
-
 
         return timetablePossibilityFactory;
     })

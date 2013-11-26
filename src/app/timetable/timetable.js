@@ -874,6 +874,10 @@ angular.module('flindersTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
 
+        $scope.config = {
+            avoidFullClasses : true
+        };
+
         $scope.prioritiesSortableOptions = {
             axis: "y"
         };
@@ -883,26 +887,16 @@ angular.module('flindersTimetable.timetable', [
 
         var allGeneratedTimetables = [];
 
-        $scope.demotePreference = function (index) {
-            if (index == $scope.timetablePriorities.length) {
-                return;
-            }
+        $scope.movePreference = function(index, movement) {
+            var destination = index + movement;
 
-            var buffer = $scope.timetablePriorities[index];
-            $scope.timetablePriorities[index] = $scope.timetablePriorities[index + 1];
-            $scope.timetablePriorities[index + 1] = buffer;
+            if (destination >= 0 && destination <= $scope.timetablePriorities.length) {
+                var buffer = $scope.timetablePriorities[index];
+                $scope.timetablePriorities[index] = $scope.timetablePriorities[destination];
+                $scope.timetablePriorities[destination] = buffer;
+            }
         };
 
-        $scope.promotePreference = function (index) {
-            if (index === 0) {
-                return;
-            }
-
-
-            var buffer = $scope.timetablePriorities[index];
-            $scope.timetablePriorities[index] = $scope.timetablePriorities[index - 1];
-            $scope.timetablePriorities[index - 1] = buffer;
-        };
 
         $scope.applyClassGroupSelection = function (classGroupSelection) {
             angular.forEach(classGroupSelection, function (entry) {
@@ -919,7 +913,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.generateTimetables = function () {
             var startMillis = new Date().getTime();
 
-            allGeneratedTimetables = timetablePossibilityFactory.findTimetablesWithMinimumClashes(chosenTopics);
+            allGeneratedTimetables = timetablePossibilityFactory.findTimetablesWithMinimumClashes(chosenTopics, $scope.config);
             $scope.numRefinedPossibleTimetables = allGeneratedTimetables.length;
 
             allGeneratedTimetables = timetableGeneratorService.sortTimetablesByPriorities(allGeneratedTimetables, $scope.timetablePriorities);

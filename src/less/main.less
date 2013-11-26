@@ -10,7 +10,7 @@
   background: darken(@color, 2%);
   background-image: linear-gradient(to bottom, lighten(@color, 2%) 0%, darken(@color, 5%) 100%);
   color: #FFFFFF !important;
-  text-shadow: 0px 0px 5px darken(@color, 30%);
+  text-shadow: 0px 0px 5px darken(@color, 20%);
 }
 
 .booking.topic-0, .topic.topic-0 .active {
@@ -113,7 +113,7 @@ header.container {
   margin: 20px 0 10px;
 }
 
-.generator-priorities {
+.generator-priorities ol {
   margin: 10px 15px;
 }
 .generator-priorities li {
@@ -149,7 +149,7 @@ a.list-group-item {
   padding: 5px 15px;
 }
 
-.list-group-item.active .list-group-item-text, .list-group-item.active:hover .list-group-item-text, .list-group-item.active:focus .list-group-item-text, .active a.list-group-item {
+.list-group-item.active .list-group-item-text, .list-group-item.active:hover .list-group-item-text, .list-group-item.active:focus .list-group-item-text, .active a.list-group-item, a.list-group-item.active .list-group-item-text, a.list-group-item.active:hover .list-group-item-text, a.list-group-item.active:focus .list-group-item-text {
   color: #fff;
   margin-bottom: 0;
 
@@ -399,6 +399,14 @@ timetable, timetable-mini {
 }
 
 
+
+.class-session .full {
+  .glyphicon {
+    font-weight: normal;
+    font-weight: 100;
+    padding-top: 0.4em;
+  }
+}
 
 
 @container-tablet:             auto;
