@@ -168,7 +168,13 @@ angular.module('flindersTimetable.generator', [])
 
 
 
-        timetablePossibilityFactory.findTimetablesWithMinimumClashes = function (topics) {
+        timetablePossibilityFactory.findTimetablesWithMinimumClashes = function (topics, config) {
+            // Add in default config values if they're undefined
+            config = angular.extend({
+                avoidFull : true
+            }, config);
+
+
             if (topics.length === 0) {
                 return [];
             }
@@ -200,7 +206,21 @@ angular.module('flindersTimetable.generator', [])
             var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, secondsClashesPrior) {
                 var currentClassType = remainingClassChoices.pop();
 
-                angular.forEach(currentClassType.classGroups, function (currentGroup) {
+                var eligibleGroups = [];
+
+                if (config.avoidFull) {
+                    angular.forEach(currentClassType.classGroups, function(currentGroup) {
+                        if (!currentGroup.full) {
+                            eligibleGroups.push(currentGroup);
+                        }
+                    });
+                }
+
+                if (eligibleGroups.length === 0) {
+                    eligibleGroups = currentClassType.classGroups;
+                }
+
+                angular.forEach(eligibleGroups, function (currentGroup) {
                     var secondsClashesCurrent = secondsClashesPrior;
 
                     angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {

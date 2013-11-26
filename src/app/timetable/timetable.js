@@ -875,7 +875,7 @@ angular.module('flindersTimetable.timetable', [
         $scope.numPossibleTimetables = 1;
 
         $scope.config = {
-            avoidFullClasses : true
+            avoidFull : true
         };
 
         $scope.prioritiesSortableOptions = {
