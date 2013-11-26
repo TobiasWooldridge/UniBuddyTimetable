@@ -113,33 +113,53 @@ header.container {
   margin: 20px 0 10px;
 }
 
-.generator-priorities ol {
-  margin: 10px 15px;
-}
-.generator-priorities li {
-  cursor: move;
-  padding: 10px;
-  list-style: none;
-  border: 1px solid @list-group-border;
-  margin-top: -1px;
-
-  &:hover, &.ui-sortable-helper {
-    background: #EEE;
-
-    & .hint {
-      display: none;
-    }
+.generator-priorities {
+  ol {
+    padding: 0;
+    margin: 10px 15px;
   }
 
-  .glyphicon {
-    cursor: pointer;
-    padding: 0 10px;
+  li {
+    cursor: move;
+    padding: 10px;
+    list-style: none;
+    border: 1px solid @list-group-border;
+    margin-top: -1px;
 
-    &.glyphicon-arrow-up {
-      color: @btn-success-bg;
+    &:hover, &.ui-sortable-helper {
+      background: #EEE;
+
+      & .hint {
+        display: none;
+      }
     }
-    &.glyphicon-arrow-down {
-      color: @btn-danger-bg;
+
+    .glyphicon {
+      cursor: pointer;
+      padding: 0 10px;
+
+      &.glyphicon-arrow-up {
+        color: @btn-success-bg;
+      }
+      &.glyphicon-arrow-down {
+        color: @btn-danger-bg;
+      }
+    }
+  }
+}
+
+.generator-configuration {
+  label {
+    font-weight: normal;
+  }
+
+  ul {
+    padding: 0;
+    margin: 10px 15px;
+
+    li {
+      list-style: none inside;
+      padding: 0 0 5px;
     }
   }
 }

@@ -171,7 +171,8 @@ angular.module('flindersTimetable.generator', [])
         timetablePossibilityFactory.findTimetablesWithMinimumClashes = function (topics, config) {
             // Add in default config values if they're undefined
             config = angular.extend({
-                avoidFull : true
+                avoidFull : true,
+                clashAllowance : 0
             }, config);
 
 
@@ -182,19 +183,46 @@ angular.module('flindersTimetable.generator', [])
             var allClassGroups = topicService.listClassGroupsForTopics(topics);
 
             var fewestSecondsClashing = Number.MAX_VALUE;
+            var allowedSecondsClashing = Number.MAX_VALUE;
 
             var generatedTimetables = [];
 
 
-            var examineAndAddTimetable = function (classGroupSelections, numClashes) {
-                if (numClashes < fewestSecondsClashing) {
-                    fewestSecondsClashing = numClashes;
-                    generatedTimetables = [];
+            var examineAndAddTimetable = function (classGroupSelections, secondsOfClashes) {
+                if (secondsOfClashes < fewestSecondsClashing) {
+                    fewestSecondsClashing = secondsOfClashes;
+                    allowedSecondsClashing = fewestSecondsClashing + config.clashAllowance;
+
+                    // Remove all previously generated timetables with too many seconds of clashes
+                    var limitedGeneratedTimetables = [];
+
+                    angular.forEach(generatedTimetables, function(generatedTimetable) {
+                        if (generatedTimetable.secondsOfClashes <= allowedSecondsClashing) {
+                            limitedGeneratedTimetables.push(generatedTimetable);
+                        }
+                    });
+
+                    generatedTimetables = limitedGeneratedTimetables;
                 }
 
-                if (numClashes <= fewestSecondsClashing) {
-                    generatedTimetables.push(angular.extend({}, classGroupSelections));
+                if (secondsOfClashes <= allowedSecondsClashing) {
+                    generatedTimetables.push({
+                        secondsOfClashes : secondsOfClashes,
+                        selections : angular.extend({}, classGroupSelections)
+                    });
                 }
+            };
+
+            var filterOutFullGroups = function (groups) {
+                var openGroups = [];
+
+                angular.forEach(groups, function(currentGroup) {
+                    if (!currentGroup.full) {
+                        openGroups.push(currentGroup);
+                    }
+                });
+
+                return openGroups;
             };
 
             /**
@@ -209,11 +237,7 @@ angular.module('flindersTimetable.generator', [])
                 var eligibleGroups = [];
 
                 if (config.avoidFull) {
-                    angular.forEach(currentClassType.classGroups, function(currentGroup) {
-                        if (!currentGroup.full) {
-                            eligibleGroups.push(currentGroup);
-                        }
-                    });
+                    eligibleGroups = filterOutFullGroups(currentClassType.classGroups);
                 }
 
                 if (eligibleGroups.length === 0) {
@@ -230,7 +254,7 @@ angular.module('flindersTimetable.generator', [])
 
 
                     // Make sure we're not exceeding our clash limit
-                    if (secondsClashesCurrent <= fewestSecondsClashing) {
+                    if (secondsClashesCurrent <= allowedSecondsClashing) {
                         // Work with this group for now
                         previousClassGroupSelections[currentGroup.id] = timetableSpecFactory.newTimetableSpec(currentClassType, currentGroup);
 
@@ -263,7 +287,15 @@ angular.module('flindersTimetable.generator', [])
 
             searchTimetables(chosenClassGroups, remainingClassChoices, 0);
 
-            return generatedTimetables;
+
+
+            var timetables = [];
+
+            angular.forEach(generatedTimetables, function(generatedTimetable) {
+                timetables.push(generatedTimetable.selections);
+            });
+
+            return timetables;
         };
 
         return timetablePossibilityFactory;

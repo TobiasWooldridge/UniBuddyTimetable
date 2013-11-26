@@ -159,7 +159,12 @@
                 <h4>Generator Settings</h4>
             </div>
             <form>
-                <label><input type="checkbox" ng-model="config.avoidFull"> Avoid Full Classes</label>
+                <ul>
+                    <li><label>Avoid Full Classes <input type="checkbox" ng-model="config.avoidFull"> </label></li>
+                    <li><label>Allow <select ng-model="config.clashAllowance"
+                                             ng-options="a as a|secondsToHours for a in clashAllowanceChoices"></select>
+                        of avoidable clashes</label></li>
+                </ul>
             </form>
 
         </div>
@@ -177,9 +182,7 @@
 
     <div ng-show="hasGeneratedTimetables" class="generated-timetables">
         <hr/>
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables with the fewest possible
-            clashes.<!--{{ ( 0 +
-            fewestSecondsClashing) | secondsToHours }} hours of unavoidable clashes.--></p>
+        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables meeting your criteria.
 
         <p>This took {{ examineDuration }} seconds.</p>
 
@@ -197,7 +200,7 @@
             <tbody>
             <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
                 <td>
-                    {{ candidate.stats.secondsAtUni | secondsToHours }} hours
+                    {{ candidate.stats.secondsAtUni | secondsToHours }}
                 </td>
                 <td>
                     {{ candidate.stats.earliestStartTime | secondsToTime }}
@@ -242,8 +245,8 @@
                 <h4>{{ topic.code }} {{ topic.name }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
-                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) /
-                        60}} minutes)</h5>
+                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) |
+                        secondsToHours }})</h5>
 
                     <div ng-show="class.classGroups" class="list-group class-group">
                         <a ng-repeat="classGroup in class.classGroups" class="list-group-item class-session"
