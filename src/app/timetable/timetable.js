@@ -7,10 +7,10 @@ angular.module('flindersTimetable.timetable', [
     ])
 
     .constant('times', {
-        years: [2011, 2012, 2013],
-        defaultYear: 2013,
+        years: [2011, 2012, 2013, 2014],
+        defaultYear: 2014,
         semesters: ["S1", "NS1", "S2", "NS2"],
-        defaultSemester: "S2"
+        defaultSemester: "S1"
     })
 
     .constant('timetablesPerPage', 5)
