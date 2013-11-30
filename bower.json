@@ -1,6 +1,6 @@
 {
     "name": "FlindersTimetable",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "devDependencies": {
         "angular": "~1.0.7",
         "angular-mocks": "~1.0.7",
