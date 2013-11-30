@@ -106,9 +106,21 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
+    .filter('formatDateTime', function (moment) {
+        return function (date) {
+            return moment(date, "YYYY-MM-DD h a").format("h A on MMM Do YYYY");
+        };
+    })
+
+    .filter('inAWeek', function (moment) {
+        return function (date) {
+            return moment(date, "YYYY-MM-DD h a").add('days', 7).format("YYYY-MM-DD h a");
+        };
+    })
+
     .filter('timeDistance', function (moment) {
         return function (date) {
-            return moment(date, "YYYY-MM-DD h a Z").fromNow();
+            return moment(date, "YYYY-MM-DD h a").fromNow();
         };
     })
 

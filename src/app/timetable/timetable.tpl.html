@@ -231,22 +231,15 @@
 
 <div class="container" ng-controller="EnrolmentController" ng-show="chosenTopics.length">
     <div class="page-header">
-        <h3>Your Class Choices</h3>
+        <h3>Your Enrolment Dates</h3>
     </div>
-    <div class="row">
-        <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded" class="col-md-3">
-            <h4>{{ topic.code }} <small>{{ topic.name }}</small></h4>
-
-            <p>Enrolment should open <strong>{{ topic.enrolmentOpens + " 10 AM +10:30" | timeDistance }}</strong> at 10 AM on {{ topic.enrolmentOpens }}</p>
-
-            <ul ng-show="topic.classes">
-                <li ng-repeat="class in topic.classes" ng-show="class.classGroups.length > 1">
-                    {{ class.name }} #{{ class.activeClassGroup.groupId }}
-                </li>
-            </ul>
-        </div>
-    </div>
-    <p>To be sure enrolment dates are correct, check the university's official page
+    <ul>
+    <li ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded">
+        For <strong>{{ topic.code }}</strong>, topic enrolment opens {{ topic.enrolmentOpens + " 10 AM" | formatDateTime }} and class enrolment opens <strong>{{ topic.enrolmentOpens + " 10 AM" | inAWeek | formatDateTime }} ({{ topic.enrolmentOpens + " 10 AM" | inAWeek | timeDistance }})</strong></p>
+    </li>
+    </ul>
+    <br />
+    <p class="small">Make sure enrolment dates are correct by checking the university's official page
         <a href="http://www.flinders.edu.au/enrolling/enrolment-and-registration/class-reg.cfm">here</a>.</p>
 </div>
 
