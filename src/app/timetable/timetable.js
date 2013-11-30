@@ -106,6 +106,12 @@ angular.module('flindersTimetable.timetable', [
         };
     })
 
+    .filter('timeDistance', function (moment) {
+        return function (date) {
+            return moment(date, "YYYY-MM-DD h a Z").fromNow();
+        };
+    })
+
     .filter('secondsToHours', function (moment) {
         return function (number) {
             var duration = moment.duration(number * 1000);
@@ -873,6 +879,10 @@ angular.module('flindersTimetable.timetable', [
             // TODO: Remove this hack, make getTopics() return a new instance of the array every time.
             $scope.chosenTopics = chosenTopicService.getTopics().slice(0);
         });
+    })
+
+    .controller('EnrolmentController', function ($scope, chosenTopicService, displayableTimetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
+        $scope.chosenTopics = chosenTopicService.getTopics();
     })
 
 

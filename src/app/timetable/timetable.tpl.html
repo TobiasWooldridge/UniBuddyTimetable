@@ -47,7 +47,7 @@
 <div class="container" ng-controller="TopicController">
     <form class="form-inline">
         <div class="page-header">
-            <h3>what are we planning for?</h3>
+            <h3>What are we planning for?</h3>
         </div>
 
         <fieldset>
@@ -170,14 +170,10 @@
         </div>
     </div>
 
-    <div ng-show="!generatingTimetables">
+    <div>
         <p>
             <button class="btn btn-primary" ng-click="generateTimetables()">Generate Timetables</button>
         </p>
-    </div>
-
-    <div ng-show="!hasGeneratedTimetables && generatingTimetables">
-        <p>Generating timetables</p>
     </div>
 
     <div ng-show="hasGeneratedTimetables" class="generated-timetables">
@@ -233,6 +229,25 @@
     <timetable topics="chosenTopics" class-selections="" class="normal"></timetable>
 </div>
 
+<div class="container" ng-controller="EnrolmentController" ng-show="chosenTopics.length">
+    <div class="page-header">
+        <h3>Your Class Choices</h3>
+    </div>
+    <div class="row">
+        <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded" class="col-md-3">
+            <h4>{{ topic.code }} <small>{{ topic.name }}</small></h4>
+
+            <p>Enrolment opens <strong>{{ topic.enrolmentOpens + " 10 AM +10:30" | timeDistance }}</strong></p>
+
+            <ul ng-show="topic.classes">
+                <li ng-repeat="class in topic.classes" ng-show="class.classGroups.length > 1">
+                    {{ class.name }} #{{ class.activeClassGroup.groupId }}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <div class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
     <div class="chosen-topics">
         <div class="page-header">
@@ -242,7 +257,7 @@
         <div class="row">
             <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded"
                  class="col-md-3 topic topic-{{topic.getHash() % 16}}">
-                <h4>{{ topic.code }} {{ topic.name }}</h4>
+                <h4>{{ topic.code }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
                     <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) |
