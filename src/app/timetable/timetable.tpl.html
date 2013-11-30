@@ -237,7 +237,7 @@
         <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded" class="col-md-3">
             <h4>{{ topic.code }} <small>{{ topic.name }}</small></h4>
 
-            <p>Enrolment opens <strong>{{ topic.enrolmentOpens + " 10 AM +10:30" | timeDistance }}</strong></p>
+            <p>Enrolment should open <strong>{{ topic.enrolmentOpens + " 10 AM +10:30" | timeDistance }}</strong> at 10 AM on {{ topic.enrolmentOpens }}</p>
 
             <ul ng-show="topic.classes">
                 <li ng-repeat="class in topic.classes" ng-show="class.classGroups.length > 1">
@@ -246,6 +246,8 @@
             </ul>
         </div>
     </div>
+    <p>To be sure enrolment dates are correct, check the university's official page
+        <a href="http://www.flinders.edu.au/enrolling/enrolment-and-registration/class-reg.cfm">here</a>.</p>
 </div>
 
 <div class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
