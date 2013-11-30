@@ -1,7 +1,7 @@
 angular.module('flindersTimetable.generator', [])
-    /**
-     * Factory for creating one or many TimetablePrioritys, which are ways to comparing two Timetables.
-     */
+/**
+ * Factory for creating one or many TimetablePrioritys, which are ways to comparing two Timetables.
+ */
     .factory('timetablePriorityFactory', function (dayService) {
         var timetablePriorityFactory = {};
 
@@ -82,7 +82,7 @@ angular.module('flindersTimetable.generator', [])
          * Create a list containing one of every timetablePriority
          * @returns {Array} of timetablePrioritys
          */
-        timetablePriorityFactory.createAllTimetablePriorities = function() {
+        timetablePriorityFactory.createAllTimetablePriorities = function () {
             var timetablePriorities = [];
 
             timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
@@ -112,8 +112,8 @@ angular.module('flindersTimetable.generator', [])
          * @param An ordered list of priorities to sort by (highest preference at start)
          * @returns {Function} which can be used to compare two timetables with stats
          */
-        timetablePriorityFactory.createTimetableComparator = function(priorities) {
-            return function(a, b) {
+        timetablePriorityFactory.createTimetableComparator = function (priorities) {
+            return function (a, b) {
                 var difference = 0;
 
                 for (var i = 0; i < priorities.length; i++) {
@@ -133,7 +133,7 @@ angular.module('flindersTimetable.generator', [])
         return timetablePriorityFactory;
     })
 
-    .factory('timetableSpecFactory', function() {
+    .factory('timetableSpecFactory', function () {
         var timetableSpecFactory = {};
 
         timetableSpecFactory.newTimetableSpec = function (classType, classGroup) {
@@ -145,7 +145,6 @@ angular.module('flindersTimetable.generator', [])
 
         return timetableSpecFactory;
     })
-
 
 
     .factory('timetablePossibilityFactory', function (topicService, timetableSpecFactory, clashService) {
@@ -167,12 +166,11 @@ angular.module('flindersTimetable.generator', [])
         };
 
 
-
         timetablePossibilityFactory.findTimetablesWithMinimumClashes = function (topics, config) {
             // Add in default config values if they're undefined
             config = angular.extend({
-                avoidFull : true,
-                clashAllowance : 0
+                avoidFull: true,
+                clashAllowance: 0
             }, config);
 
 
@@ -196,7 +194,7 @@ angular.module('flindersTimetable.generator', [])
                     // Remove all previously generated timetables with too many seconds of clashes
                     var limitedGeneratedTimetables = [];
 
-                    angular.forEach(generatedTimetables, function(generatedTimetable) {
+                    angular.forEach(generatedTimetables, function (generatedTimetable) {
                         if (generatedTimetable.secondsOfClashes <= allowedSecondsClashing) {
                             limitedGeneratedTimetables.push(generatedTimetable);
                         }
@@ -207,8 +205,8 @@ angular.module('flindersTimetable.generator', [])
 
                 if (secondsOfClashes <= allowedSecondsClashing) {
                     generatedTimetables.push({
-                        secondsOfClashes : secondsOfClashes,
-                        selections : angular.extend({}, classGroupSelections)
+                        secondsOfClashes: secondsOfClashes,
+                        selections: angular.extend({}, classGroupSelections)
                     });
                 }
             };
@@ -216,7 +214,7 @@ angular.module('flindersTimetable.generator', [])
             var filterOutFullGroups = function (groups) {
                 var openGroups = [];
 
-                angular.forEach(groups, function(currentGroup) {
+                angular.forEach(groups, function (currentGroup) {
                     if (!currentGroup.full) {
                         openGroups.push(currentGroup);
                     }
@@ -288,10 +286,9 @@ angular.module('flindersTimetable.generator', [])
             searchTimetables(chosenClassGroups, remainingClassChoices, 0);
 
 
-
             var timetables = [];
 
-            angular.forEach(generatedTimetables, function(generatedTimetable) {
+            angular.forEach(generatedTimetables, function (generatedTimetable) {
                 timetables.push(generatedTimetable.selections);
             });
 
@@ -302,7 +299,7 @@ angular.module('flindersTimetable.generator', [])
     })
 
 
-    .factory('timetableGeneratorService', function(dayService, arrayMath, timetablePriorityFactory, timetableSpecFactory) {
+    .factory('timetableGeneratorService', function (dayService, arrayMath, timetablePriorityFactory, timetableSpecFactory) {
         var timetableGeneratorService = {};
 
         timetableGeneratorService.calculateTimeMetrics = function (timetable) {

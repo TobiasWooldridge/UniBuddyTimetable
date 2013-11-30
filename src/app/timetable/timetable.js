@@ -117,7 +117,7 @@ angular.module('flindersTimetable.timetable', [
                 minutes = "00";
             }
 
-            var timeInHours =  hours + ":" + minutes + " hour" + (hours !== '1' ? 's' : '');
+            var timeInHours = hours + ":" + minutes + " hour" + (hours !== '1' ? 's' : '');
 
             return timeInHours;
         };
@@ -876,15 +876,13 @@ angular.module('flindersTimetable.timetable', [
     })
 
 
-
-
     .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, timetablePossibilityFactory, chosenTopicService, timetablePriorityFactory, timetableGeneratorService, maxTimetablePages, timetablesPerPage) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
 
         $scope.config = {
-            avoidFull : true,
-            clashAllowance : 0
+            avoidFull: true,
+            clashAllowance: 0
         };
 
         var HOUR = 3600;
@@ -899,7 +897,7 @@ angular.module('flindersTimetable.timetable', [
 
         var allGeneratedTimetables = [];
 
-        $scope.movePreference = function(index, movement) {
+        $scope.movePreference = function (index, movement) {
             var destination = index + movement;
 
             if (destination >= 0 && destination <= $scope.timetablePriorities.length) {
