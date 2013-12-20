@@ -8,9 +8,9 @@ angular.module('flindersTimetable.generator', [])
         /**
          * Create a TimetablePriority
          * @param label The text that'll be displayed for this TimetablePriority
-         * @param sorter The method this TimetablePriority will compare timetables by
-         * @param options The options that will be shown in a dropdown for this TimetablePriority
-         * @param defaultOption The option which will be selected by default for this TimetablePriority
+         * @param [sorter] The method this TimetablePriority will compare timetables by
+         * @param [options] The options that will be shown in a dropdown for this TimetablePriority
+         * @param [defaultOption] The option which will be selected by default for this TimetablePriority
          * @returns TimetablePriority
          */
         var createTimetablePriority = function (label, sorter, options, defaultOption) {
@@ -109,7 +109,7 @@ angular.module('flindersTimetable.generator', [])
         /**
          * Create a method which compares two timetables for the purposes of sorting, based on the list of priorities provided.
          *
-         * @param An ordered list of priorities to sort by (highest preference at start)
+         * @param priorities An ordered list of priorities to sort by (highest preference at start)
          * @returns {Function} which can be used to compare two timetables with stats
          */
         timetablePriorityFactory.createTimetableComparator = function (priorities) {
@@ -178,13 +178,10 @@ angular.module('flindersTimetable.generator', [])
                 return [];
             }
 
-            var allClassGroups = topicService.listClassGroupsForTopics(topics);
-
             var fewestSecondsClashing = Number.MAX_VALUE;
             var allowedSecondsClashing = Number.MAX_VALUE;
 
             var generatedTimetables = [];
-
 
             var examineAndAddTimetable = function (classGroupSelections, secondsOfClashes) {
                 if (secondsOfClashes < fewestSecondsClashing) {
@@ -246,8 +243,7 @@ angular.module('flindersTimetable.generator', [])
                     var secondsClashesCurrent = secondsClashesPrior;
 
                     angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {
-                        var classGroupSecondsClashing = clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup);
-                        secondsClashesCurrent += classGroupSecondsClashing;
+                        secondsClashesCurrent += clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup);
                     });
 
 
@@ -299,7 +295,7 @@ angular.module('flindersTimetable.generator', [])
     })
 
 
-    .factory('timetableGeneratorService', function (dayService, arrayMath, timetablePriorityFactory, timetableSpecFactory) {
+    .factory('timetableGeneratorService', function (dayService, arrayMath, timetablePriorityFactory) {
         var timetableGeneratorService = {};
 
         timetableGeneratorService.calculateTimeMetrics = function (timetable) {

@@ -3,18 +3,9 @@ angular.module('flindersTimetable.timetable', [
         'ui.sortable',
         'flap.topics',
         'arrayMath',
-        'flindersTimetable.generator'
+        'flindersTimetable.generator',
+        'flindersTimetable.config'
     ])
-
-    .constant('times', {
-        years: [2011, 2012, 2013, 2014],
-        defaultYear: 2014,
-        semesters: ["S1", "NS1", "S2", "NS2"],
-        defaultSemester: "S1"
-    })
-
-    .constant('timetablesPerPage', 5)
-    .constant('maxTimetablePages', 10)
 
     .config(function config($stateProvider) {
         $stateProvider.state('home', {
@@ -135,9 +126,7 @@ angular.module('flindersTimetable.timetable', [
                 minutes = "00";
             }
 
-            var timeInHours = hours + ":" + minutes + " hour" + (hours !== '1' ? 's' : '');
-
-            return timeInHours;
+            return hours + ":" + minutes + " hour" + (hours !== '1' ? 's' : '');
         };
     })
 
@@ -488,9 +477,6 @@ angular.module('flindersTimetable.timetable', [
 
                 if (broadcast) {
                     that.broadcastTopicsUpdate();
-                }
-                else {
-                    dirty = true;
                 }
             }
         };

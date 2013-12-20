@@ -62,8 +62,7 @@
                 </select>
             </label>
             <label class="select inline">Semester
-                <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()"
-                        ng-options="s as s for s in semesters">
+                <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()" ng-options="friendly for (friendly, query) in semesters">
                 </select>
             </label>
         </fieldset>
@@ -98,7 +97,7 @@
                             class="ajax-loader"/>
                     </span>
                         <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
-                                ng-options="t as t.code + ' ' + t.name + ' ' for t in availableTopics | filter: searchTopics | limitTo: 100">
+                                ng-options="t as t.code + ' ' + t.name + ' (' + t.semester + ')' for t in availableTopics | filter: searchTopics | limitTo: 100">
                         </select>
                     </p>
 
