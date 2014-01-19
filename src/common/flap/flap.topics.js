@@ -17,8 +17,8 @@ angular.module( 'flap.topics', [
                     else if (classType.classGroups.length <= 1) {
                     }
                     else {
-                        serial += firstClass ? "-(" : "-";
-                        serial += classType.id + '-' + classType.activeClassGroup.groupId;
+                        serial += firstClass ? "(" : "_";
+                        serial += classType.id + '.' + classType.activeClassGroup.groupId;
 
                         firstClass = false;
                     }
@@ -114,18 +114,17 @@ angular.module( 'flap.topics', [
 
             var hasActivities = (bracketSets !== null);
 
+            var classSelections = {};
+
             if (hasActivities) {
-                var getClassesRegex = /([(A-Za-z]+)([0-9]+)-?/g;
-                var classSelections = {};
+                var getClassesRegex = /([(0-9]+)\.([0-9]+)-?/g;
 
                 while (classSelection = getClassesRegex.exec(bracketSets[1])) {
                     classSelections[classSelection[1]] = classSelection[2];
                 }
             }
 
-            console.log(topicSerial, topic.id, bracketSets);
-
-
+            console.log(topicSerial, topic.id, bracketSets, classSelections);
 
             angular.extend(topic, baseTopic);
 
