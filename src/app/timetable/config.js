@@ -1,4 +1,4 @@
-angular.module('flindersTimetable.config', [])
+angular.module('unibuddyTimetable.config', [])
     .constant('times', {
         years: [ 2011, 2012, 2013, 2014 ],
         defaultYear: 2014,

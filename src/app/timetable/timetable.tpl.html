@@ -51,7 +51,7 @@
         </div>
 
         <fieldset>
-            <label class="select inline">Institution
+            <label class="select inline">University
                 <select class="form-control" disabled="disabled">
                     <option>Flinders</option>
                 </select>
@@ -257,7 +257,7 @@
                         secondsToHours }})</h5>
 
                     <div ng-show="class.classGroups" class="list-group class-group">
-                        <a ng-repeat="classGroup in class.classGroups" class="list-group-item class-session"
+                        <a ng-repeat="classGroup in class.classGroups" class="list-group-item activity"
                            ng-class="{ active: (classGroup == class.activeClassGroup), full: classGroup.full }"
                            ng-click="(class.activeClassGroup = classGroup) && broadcastClassesUpdate()">
 

@@ -1,7 +1,7 @@
-describe('FlindersTimetable clash service', function () {
+describe('unibuddyTimetable clash service', function () {
     var clashService;
 
-    beforeEach(module('flindersTimetable.timetable'));
+    beforeEach(module('unibuddyTimetable.timetable'));
     beforeEach(inject(function ($injector) {
         clashService = $injector.get('clashService');
     }));
@@ -419,10 +419,10 @@ describe('FlindersTimetable clash service', function () {
 });
 
 
-describe('FlindersTimetable dayService', function () {
+describe('unibuddyTimetable dayService', function () {
     var dayService;
 
-    beforeEach(module('flindersTimetable.timetable'));
+    beforeEach(module('unibuddyTimetable.timetable'));
     beforeEach(inject(function ($injector) {
         dayService = $injector.get('dayService');
     }));
@@ -450,11 +450,11 @@ describe('FlindersTimetable dayService', function () {
 
 });
 
-describe('flindersTimetable TopicController', function () {
+describe('unibuddyTimetable TopicController', function () {
     var scope;
     var topicController;
 
-    beforeEach(module('flindersTimetable.timetable'));
+    beforeEach(module('unibuddyTimetable.timetable'));
     beforeEach(inject(function ($rootScope, $controller, $injector) {
         scope = $rootScope.$new();
         //topicFactory bypass

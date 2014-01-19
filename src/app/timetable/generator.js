@@ -1,4 +1,4 @@
-angular.module('flindersTimetable.generator', [])
+angular.module('unibuddyTimetable.generator', [])
 /**
  * Factory for creating one or many TimetablePrioritys, which are ways to comparing two Timetables.
  */
@@ -305,19 +305,19 @@ angular.module('flindersTimetable.generator', [])
 
             var secondsOfClassesByDay = [0, 0, 0, 0, 0];
 
-            angular.forEach(timetable.classSessions, function (session) {
-                if (typeof days[session.dayOfWeek] === "undefined") {
-                    days[session.dayOfWeek] = {
-                        secondsStartsAt: session.secondsStartsAt,
-                        secondsEndsAt: session.secondsEndsAt
+            angular.forEach(timetable.activities, function (activity) {
+                if (typeof days[activity.dayOfWeek] === "undefined") {
+                    days[activity.dayOfWeek] = {
+                        secondsStartsAt: activity.secondsStartsAt,
+                        secondsEndsAt: activity.secondsEndsAt
                     };
                 }
                 else {
-                    days[session.dayOfWeek].secondsStartsAt = Math.min(days[session.dayOfWeek].secondsStartsAt, session.secondsStartsAt);
-                    days[session.dayOfWeek].secondsEndsAt = Math.max(days[session.dayOfWeek].secondsEndsAt, session.secondsEndsAt);
+                    days[activity.dayOfWeek].secondsStartsAt = Math.min(days[activity.dayOfWeek].secondsStartsAt, activity.secondsStartsAt);
+                    days[activity.dayOfWeek].secondsEndsAt = Math.max(days[activity.dayOfWeek].secondsEndsAt, activity.secondsEndsAt);
                 }
 
-                secondsOfClassesByDay[session.dayOfWeek] += session.secondsDuration;
+                secondsOfClassesByDay[activity.dayOfWeek] += activity.secondsDuration;
             });
 
             var startTimes = [];
@@ -360,14 +360,14 @@ angular.module('flindersTimetable.generator', [])
             return stats;
         };
 
-        timetableGeneratorService.classSessionsForClassPicks = function (classPicks) {
-            var classSessions = [];
+        timetableGeneratorService.activitiesForClassPicks = function (classPicks) {
+            var activities = [];
 
             angular.forEach(classPicks, function (classPick) {
-                classSessions = classSessions.concat(classPick.classGroup.classSessions);
+                activities = activities.concat(classPick.classGroup.activities);
             });
 
-            return classSessions;
+            return activities;
         };
 
         timetableGeneratorService.sortTimetablesByPriorities = function (generatedTimetables, priorities) {
@@ -378,7 +378,7 @@ angular.module('flindersTimetable.generator', [])
                 var timetable = {};
 
                 timetable.classPicks = generatedTimetable;
-                timetable.classSessions = timetableGeneratorService.classSessionsForClassPicks(generatedTimetable);
+                timetable.activities = timetableGeneratorService.activitiesForClassPicks(generatedTimetable);
 
                 timetable.stats = timetableGeneratorService.calculateTimeMetrics(timetable);
 

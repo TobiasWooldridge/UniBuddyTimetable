@@ -1,10 +1,10 @@
-angular.module('flindersTimetable.timetable', [
+angular.module('unibuddyTimetable.timetable', [
         'ui.state',
         'ui.sortable',
         'flap.topics',
         'arrayMath',
-        'flindersTimetable.generator',
-        'flindersTimetable.config'
+        'unibuddyTimetable.generator',
+        'unibuddyTimetable.config'
     ])
 
     .config(function config($stateProvider) {

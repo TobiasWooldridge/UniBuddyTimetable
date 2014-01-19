@@ -1,7 +1,7 @@
-angular.module('flindersTimetable', [
+angular.module('unibuddyTimetable', [
         'templates-app',
         'templates-common',
-        'flindersTimetable.timetable',
+        'unibuddyTimetable.timetable',
         'ui.state',
         'ui.route'
     ])

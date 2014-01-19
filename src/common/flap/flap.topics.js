@@ -2,7 +2,7 @@ angular.module( 'flap.topics', [
         'flap.objectUtils',
         'flap.stringUtils'
     ])
-    .constant('apiPath', "http://flindersapi.tobias.pw/api/v1/")
+    .constant('apiPath', "http://api.unibuddy.com.au/api/v2/uni/flinders/")
 
     .factory('topicFactory', function (apiPath, $http, sessionsService, camelCaseService, topicService, hashService, classNameService) {
         var baseTopic = {
@@ -56,7 +56,9 @@ angular.module( 'flap.topics', [
                 url += "&topic_number=" + query.topicNumber;
             }
 
-            $http.get(url).success(function (topics, status, headers, config) {
+            $http.get(url).success(function (response, status, headers, config) {
+                topics = response.data;
+
 
                 camelCaseService.camelCaseObject(topics);
 
@@ -73,10 +75,12 @@ angular.module( 'flap.topics', [
         topicFactory.getTopicAsync = function (topicId, callback) {
             var url = apiPath + 'topics/' + topicId + '.json';
 
-            $http.get(url).success(function (data, status, headers, config) {
-                camelCaseService.camelCaseObject(data);
+            $http.get(url).success(function (response, status, headers, config) {
+                topic = response.data;
 
-                callback(data, status, headers, config);
+                camelCaseService.camelCaseObject(topic);
+
+                callback(topic, status, headers, config);
             });
         };
 
@@ -114,9 +118,9 @@ angular.module( 'flap.topics', [
 
             var bracketSets = parens.exec(topicSerial);
 
-            var hasClassSelections = bracketSets !== null;
+            var hasActivities = bracketSets !== null;
 
-            if (hasClassSelections) {
+            if (hasActivities) {
                 var getClassesRegex = /([(A-Za-z]+)([0-9]+)-?/g;
                 var classSelections = {};
 
@@ -129,7 +133,7 @@ angular.module( 'flap.topics', [
             angular.extend(topic, baseTopic);
 
             topicFactory.loadTimetableForTopicAsync(topic, function (topic, status, headers, config) {
-                if (hasClassSelections) {
+                if (hasActivities) {
                     angular.forEach(topic.classes, function (classType) {
                         var strippedName = classNameService.simplifyName(classType.name);
 
@@ -228,14 +232,9 @@ angular.module( 'flap.topics', [
         };
 
         function compareTopics(a, b) {
-            var subjectDifference = a.subjectArea.localeCompare(b.subjectArea);
-            if (subjectDifference !== 0) {
-                return subjectDifference;
-            }
-
-            var topicDifference = a.topicNumber.localeCompare(b.topicNumber);
-            if (topicDifference !== 0) {
-                return topicDifference;
+            var codeDifference = a.code.localeCompare(b.code);
+            if (codeDifference !== 0) {
+                return codeDifference;
             }
 
             return a.name.localeCompare(b.name);
