@@ -8,36 +8,6 @@
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
 
-
-<div class="container">
-    <h2>Just a few simple steps</h2>
-
-    <p>Use this tool to find the ideal timetable for next semester</p>
-    <ol>
-        <li>Choose which semester you're planning for</li>
-        <li>Choose your topics</li>
-        <li>Order your criteria for an ideal table (maximize number of days free, minimize time spent at
-            university, etc.)
-        </li>
-        <li>Click &quot;Generate Timetables&quot; and choose your ideal timetable</li>
-    </ol>
-</div>
-
-<div class="container">
-    <h2>Spread the word</h2>
-
-    <p>UniBuddy is run for free by a handful of students from Flinders University. All that we get out of making
-        UniBuddy is the satisfaction that we're helping people.</p>
-
-    <p>If you find this tool useful, your friends probably will too, so please thank us by sharing it with your friends :)</p>
-
-    <div class="fb-like" data-href="https://www.facebook.com/timetableplanner" data-layout="standard" data-action="like"
-         data-show-faces="true" data-share="true"></div>
-
-    <p>If you find a bug or have other feedback, let us know on our Facebook page <a target="_blank"
-            href="https://www.facebook.com/timetableplanner">here</a>.</p>
-</div>
-
 <div class="container" ng-controller="TopicController">
     <form class="form-inline">
         <div class="page-header">
@@ -153,7 +123,7 @@
             </div>
             <form>
                 <ul>
-                    <li><label>Avoid Full Classes <input type="checkbox" ng-model="config.avoidFull"> </label></li>
+                    <li><label>Avoid Full ClasIses <input type="checkbox" ng-model="config.avoidFull"> </label></li>
                     <li><label>Allow <select ng-model="config.clashAllowance"
                                              ng-options="a as a|secondsToHours for a in clashAllowanceChoices"></select>
                         of avoidable clashes</label></li>
@@ -247,7 +217,7 @@
                 <h4>{{ topic.code }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
-                    <h5>{{ class.name }} ({{ (class.classGroups[0].classSessions[0].secondsDuration || 0) |
+                    <h5>{{ class.name }} ({{ (class.classGroups[0].activities[0].secondsDuration || 0) |
                         secondsToHours }})</h5>
 
                     <div ng-show="class.classGroups" class="list-group class-group">
@@ -260,8 +230,8 @@
                             </span>
 
                             <p class="list-group-item-text"
-                               ng-repeat="classSession in classGroup.classSessions">
-                                {{ classSession.dayOfWeek }} {{ classSession.timeStartsAt }}
+                               ng-repeat="activity in classGroup.activities">
+                                {{ activity.dayOfWeek }} {{ activity.timeStartsAt }}
                             </p>
                         </a>
                     </div>

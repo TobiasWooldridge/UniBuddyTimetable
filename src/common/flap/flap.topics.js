@@ -4,10 +4,10 @@ angular.module( 'flap.topics', [
     ])
     .constant('apiPath', "http://api.unibuddy.com.au/api/v2/uni/flinders/")
 
-    .factory('topicFactory', function (apiPath, $http, sessionsService, camelCaseService, topicService, hashService, classNameService) {
+    .factory('topicFactory', function (apiPath, $http, sessionsService, camelCaseService, topicService, hashService) {
         var baseTopic = {
             getSerial: function () {
-                var serial = this.uniqueTopicCode;
+                var serial = this.id;
 
                 var firstClass = true;
 
@@ -18,7 +18,7 @@ angular.module( 'flap.topics', [
                     }
                     else {
                         serial += firstClass ? "-(" : "-";
-                        serial += classNameService.simplifyName(classType.name) + classType.activeClassGroup.groupId;
+                        serial += classType.id + '-' + classType.activeClassGroup.groupId;
 
                         firstClass = false;
                     }
@@ -34,7 +34,7 @@ angular.module( 'flap.topics', [
             timetableLoaded: false,
 
             getHash: function () {
-                return hashService.hash(this.uniqueTopicCode);
+                return this.id ^ 47;
             }
         };
 
@@ -84,8 +84,8 @@ angular.module( 'flap.topics', [
             });
         };
 
-        topicFactory.createTopicFromUniqueTopicCode = function (serial) {
-            var syntax = /^(([0-9]{4})\-([A-Z0-9]{1,4})\-([A-Z]{4})([0-9]{4}[A-Z]?))/i;
+        topicFactory.createTopicFromId = function (serial) {
+            var syntax = /^([0-9]+)/;
 
             var topicIdentifier = syntax.exec(serial);
 
@@ -94,20 +94,14 @@ angular.module( 'flap.topics', [
             }
 
             var topic = {
-                uniqueTopicCode: topicIdentifier[1],
-                year: topicIdentifier[2],
-                semester: topicIdentifier[3],
-                subjectArea: topicIdentifier[4],
-                topicNumber: topicIdentifier[5],
-                code: topicIdentifier[4] + topicIdentifier[5]
+                id: topicIdentifier[1]
             };
 
             return topic;
         };
 
         topicFactory.loadTopicFromSerialAsync = function (topicSerial, callback) {
-
-            var topic = topicFactory.createTopicFromUniqueTopicCode(topicSerial);
+            var topic = topicFactory.createTopicFromId(topicSerial);
 
             if (!topic) {
                 return false;
@@ -118,7 +112,7 @@ angular.module( 'flap.topics', [
 
             var bracketSets = parens.exec(topicSerial);
 
-            var hasActivities = bracketSets !== null;
+            var hasActivities = (bracketSets !== null);
 
             if (hasActivities) {
                 var getClassesRegex = /([(A-Za-z]+)([0-9]+)-?/g;
@@ -129,16 +123,19 @@ angular.module( 'flap.topics', [
                 }
             }
 
+            console.log(topicSerial, topic.id, bracketSets);
+
+
 
             angular.extend(topic, baseTopic);
 
             topicFactory.loadTimetableForTopicAsync(topic, function (topic, status, headers, config) {
                 if (hasActivities) {
                     angular.forEach(topic.classes, function (classType) {
-                        var strippedName = classNameService.simplifyName(classType.name);
+                        var id = classType.id;
 
-                        if (typeof classSelections[strippedName] !== "undefined") {
-                            classType.activeClassGroup = classType.classGroups[classSelections[strippedName] - 1];
+                        if (typeof classSelections[id] !== "undefined") {
+                            classType.activeClassGroup = classType.classGroups[classSelections[id] - 1];
                         }
 
                     });
@@ -151,7 +148,7 @@ angular.module( 'flap.topics', [
         };
 
         topicFactory.loadTimetableForTopicAsync = function (topic, callback) {
-            topicFactory.getTopicAsync(topic.uniqueTopicCode, function (remoteTopicEntry, status, headers, config) {
+            topicFactory.getTopicAsync(topic.id, function (remoteTopicEntry, status, headers, config) {
                 angular.extend(topic, remoteTopicEntry);
                 topic.timetableLoaded = true;
 

@@ -134,25 +134,6 @@ angular.module('unibuddyTimetable.timetable', [
         return moment;
     })
 
-    .factory('classNameService', function () {
-        var classNameService = {};
-
-        classNameService.simplifyName = function (name) {
-            // Remove all nasty characters
-            name = name.replace(/[^A-Za-z0-9]/g, '');
-
-            name = name.replace(/Computer/g, 'Comp')
-                .replace(/Laboratory/g, 'Lab')
-                .replace(/Tutorial/g, 'Tute')
-                .replace(/Practical/g, 'Prac')
-                .replace(/Project/g, 'Proj');
-
-            return name;
-        };
-
-        return classNameService;
-    })
-
     .factory('urlService', function ($location, times) {
         var defaultState = {
             year: times.defaultYear,
@@ -293,16 +274,16 @@ angular.module('unibuddyTimetable.timetable', [
     .factory('bookingFactory', function () {
         var that = {};
 
-        that.newBooking = function (topic, classType, classGroup, classSession) {
+        that.newBooking = function (topic, classType, classGroup, activity) {
             var booking = {};
 
             booking.topicHash = topic.getHash();
             booking.topicCode = topic.code;
             booking.className = classType.name;
-            booking.dayOfWeek = classSession.dayOfWeek;
-            booking.secondsStartsAt = classSession.secondsStartsAt;
-            booking.secondsEndsAt = classSession.secondsEndsAt;
-            booking.secondsDuration = classSession.secondsDuration;
+            booking.dayOfWeek = activity.dayOfWeek;
+            booking.secondsStartsAt = activity.secondsStartsAt;
+            booking.secondsEndsAt = activity.secondsEndsAt;
+            booking.secondsDuration = activity.secondsDuration;
             booking.locked = classType.classGroups.length == 1;
 
             return booking;
@@ -331,9 +312,9 @@ angular.module('unibuddyTimetable.timetable', [
             var bookings = [];
 
             angular.forEach(classSelections, function (selection) {
-                angular.forEach(selection.classGroup.classSessions, function (classSession) {
+                angular.forEach(selection.classGroup.activities, function (activity) {
                     var topic = findTopicForClassType(topics, selection.classType);
-                    bookings.push(that.newBooking(topic, selection.classType, selection.classGroup, classSession));
+                    bookings.push(that.newBooking(topic, selection.classType, selection.classGroup, activity));
                 });
             });
 
@@ -347,8 +328,8 @@ angular.module('unibuddyTimetable.timetable', [
                     if (!classType.activeClassGroup) {
                         return;
                     }
-                    angular.forEach(classType.activeClassGroup.classSessions, function (classSession) {
-                        bookings.push(that.newBooking(topic, classType, classType.activeClassGroup, classSession));
+                    angular.forEach(classType.activeClassGroup.activities, function (activity) {
+                        bookings.push(that.newBooking(topic, classType, classType.activeClassGroup, activity));
                     });
                 });
             });
@@ -414,7 +395,7 @@ angular.module('unibuddyTimetable.timetable', [
             var index = -1;
 
             angular.forEach(chosenTopics, function (chosenTopic, i) {
-                if (chosenTopic.uniqueTopicCode === topic.uniqueTopicCode) {
+                if (chosenTopic.id === topic.id) {
                     index = i;
                     return false; // break
                 }
@@ -576,7 +557,7 @@ angular.module('unibuddyTimetable.timetable', [
             }
 
             if (typeof classClashCache[a.id + ", " + b.id] === "undefined") {
-                var groupSecondsClash = clashService.sessionArraysClash(a.classSessions, b.classSessions);
+                var groupSecondsClash = clashService.sessionArraysClash(a.activities, b.activities);
                 addToClassClashCache(a.id, b.id, groupSecondsClash);
             }
 
