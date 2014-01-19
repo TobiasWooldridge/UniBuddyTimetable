@@ -242,7 +242,7 @@ describe('unibuddyTimetable clash service', function () {
     it('should detect a clash between two classGroups with one identical session each', function () {
         var a = {
             id: 1,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
@@ -256,7 +256,7 @@ describe('unibuddyTimetable clash service', function () {
 
         var b = {
             id: 2,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
@@ -274,7 +274,7 @@ describe('unibuddyTimetable clash service', function () {
     it('should detect a clash between two classGroups with two identical sessions each', function () {
         var a = {
             id: 1,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
@@ -296,7 +296,7 @@ describe('unibuddyTimetable clash service', function () {
 
         var b = {
             id: 2,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
@@ -323,7 +323,7 @@ describe('unibuddyTimetable clash service', function () {
     it('should detect a clash between two classGroups with two ordered non-identical sessions each', function () {
         var a = {
             id: 1,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
@@ -345,7 +345,7 @@ describe('unibuddyTimetable clash service', function () {
 
         var b = {
             id: 2,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
@@ -370,7 +370,7 @@ describe('unibuddyTimetable clash service', function () {
     it('should detect a clash between two classGroups with two unordered non-identical sessions each', function () {
         var a = {
             id: 1,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
@@ -392,7 +392,7 @@ describe('unibuddyTimetable clash service', function () {
 
         var b = {
             id: 2,
-            classSessions: [
+            activities: [
                 {
                     firstDay: "2013-08-06",
                     lastDay: "2013-11-05",
