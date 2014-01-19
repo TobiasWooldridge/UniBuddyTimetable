@@ -16,7 +16,7 @@ angular.module('unibuddyTimetable.timetable', [
                     templateUrl: 'timetable/timetable.tpl.html'
                 }
             },
-            data: { pageTitle: 'Unibuddy University Timetable Planner' }
+            data: { pageTitle: 'UniBuddy University Timetable Planner' }
         });
     })
 
