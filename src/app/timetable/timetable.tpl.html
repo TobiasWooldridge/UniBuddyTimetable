@@ -17,7 +17,7 @@
         <fieldset>
             <label class="select inline">University
                 <select class="form-control" ng-model="activeInstitution" ng-change="updateAvailableYears()"
-                        ng-options="i as i.nickname for i in institutions">
+                        ng-options="i as i.name for i in institutions">
                 </select>
             </label>
             <label class="select inline">Year
@@ -43,7 +43,7 @@
             <tr ng-repeat="topic in chosenTopics">
                 <td class="filter"></td>
                 <td width="*">
-                    {{ topic.code }} {{ topic.name }}
+                    {{ topic.code }} {{ topic.name }} <span class="subtle">({{topic.institution.nickname }} {{ topic.year }} {{ topic.semester }})</span>
                 </td>
                 <td class="action">
                     <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
