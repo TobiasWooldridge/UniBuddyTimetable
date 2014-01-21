@@ -16,17 +16,17 @@
 
         <fieldset>
             <label class="select inline">University
-                <select class="form-control" disabled="disabled">
-                    <option>Flinders</option>
+                <select class="form-control" ng-model="activeInstitution" ng-change="updateAvailableYears()"
+                        ng-options="i as i.nickname for i in institutions">
                 </select>
             </label>
             <label class="select inline">Year
-                <select class="form-control" ng-model="activeYear" ng-change="updateAvailableTopics()"
+                <select class="form-control" ng-model="activeYear" ng-change="updateAvailableSemesters()"
                         ng-options="y as y for y in years">
                 </select>
             </label>
             <label class="select inline">Semester
-                <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()" ng-options="friendly for (friendly, query) in semesters">
+                <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()" ng-options="s as s for s in semesters">
                 </select>
             </label>
         </fieldset>

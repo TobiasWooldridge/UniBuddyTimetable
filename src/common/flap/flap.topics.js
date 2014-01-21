@@ -2,9 +2,24 @@ angular.module( 'flap.topics', [
         'flap.objectUtils',
         'flap.stringUtils'
     ])
-    .constant('apiPath', "http://api.unibuddy.com.au/api/v2/uni/flinders/")
+    .constant('apiPath', "http://api.unibuddy.com.au/api/v2/")
 
-    .factory('topicFactory', function (apiPath, $http, sessionsService, camelCaseService, topicService, hashService) {
+    .factory('institutionFactory', function(apiPath, $http) {
+        var institutionFactory = {};
+
+        institutionFactory.getInstitutionsAsync = function (callback) {
+            var url = apiPath + 'uni.json';
+
+            $http.get(url).success(function(response) {
+                institutions = response.data;
+                callback(institutions);
+            });
+        };
+
+        return institutionFactory;
+    })
+
+    .factory('topicFactory', function (apiPath, $http, camelCaseService, topicService) {
         var baseTopic = {
             getSerial: function () {
                 var serial = this.id;
@@ -41,8 +56,11 @@ angular.module( 'flap.topics', [
         var topicFactory = {};
 
         topicFactory.getTopicsAsync = function (query, callback) {
-            var url = apiPath + 'topics.json' + "?";
+            var url = apiPath + 'uni/' + query.instCode + '/topics.json' + "?";
 
+            if (typeof query.instCode !== "undefined" && query.year !== "Any") {
+                url += "&inst_code=" + query.instCode;
+            }
             if (typeof query.year !== "undefined" && query.year !== "Any") {
                 url += "&year=" + query.year;
             }

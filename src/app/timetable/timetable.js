@@ -134,10 +134,8 @@ angular.module('unibuddyTimetable.timetable', [
         return moment;
     })
 
-    .factory('urlService', function ($location, times) {
+    .factory('urlService', function ($location) {
         var defaultState = {
-            year: times.defaultYear,
-            semester: times.defaultSemester,
             topics: ""
         };
 
@@ -168,26 +166,6 @@ angular.module('unibuddyTimetable.timetable', [
             $location.search(state);
         };
 
-        urlService.setYear = function (year) {
-            set('year', year);
-        };
-
-        urlService.getYear = function () {
-            try {
-                return parseInt(get('year'), 10);
-            }
-            catch (e) {
-                return defaultState.year;
-            }
-        };
-
-        urlService.setSemester = function (semester) {
-            set('semester', semester);
-        };
-
-        urlService.getSemester = function () {
-            return get('semester');
-        };
 
         urlService.setTopics = function (topics) {
             var topicIdentifiers = [];
@@ -599,14 +577,10 @@ angular.module('unibuddyTimetable.timetable', [
         return dayService;
     })
 
-    .controller('TopicController', function ($scope, times, chosenTopicService, topicFactory, urlService) {
-        $scope.years = times.years;
-        $scope.activeYear = urlService.getYear();
-
-        $scope.semesters = times.semesters;
-        $scope.activeSemester = urlService.getSemester();
-
+    .controller('TopicController', function ($scope, chosenTopicService, institutionFactory, topicFactory, urlService) {
         $scope.topicSearch = "";
+
+        $scope.availableTopics = [];
 
         $scope.chosenTopics = chosenTopicService.getTopics();
 
@@ -676,12 +650,56 @@ angular.module('unibuddyTimetable.timetable', [
             applyTopicSearchFilter(newValue);
         });
 
+        var updateAvailableInstitutions = function() {
+            institutionFactory.getInstitutionsAsync(function gotInstitutionsAsync(institutions) {
+                $scope.institutions = institutions;
+                $scope.activeInstitution = institutions[0];
+                $scope.updateAvailableYears();
+            });
+        };
+
+        $scope.updateAvailableYears = function () {
+            var availableSemesters = $scope.activeInstitution.features.timetables.semesters;
+
+            var years = [];
+
+            angular.forEach(availableSemesters, function forEachAvailableSemester(availableSemester) {
+                var year = availableSemester.year;
+
+                if (year !== null && years.indexOf(year) === -1) {
+                    years.push(year);
+                }
+            });
+
+            $scope.years = years;
+            $scope.activeYear = years[0];
+
+            $scope.updateAvailableSemesters();
+        };
+
+        $scope.updateAvailableSemesters = function () {
+            var availableSemesters = $scope.activeInstitution.features.timetables.semesters;
+
+            var semesters = [];
+
+            angular.forEach(availableSemesters, function(availableSemester) {
+                var semester = availableSemester.semester;
+                if (availableSemester.year === $scope.activeYear && semester !== null && semesters.indexOf(semester) === -1) {
+                    semesters.push(semester);
+                }
+            });
+
+            $scope.semesters = semesters;
+            $scope.activeSemester = semesters[0];
+
+            $scope.updateAvailableTopics();
+        };
+
         $scope.updateAvailableTopics = function () {
-            urlService.setSemester($scope.activeSemester);
-            urlService.setYear($scope.activeYear);
             $scope.availableTopics = [];
 
             topicFactory.getTopicsAsync({
+                instCode: $scope.activeInstitution.code,
                 year: $scope.activeYear,
                 semester: $scope.activeSemester
             }, function (data) {
@@ -690,10 +708,6 @@ angular.module('unibuddyTimetable.timetable', [
             });
         };
 
-
-        var topicIdIsSelected = function (topicId) {
-            return chosenTopicIds().indexOf(parseInt(topicId, 10)) !== -1;
-        };
 
         $scope.validateTopic = function (topic) {
             if (typeof topic === "undefined") {
@@ -724,15 +738,8 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
 
-        var loadFromUrl = function () {
-            $scope.activeYear = urlService.getYear();
 
-            $scope.activeSemester = urlService.getSemester();
-        };
-
-
-        $scope.updateAvailableTopics();
-        loadFromUrl();
+        updateAvailableInstitutions();
     })
 
     .controller('ManualClassChooserController', function ($scope, chosenTopicService) {
