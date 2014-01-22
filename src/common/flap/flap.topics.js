@@ -4,14 +4,14 @@ angular.module( 'flap.topics', [
     ])
     .constant('apiPath', "http://api.unibuddy.com.au/api/v2/")
 
-    .factory('institutionFactory', function(apiPath, $http) {
+    .factory('institutionFactory', function(apiPath, $http, camelCaseService) {
         var institutionFactory = {};
 
         institutionFactory.getInstitutionsAsync = function (callback) {
             var url = apiPath + 'uni.json';
 
             $http.get(url).success(function(response) {
-                institutions = response.data;
+                institutions = camelCaseService.camelCaseObject(response.data);
                 callback(institutions);
             });
         };

@@ -659,16 +659,12 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         $scope.updateAvailableYears = function () {
-            var availableSemesters = $scope.activeInstitution.features.timetables.semesters;
+            var availableSemesters = $scope.activeInstitution.resources.timetableSemesters;
 
             var years = [];
 
-            angular.forEach(availableSemesters, function forEachAvailableSemester(availableSemester) {
-                var year = availableSemester.year;
-
-                if (year !== null && years.indexOf(year) === -1) {
-                    years.push(year);
-                }
+            angular.forEach(availableSemesters, function semestersByYear(semesters, year) {
+                years.push(year);
             });
 
             $scope.years = years;
@@ -678,19 +674,10 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         $scope.updateAvailableSemesters = function () {
-            var availableSemesters = $scope.activeInstitution.features.timetables.semesters;
-
-            var semesters = [];
-
-            angular.forEach(availableSemesters, function(availableSemester) {
-                var semester = availableSemester.semester;
-                if (availableSemester.year === $scope.activeYear && semester !== null && semesters.indexOf(semester) === -1) {
-                    semesters.push(semester);
-                }
-            });
+            var semesters = $scope.activeInstitution.resources.timetableSemesters[$scope.activeYear];
 
             $scope.semesters = semesters;
-            $scope.activeSemester = semesters[0];
+            $scope.activeSemester = semesters[0].code;
 
             $scope.updateAvailableTopics();
         };

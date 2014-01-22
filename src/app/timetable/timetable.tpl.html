@@ -26,7 +26,7 @@
                 </select>
             </label>
             <label class="select inline">Semester
-                <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()" ng-options="s as s for s in semesters">
+                <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()" ng-options="s.code as s.name for s in semesters">
                 </select>
             </label>
         </fieldset>
