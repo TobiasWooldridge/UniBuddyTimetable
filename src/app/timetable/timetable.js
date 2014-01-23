@@ -597,31 +597,11 @@ angular.module('unibuddyTimetable.timetable', [
             for (var i = 0; i < predicates.length; i++) {
                 var predicate = predicates[i];
 
-
-                // Try searching the topic code
-                var matchIndex = code.indexOf(predicate);
-
-                if (matchIndex === 0 || matchIndex === 4) {
-                    // Only count these matches if the predicate
-                    // * Is 1-4 letters
-                    // * Is 1-4 letters followed by numbers (and optionally a letter)
-                    // * Is 4 numbers
-                    var topicNumberExpression = /^([a-z]{1,4}|[a-z]{4}\d{1,4}[a-z]?|\d{4})$/;
-                    var topicNumberMatches = predicate.match(topicNumberExpression);
-                    if (topicNumberMatches) {
-                        // Predicate matched! Next predicate
-                        continue;
-                    }
-                }
-
                 // Try searching the topic name
-                if (name.indexOf(predicates[i]) !== -1) {
-                    // Predicate matched! Next predicate
+                if (name.indexOf(predicate) !== -1 || code.indexOf(predicate) !== -1) {
                     continue;
                 }
 
-
-                // Predicate not found
                 return false;
             }
 
@@ -668,7 +648,10 @@ angular.module('unibuddyTimetable.timetable', [
             });
 
             $scope.years = years;
-            $scope.activeYear = years[0];
+
+            if (years.indexOf($scope.activeYear) === -1) {
+                $scope.activeYear = years[0];
+            }
 
             $scope.updateAvailableSemesters();
         };
@@ -677,7 +660,11 @@ angular.module('unibuddyTimetable.timetable', [
             var semesters = $scope.activeInstitution.resources.timetableSemesters[$scope.activeYear];
 
             $scope.semesters = semesters;
-            $scope.activeSemester = semesters[0].code;
+
+            // Only change semester if the old one is irrelevant
+            if (semesters.map(function(s) { return s.code; }).indexOf($scope.activeSemester) === -1) {
+                $scope.activeSemester = semesters[0].code;
+            }
 
             $scope.updateAvailableTopics();
         };
