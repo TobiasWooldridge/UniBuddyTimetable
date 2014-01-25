@@ -37,9 +37,9 @@
                     </ul>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <h4>Semester</h4>
-                    <ul>
+                    <ul class="semesters">
                         <li ng-repeat="semester in semesters">
                             <label>
                                 <input type="radio"
@@ -47,7 +47,7 @@
                                        ng-model="$parent.activeSemester"
                                        ng-value="semester.code"
                                        ng-change="updateAvailableTopics()"/>
-                                {{ semester.name }}
+                                {{ semester.name }} ({{ semester.code }})
 
                             </label>
                         </li>
@@ -59,9 +59,7 @@
     <br/>
 
     <form>
-        <div class="page-header">
-            <h3>Which topics are you planning to do?</h3>
-        </div>
+        <h3>Which topics are you planning to do?</h3>
         <table class="table topics">
             <tbody>
             <tr ng-repeat="topic in chosenTopics">
