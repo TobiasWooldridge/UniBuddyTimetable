@@ -143,7 +143,7 @@ angular.module('unibuddyTimetable.timetable', [
 
         var urlService = {};
 
-        var get = function (key) {
+        var get = function get(key) {
             if ($location.search().hasOwnProperty(key)) {
                 return $location.search()[key];
             }
@@ -154,11 +154,12 @@ angular.module('unibuddyTimetable.timetable', [
             return undefined;
         };
 
-        var set = function (key, value) {
+        var set = function set (key, value) {
             var state = $location.search();
 
             state[key] = value;
 
+            // Don't bother storing the default state in the URL
             if (defaultState[key] === value) {
                 delete(state[key]);
             }
@@ -167,7 +168,7 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
 
-        urlService.setTopics = function (topics) {
+        urlService.setTopics = function setTopics(topics) {
             var topicIdentifiers = [];
             angular.forEach(topics, function (topic) {
                 topicIdentifiers.push(topic.getSerial());
@@ -176,12 +177,25 @@ angular.module('unibuddyTimetable.timetable', [
             set('topics', topicIdentifiers.join('_'));
         };
 
-        urlService.getTopics = function () {
-            if (get('topics') === "") {
+        urlService.getTopics = function getTopics() {
+            var topicsString = get('topics');
+
+            if (topicsString === "") {
                 return [];
             }
 
-            return get('topics').split('_');
+            var serialFormat = /([0-9])+(\([0-9\._]+\))?_?/g;
+            var topics = [];
+            var match;
+
+            do {
+                match = serialFormat.exec(topicsString);
+                if (match) {
+                    topics.push(match[0]);
+                }
+            } while (match);
+
+            return topics;
         };
 
         return urlService;
