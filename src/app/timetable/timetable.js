@@ -593,51 +593,71 @@ angular.module('unibuddyTimetable.timetable', [
 
     .controller('TopicController', function ($scope, chosenTopicService, institutionFactory, topicFactory, urlService) {
         $scope.topicSearch = "";
-        $scope.availableTopics = [];
+        var availableTopics = [];
+        $scope.matchingTopics = [];
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.activeInstitution = {};
         $scope.activeYear = {};
-        $scope.activeSemester = {};
+        $scope.activeSemester = "S1";
 
-        $scope.searchTopics = function (topic) {
+        var topicMatchesFilter = function topicMatchesFilter (topic) {
             if (topic === undefined) {
                 return false;
             }
 
-            var name = topic.name.toLowerCase();
-            var code = topic.code.toLowerCase();
+            if (topic.words === undefined) {
+                var name = topic.name.toLowerCase();
+                var code = topic.code.toLowerCase();
+
+                topic.words = name.split(' ');
+                topic.words.push(code);
+            }
 
             var predicates = $scope.topicSearch.toLowerCase().split(' ');
+            var words = topic.words;
+
 
             for (var i = 0; i < predicates.length; i++) {
                 var predicate = predicates[i];
+                var found = false;
 
-                // Try searching the topic name
-                if (name.indexOf(predicate) !== -1 || code.indexOf(predicate) !== -1) {
-                    continue;
+
+                for (var j = 0; j < words.length; j++) {
+                    var word = words[j];
+                    // Try searching the topic name
+                    if (word.lastIndexOf(predicate, 0) === 0) {
+                        found = true;
+                        break;
+                    }
+
                 }
 
-                return false;
+                if (!found) {
+                    return false;
+                }
             }
 
             return true;
         };
 
-        var applyTopicSearchFilter = function (newValue) {
-            // Keep the currently selected topic selected if it's relevant
-            // Or select the first relevant topic
-            if ($scope.searchTopics($scope.activeTopic)) {
-            }
-            else {
-                $scope.activeTopic = undefined;
+        var applyTopicSearchFilter = function () {
+            $scope.matchingTopics = [];
 
-                for (var i = 0; i < $scope.availableTopics.length; i++) {
-                    var topic = $scope.availableTopics[i];
-                    if ($scope.searchTopics(topic)) {
-                        $scope.activeTopic = topic;
-                        break;
-                    }
+            if (availableTopics === undefined) {
+                return;
+            }
+
+            var i = 0;
+            while ($scope.matchingTopics.length < 5 && i < availableTopics.length) {
+                if (topicMatchesFilter(availableTopics[i])) {
+                    $scope.matchingTopics.push(availableTopics[i]);
                 }
+
+                i++;
+            }
+
+            if ($scope.matchingTopics) {
+                $scope.activeTopic = $scope.matchingTopics[0];
             }
         };
 
@@ -680,14 +700,14 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         $scope.updateAvailableTopics = function updateAvailableTopics() {
-            $scope.availableTopics = [];
+            availableTopics = [];
 
             topicFactory.getTopicsAsync({
                 instCode: $scope.activeInstitution.code,
                 year: $scope.activeYear,
                 semester: $scope.activeSemester
             }, function (data) {
-                $scope.availableTopics = data;
+                availableTopics = data;
                 applyTopicSearchFilter($scope.topicSearch);
             });
         };

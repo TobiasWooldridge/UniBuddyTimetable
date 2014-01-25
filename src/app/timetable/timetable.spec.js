@@ -526,7 +526,7 @@ describe('unibuddyTimetable dayService', function () {
 //    it('should not match numbers longer than 4 digits long', function () {
 //        expect(testCode('12345')).toBeFalsy();
 //    });
-//
+//`
 //    it('should match numbers 4 digits long', function () {
 //        expect(testCode('1234')).toBeTruthy();
 //    });

@@ -75,26 +75,28 @@
             <tfoot ng-show="chosenTopics.length < 6">
             <tr>
                 <td class="filter">
-                    <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
+                    <input class="form-control" ng-model="topicSearch" placeholder="Search" />
                 </td>
                 <td width="*">
-                    <p ng-show="topicSearch.length >= 3">
-                        <span ng-show="!availableTopics.length"><img
-                                src="assets/images/ajax-loader.gif" alt="Loading"
-                                class="ajax-loader"/>
-                        </span>
+                    <div ng-show="topicSearch.length > 0">
+                        <label ng-repeat="t in matchingTopics">
+                            <input type="radio"
+                                   name="activeTopic"
+                                   ng-model="$parent.activeTopic"
+                                   ng-value="t" />
 
-                        <select class="form-control" ng-model="activeTopic"
-                                ng-options="t as t.code + ' ' + t.name + ' (' + t.semester + ')' for t in availableTopics | filter: searchTopics">
-                        </select>
-                    </p>
+                            {{t.code}} {{ t.name }}
+                        </label>
 
-                    <p ng-show="topicSearch.length < 3" class="hint hint-filter">Type a few letters of a topic code or
-                        topic name to the left to search for topics, e.g. "software engineering"</p>
+                        <p ng-show="!matchingTopics.length" class="hint hint-filter">Your search returned no results</p>
+                    </div>
+
+                    <div ng-show="topicSearch.length == 0" class="hint hint-filter">Type a few letters of a topic code or
+                        topic name to the left to search for topics, e.g. "software engineering"</div>
                 </td>
 
                 <td class="action">
-                    <button ng-show="topicSearch.length >= 3" type="submit" class="btn btn-primary"
+                    <button ng-show="topicSearch.length > 0 && matchingTopics.length" type="submit" class="btn btn-primary btn-small"
                             ng-click="addTopic(activeTopic)"
                             ng-disabled="!validateTopic(activeTopic)">
                         Add
