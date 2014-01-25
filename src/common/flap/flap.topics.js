@@ -142,8 +142,6 @@ angular.module( 'flap.topics', [
                 }
             }
 
-            console.log(topicSerial, topic.id, bracketSets, classSelections);
-
             angular.extend(topic, baseTopic);
 
             topicFactory.loadTimetableForTopicAsync(topic, function (topic, status, headers, config) {

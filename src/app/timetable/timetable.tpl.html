@@ -14,24 +14,60 @@
             <h3>What are we planning for?</h3>
         </div>
 
-        <fieldset>
-            <label class="select inline">University
-                <select class="form-control" ng-model="activeInstitution" ng-change="updateAvailableYears()"
-                        ng-options="i as i.name for i in institutions">
-                </select>
-            </label>
-            <label class="select inline">Year
-                <select class="form-control" ng-model="activeYear" ng-change="updateAvailableSemesters()"
-                        ng-options="y as y for y in years">
-                </select>
-            </label>
-            <label class="select inline">Semester
-                <select class="form-control" ng-model="activeSemester" ng-change="updateAvailableTopics()" ng-options="s.code as s.name for s in semesters">
-                </select>
-            </label>
-        </fieldset>
+        <fieldset class="timeAndPlace">
+            <div class="row">
+                <div class="col-md-3">
+                    <h4>University</h4>
+                    <ul>
+                        <li ng-repeat="institution in institutions">
+                            <label>
+                                <input type="radio"
+                                       name="activeInstitution"
+                                       ng-model="$parent.activeInstitution"
+                                       ng-value="institution"
+                                       ng-change="updateAvailableYears()"/>
+                                {{ institution.name }}
+                            </label>
+                        </li>
+                    </ul>
+                </div>
 
-    </form>
+                <div class="col-md-2">
+                    <h4>Year</h4>
+                    <ul>
+                        <li ng-repeat="year in years">
+                            <label>
+                                <input type="radio"
+                                       name="activeYear"
+                                       ng-model="$parent.activeYear"
+                                       ng-value="year"
+                                       ng-change="updateAvailableSemesters()"/>
+                                {{ year }}
+
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-md-3">
+                    <h4>Semester</h4>
+                    <ul>
+                        <li ng-repeat="semester in semesters">
+                            <label>
+                                <input type="radio"
+                                       name="activeSemester"
+                                       ng-model="$parent.activeSemester"
+                                       ng-value="semester.code"
+                                       ng-change="updateAvailableTopics()"/>
+                                {{ semester.name }}
+
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </fieldset>
+        </form>
     <br/>
 
     <form>
@@ -56,12 +92,14 @@
                     <input class="form-control" ng-model="topicSearch" placeholder="Search"/>
                 </td>
                 <td width="*">
-                    <p ng-show="topicSearch.length >= 3"><span ng-show="!availableTopics.length"><img
-                            src="assets/images/ajax-loader.gif" alt="Loading"
-                            class="ajax-loader"/>
-                    </span>
-                        <select ng-show="availableTopics.length" class="form-control" ng-model="activeTopic"
-                                ng-options="t as t.code + ' ' + t.name + ' (' + t.semester + ')' for t in availableTopics | filter: searchTopics | limitTo: 100">
+                    <p ng-show="topicSearch.length >= 3">
+                        <span ng-show="!availableTopics.length"><img
+                                src="assets/images/ajax-loader.gif" alt="Loading"
+                                class="ajax-loader"/>
+                        </span>
+
+                        <select class="form-control" ng-model="activeTopic"
+                                ng-options="t as t.code + ' ' + t.name + ' (' + t.semester + ')' for t in availableTopics | filter: searchTopics">
                         </select>
                     </p>
 

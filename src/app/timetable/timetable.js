@@ -593,10 +593,11 @@ angular.module('unibuddyTimetable.timetable', [
 
     .controller('TopicController', function ($scope, chosenTopicService, institutionFactory, topicFactory, urlService) {
         $scope.topicSearch = "";
-
         $scope.availableTopics = [];
-
         $scope.chosenTopics = chosenTopicService.getTopics();
+        $scope.activeInstitution = {};
+        $scope.activeYear = {};
+        $scope.activeSemester = {};
 
         $scope.searchTopics = function (topic) {
             if (topic === undefined) {
@@ -644,33 +645,28 @@ angular.module('unibuddyTimetable.timetable', [
             applyTopicSearchFilter(newValue);
         });
 
-        var updateAvailableInstitutions = function() {
-            institutionFactory.getInstitutionsAsync(function gotInstitutionsAsync(institutions) {
-                $scope.institutions = institutions;
-                $scope.activeInstitution = institutions[0];
-                $scope.updateAvailableYears();
-            });
-        };
 
-        $scope.updateAvailableYears = function () {
+
+        $scope.updateAvailableYears = function updateAvailableYears() {
             var availableSemesters = $scope.activeInstitution.resources.timetableSemesters;
 
             var years = [];
 
             angular.forEach(availableSemesters, function semestersByYear(semesters, year) {
-                years.push(year);
+                years.push(parseInt(year, 10));
             });
 
             $scope.years = years;
 
             if (years.indexOf($scope.activeYear) === -1) {
-                $scope.activeYear = years[0];
+                $scope.activeYear = years[years.length - 1  ];
             }
+
 
             $scope.updateAvailableSemesters();
         };
 
-        $scope.updateAvailableSemesters = function () {
+        $scope.updateAvailableSemesters = function updateAvailableSemesters() {
             var semesters = $scope.activeInstitution.resources.timetableSemesters[$scope.activeYear];
 
             $scope.semesters = semesters;
@@ -683,7 +679,7 @@ angular.module('unibuddyTimetable.timetable', [
             $scope.updateAvailableTopics();
         };
 
-        $scope.updateAvailableTopics = function () {
+        $scope.updateAvailableTopics = function updateAvailableTopics() {
             $scope.availableTopics = [];
 
             topicFactory.getTopicsAsync({
@@ -695,6 +691,7 @@ angular.module('unibuddyTimetable.timetable', [
                 applyTopicSearchFilter($scope.topicSearch);
             });
         };
+
 
 
         $scope.validateTopic = function (topic) {
@@ -727,7 +724,11 @@ angular.module('unibuddyTimetable.timetable', [
 
 
 
-        updateAvailableInstitutions();
+        institutionFactory.getInstitutionsAsync(function gotInstitutionsAsync(institutions) {
+            $scope.institutions = institutions;
+            $scope.activeInstitution = institutions[0];
+            $scope.updateAvailableYears();
+        });
     })
 
     .controller('ManualClassChooserController', function ($scope, chosenTopicService) {
