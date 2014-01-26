@@ -609,7 +609,7 @@ angular.module('unibuddyTimetable.timetable', [
                 var code = topic.code.toLowerCase();
 
                 topic.words = name.split(' ');
-                topic.words.push(code);
+                topic.words = topic.words.concat(code.split(' '));
             }
 
             var predicates = $scope.topicSearch.toLowerCase().split(' ');
