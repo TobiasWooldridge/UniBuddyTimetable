@@ -95,7 +95,7 @@
                 <td class="action">
                     <button type="submit" class="btn btn-primary btn-sm"
                             ng-click="addTopic(activeTopic)"
-                            ng-disabled="topicSearch.length > 0 && matchingTopics.length && !validateTopic(activeTopic)">
+                            ng-disabled="!(topicSearch.length > 0 && matchingTopics.length) || !validateTopic(activeTopic)">
                         Add
                     </button>
                 </td>
