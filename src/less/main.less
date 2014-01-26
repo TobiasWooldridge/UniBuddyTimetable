@@ -98,18 +98,27 @@ a.list-group-item {
 }
 
 fieldset.timeAndPlace {
-  & label {
+  label {
     font-weight: normal;
   }
-  & li {
+  li {
     list-style: none inside;
     margin-left: 0;
     padding-left: 0;
   }
-  & ul {
+  ul {
     margin-left: 1.5em;
     padding-left: 0;
+
+
+    &.semesters {
+      li {
+        width: 200px;
+        float: left;
+      }
+    }
   }
+
 }
 
 table.topics {
@@ -338,8 +347,6 @@ timetable, timetable-mini {
           background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15) 10px, rgba(255, 255, 255, 0.3) 10px, rgba(255, 255, 255, 0.3) 20px);
         }
       }
-
-
     }
   }
 }
