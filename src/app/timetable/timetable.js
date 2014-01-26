@@ -598,7 +598,6 @@ angular.module('unibuddyTimetable.timetable', [
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.activeInstitution = {};
         $scope.activeYear = {};
-        $scope.activeSemester = "S1";
 
         var topicMatchesFilter = function topicMatchesFilter (topic) {
             if (topic === undefined) {
@@ -679,7 +678,7 @@ angular.module('unibuddyTimetable.timetable', [
             $scope.years = years;
 
             if (years.indexOf($scope.activeYear) === -1) {
-                $scope.activeYear = years[years.length - 1  ];
+                $scope.activeYear = years[years.length - 1];
             }
 
 
@@ -691,13 +690,26 @@ angular.module('unibuddyTimetable.timetable', [
 
             $scope.semesters = semesters;
 
-            // Only change semester if the old one is irrelevant
-            if (semesters.map(function(s) { return s.code; }).indexOf($scope.activeSemester) === -1) {
-                $scope.activeSemester = semesters[0].code;
-            }
+            angular.forEach($scope.semesters, function (semester) {
+                if (semester.selected === undefined) {
+                    semester.selected = ["S1", "NS1"].indexOf(semester.code) !== -1;
+                }
+            });
 
             $scope.updateAvailableTopics();
         };
+
+        function getActiveSemesters () {
+            var activeSemesters = [];
+
+            angular.forEach($scope.semesters, function (semester) {
+                if (semester.selected) {
+                    activeSemesters.push(semester.code);
+                }
+            });
+
+            return activeSemesters;
+        }
 
         $scope.updateAvailableTopics = function updateAvailableTopics() {
             availableTopics = [];
@@ -705,7 +717,7 @@ angular.module('unibuddyTimetable.timetable', [
             topicFactory.getTopicsAsync({
                 instCode: $scope.activeInstitution.code,
                 year: $scope.activeYear,
-                semester: $scope.activeSemester
+                semester: getActiveSemesters().join(',')
             }, function (data) {
                 availableTopics = data;
                 applyTopicSearchFilter($scope.topicSearch);

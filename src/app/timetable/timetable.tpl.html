@@ -42,10 +42,9 @@
                     <ul class="semesters">
                         <li ng-repeat="semester in semesters">
                             <label>
-                                <input type="radio"
+                                <input type="checkbox"
                                        name="activeSemester"
-                                       ng-model="$parent.activeSemester"
-                                       ng-value="semester.code"
+                                       ng-model="semester.selected"
                                        ng-change="updateAvailableTopics()"/>
                                 {{ semester.name }} ({{ semester.code }})
 
@@ -63,42 +62,40 @@
         <table class="table topics">
             <tbody>
             <tr ng-repeat="topic in chosenTopics">
-                <td class="filter"></td>
                 <td width="*">
                     {{ topic.code }} {{ topic.name }} <span class="subtle">({{topic.institution.nickname }} {{ topic.year }} {{ topic.semester }})</span>
                 </td>
                 <td class="action">
-                    <button type="button" class="btn btn-danger" ng-click="removeTopic(topic)">Remove</button>
+                    <button type="button" class="btn btn-danger btn-sm" ng-click="removeTopic(topic)">Remove</button>
                 </td>
             </tr>
             </tbody>
             <tfoot ng-show="chosenTopics.length < 6">
             <tr>
-                <td class="filter">
-                    <input class="form-control" ng-model="topicSearch" placeholder="Search" />
-                </td>
                 <td width="*">
-                    <div ng-show="topicSearch.length > 0">
-                        <label ng-repeat="t in matchingTopics">
-                            <input type="radio"
-                                   name="activeTopic"
-                                   ng-model="$parent.activeTopic"
-                                   ng-value="t" />
+                    <input class="form-control" ng-model="topicSearch" placeholder="Search" />
+                    <div class="suggestions">
+                        <div ng-show="topicSearch.length > 0">
+                            <label ng-repeat="topic in matchingTopics">
+                                <input type="radio"
+                                       name="activeTopic"
+                                       ng-model="$parent.activeTopic"
+                                       ng-value="topic" />
 
-                            {{t.code}} {{ t.name }}
-                        </label>
+                                {{ topic.code }} {{ topic.name }} <span class="subtle">({{topic.institution.nickname }} {{ topic.year }} {{ topic.semester }})</span>
+                            </label>
 
-                        <p ng-show="!matchingTopics.length" class="hint hint-filter">Your search returned no results</p>
+                            <p ng-show="!matchingTopics.length" class="hint hint-filter">Your search returned no results</p>
+                        </div>
+                        <div ng-show="topicSearch.length == 0" class="hint hint-filter">Type a few letters of a topic code or
+                            topic name to the left to search for topics, e.g. "software engineering"</div>
                     </div>
-
-                    <div ng-show="topicSearch.length == 0" class="hint hint-filter">Type a few letters of a topic code or
-                        topic name to the left to search for topics, e.g. "software engineering"</div>
                 </td>
 
                 <td class="action">
-                    <button ng-show="topicSearch.length > 0 && matchingTopics.length" type="submit" class="btn btn-primary btn-small"
+                    <button type="submit" class="btn btn-primary btn-sm"
                             ng-click="addTopic(activeTopic)"
-                            ng-disabled="!validateTopic(activeTopic)">
+                            ng-disabled="topicSearch.length > 0 && matchingTopics.length && !validateTopic(activeTopic)">
                         Add
                     </button>
                 </td>
