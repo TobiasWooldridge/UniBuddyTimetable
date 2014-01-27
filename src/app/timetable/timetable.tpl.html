@@ -76,6 +76,18 @@
             <tr>
                 <td width="*">
                     <input class="form-control" ng-model="topicSearch" placeholder="Search" />
+                </td>
+
+                <td class="action">
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            ng-click="addTopic(activeTopic)"
+                            ng-disabled="!(topicSearch.length > 0 && matchingTopics.length) || !validateTopic(activeTopic)">
+                        Add
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
                     <div class="suggestions">
                         <div ng-show="topicSearch.length > 0">
                             <label ng-repeat="topic in matchingTopics">
@@ -92,14 +104,6 @@
                         <div ng-show="topicSearch.length == 0" class="hint hint-filter">Type a few letters of a topic code or
                             topic name to the left to search for topics, e.g. "software engineering"</div>
                     </div>
-                </td>
-
-                <td class="action">
-                    <button type="submit" class="btn btn-primary btn-sm"
-                            ng-click="addTopic(activeTopic)"
-                            ng-disabled="!(topicSearch.length > 0 && matchingTopics.length) || !validateTopic(activeTopic)">
-                        Add
-                    </button>
                 </td>
             </tr>
             </tfoot>
