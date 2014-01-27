@@ -175,39 +175,45 @@
 
         <p>This took {{ examineDuration }} seconds.</p>
 
+        <div class="suggestions">
+            <div class="row labels">
+                <div class="col-xs-4 col-sm-2">
+                    Time at uni
+                </div>
+                <div class="col-xs-4 col-sm-2">
+                    Earliest start
+                </div>
+                <div class="col-xs-4 col-sm-2">
+                    Latest end
+                </div>
+                <div class="col-sm-5 hidden-xs">
+                    Timetable Preview
+                </div>
+            </div>
 
-        <table class="table table-condensed">
-            <thead>
-            <tr>
-                <th>Time at uni</th>
-                <th>Earliest start</th>
-                <th>Latest end</th>
-                <th>Timetable Preview</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
-                <td>
+            <div class="row" ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
+                <div class="col-xs-4 col-sm-2">
                     {{ candidate.stats.secondsAtUni | secondsToHours }}
-                </td>
-                <td>
+                </div>
+                <div class="col-xs-4 col-sm-2">
                     {{ candidate.stats.earliestStartTime | secondsToTime }}
-                </td>
-                <td>
+                </div>
+                <div class="col-xs-4 col-sm-2">
                     {{ candidate.stats.latestEndTime | secondsToTime }}
-                </td>
-                <td>
+                </div>
+                <div class="col-sm-5 col-xs-10">
+                    <span class="visible-xs label">Timetable Preview</span>
+
                     <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
-                </td>
-                <td>
+                </div>
+                <div class="col-sm-1 col-xs-2">
                     <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
                         Apply
                     </button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                </div>
+            </div>
+        </div>
+
         <p>Showing page {{pageIndex + 1}} of {{ numPages }}</p>
         <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show
             previous suggestions
