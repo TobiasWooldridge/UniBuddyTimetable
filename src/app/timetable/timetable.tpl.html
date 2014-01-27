@@ -248,7 +248,7 @@
 
                             <p class="list-group-item-text"
                                ng-repeat="activity in classGroup.activities">
-                                {{ activity.dayOfWeek }} {{ activity.timeStartsAt }}
+                                {{ activity.dayOfWeek }} {{ activity.timeStartsAt }} <span class="until"> &ndash; {{ activity.timeEndsAt }}</span>
                             </p>
                         </a>
                     </div>
