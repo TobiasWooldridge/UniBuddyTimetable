@@ -187,9 +187,9 @@ angular.module( 'flap.topics', [
         return topicFactory;
     })
     .factory('sessionsService', function (dayService) {
-        var that = {};
+        var sessionsService = {};
 
-        that.compareSessions = function (a, b) {
+        sessionsService.compareSessions = function (a, b) {
             // Sort by day
             var daysDifference = dayService.compareDays(a.dayOfWeek, b.dayOfWeek);
             if (daysDifference !== 0) {
@@ -206,11 +206,11 @@ angular.module( 'flap.topics', [
             return a.secondsEndsAt - b.secondsEndsAt;
         };
 
-        that.sortSessions = function (sessions) {
-            return sessions.sort(that.compareSessions);
+        sessionsService.sortSessions = function (sessions) {
+            return sessions.sort(sessionsService.compareSessions);
         };
 
-        return that;
+        return sessionsService;
     })
 
     .factory('topicService', function () {

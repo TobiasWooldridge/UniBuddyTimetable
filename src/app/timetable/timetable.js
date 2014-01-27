@@ -214,13 +214,9 @@ angular.module('unibuddyTimetable.timetable', [
             return timetable;
         };
 
-        displayableTimetableFactory.createTimetableForBookings = function (bookings) {
-            var timetable = displayableTimetableFactory.createEmptyTimetable();
+        function removeDuplicateLookingBookings (bookings) {
+            bookings = bookings.slice(0);
 
-            //create timetable stuff
-            bookings = sessionsService.sortSessions(bookings.slice(0));
-
-            // Remove duplicate bookings where the only difference between the two bookings is the room they're in
             for (var i = 0; i < (bookings.length - 1); i++) {
                 var a = bookings[i];
                 var b = bookings[i + 1];
@@ -239,8 +235,21 @@ angular.module('unibuddyTimetable.timetable', [
                 // Remove the duplicate
                 if (found) {
                     bookings.splice(i, 1);
+                    i--; // move the cursor back a space
                 }
             }
+
+            return bookings;
+        }
+
+        displayableTimetableFactory.createTimetableForBookings = function (bookings) {
+            var timetable = displayableTimetableFactory.createEmptyTimetable();
+
+            //create timetable stuff
+            bookings = sessionsService.sortSessions(bookings.slice(0));
+
+            // Remove duplicate bookings where the only difference between the two bookings is the room they're in
+            bookings = removeDuplicateLookingBookings(bookings);
 
             angular.forEach(bookings, function (booking) {
                 var day = booking.dayOfWeek;
@@ -248,7 +257,7 @@ angular.module('unibuddyTimetable.timetable', [
                 var clashGroups = timetable[day];
                 var clashGroup = clashGroups[clashGroups.length - 1];
 
-                if (typeof clashGroup === "undefined" || clashService.sessionsClash(clashGroup, booking) === 0) {
+                if (clashGroup === undefined || clashService.sessionsClash(clashGroup, booking) === 0) {
                     clashGroup = clashGroupFactory.newClashGroup(booking);
                     timetable[day].push(clashGroup);
                 }
