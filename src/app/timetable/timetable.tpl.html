@@ -91,14 +91,10 @@
                     <div class="suggestions">
                         <div ng-show="topicSearch.length > 0">
                             <label ng-repeat="topic in matchingTopics">
-                                <input type="radio"
-                                       name="activeTopic"
-                                       ng-model="$parent.activeTopic"
-                                       ng-value="topic" />
+                                <input type="radio" name="activeTopic" ng-model="$parent.activeTopic" ng-value="topic" />
 
                                 {{ topic.code }} {{ topic.name }} <span class="subtle">({{topic.institution.nickname }} {{ topic.year }} {{ topic.semester }})</span>
                             </label>
-
                             <p ng-show="!matchingTopics.length" class="hint hint-filter">Your search returned no results. Make sure you've selected the correct university and semester above :)</p>
                         </div>
                         <div ng-show="topicSearch.length == 0" class="hint hint-filter">Type a few letters of a topic code or
@@ -230,9 +226,7 @@
 
 <div class="container" ng-controller="ManualClassChooserController" ng-show="chosenTopics.length">
     <div class="chosen-topics">
-        <div class="page-header">
-            <h3>Manual Class Selector</h3>
-        </div>
+        <h3>Manual Class Selector</h3>
 
         <div class="row">
             <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded"
@@ -262,4 +256,12 @@
             </div>
         </div>
     </div>
+</div>
+
+
+<div class="container" ng-controller="CalendarController" ng-show="chosenTopics.length">
+    <h3>Export to Google Calendar <small>(beta)</small></h3>
+    <p>Do you use Google Calendar or Apple iCal? Export your UniBuddy-generated timetable to Google Calendar and access it immediately through <a href="http://calendar.google.com/">Google Calendar</a> or Google's Android Calendar app, or sync it to <a href="https://support.google.com/calendar/answer/99358?hl=en">Apple iCal</a>.</p>
+    <p>Please be advised that you should check that the created Google Calendar matches your university's provided timetable. UniBuddy makes no guarantees that your calendar will be exported correctly to Google Calendar.</p>
+    <button class="btn btn-primary" ng-click="exportCalendar()">Export to Google Calendar</button>
 </div>

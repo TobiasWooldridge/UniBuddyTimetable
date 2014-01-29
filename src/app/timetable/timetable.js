@@ -4,7 +4,8 @@ angular.module('unibuddyTimetable.timetable', [
         'flap.topics',
         'arrayMath',
         'unibuddyTimetable.generator',
-        'unibuddyTimetable.config'
+        'unibuddyTimetable.config',
+        'gapi'
     ])
 
     .config(function config($stateProvider) {
@@ -21,6 +22,7 @@ angular.module('unibuddyTimetable.timetable', [
     })
 
     .controller('TimetableCtrl', function TimetableController($scope, $location, chosenTopicService, urlService, topicFactory) {
+
         $scope.$on('chosenClassesUpdate', function () {
             urlService.setTopics(chosenTopicService.getTopics());
         });
@@ -81,7 +83,7 @@ angular.module('unibuddyTimetable.timetable', [
     })
 
 
-    .filter('paginate', function () {
+    .filter('paginate', function paginate() {
         return function (input, pageIndex, itemsPerPage) {
             if (typeof input === "undefined") {
                 return input;
@@ -91,26 +93,26 @@ angular.module('unibuddyTimetable.timetable', [
         };
     })
 
-    .filter('secondsToTime', function (moment) {
-        return function (number) {
+    .filter('secondsToTime', function secondsToTimeFilter(moment) {
+        return function secondsToTime(number) {
             return moment.unix(number).utc().format('h:mm a');
         };
     })
 
-    .filter('formatDateTime', function (moment) {
-        return function (date) {
+    .filter('formatDateTime', function formatDateTimeFilter(moment) {
+        return function formatDateTime(date) {
             return moment(date, "YYYY-MM-DD h a").format("h A on MMM Do YYYY");
         };
     })
 
-    .filter('inAWeek', function (moment) {
-        return function (date) {
+    .filter('inAWeek', function inAWeekFilter(moment) {
+        return function inAWeek(date) {
             return moment(date, "YYYY-MM-DD h a").add('days', 7).format("YYYY-MM-DD h a");
         };
     })
 
-    .filter('timeDistance', function (moment) {
-        return function (date) {
+    .filter('timeDistance', function timeDistanceFilter(moment) {
+        return function timeDistance(date) {
             return moment(date, "YYYY-MM-DD h a").fromNow();
         };
     })
@@ -897,11 +899,6 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
-    .controller('EnrolmentController', function ($scope, chosenTopicService, displayableTimetableFactory, sessionsService, dayService, bookingFactory, clashService, clashGroupFactory) {
-        $scope.chosenTopics = chosenTopicService.getTopics();
-    })
-
-
     .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, timetablePossibilityFactory, chosenTopicService, timetablePriorityFactory, timetableGeneratorService, maxTimetablePages, timetablesPerPage) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
@@ -911,8 +908,8 @@ angular.module('unibuddyTimetable.timetable', [
             clashAllowance: 0
         };
 
-        var HOUR = 3600;
-        $scope.clashAllowanceChoices = [0, 1 * HOUR, 2 * HOUR, 3 * HOUR];
+        var ONE_HOUR = 3600;
+        $scope.clashAllowanceChoices = [0, 1 * ONE_HOUR, 2 * ONE_HOUR, 3 * ONE_HOUR];
 
         $scope.prioritiesSortableOptions = {
             axis: "y"
@@ -973,5 +970,53 @@ angular.module('unibuddyTimetable.timetable', [
             $scope.hasGeneratedTimetables = false;
         });
     })
+
+    .controller('CalendarController', function ($scope, chosenTopicService, calendarClient, moment) {
+        function createCalendar(callback) {
+            calendarClient.findOrCreateCalendar("UniBuddy Timetable", addEventsToCalendar);
+        }
+
+        function addEventsToCalendar(calendar) {
+            console.log(calendar.id);
+            // for each topic
+            angular.forEach(chosenTopicService.getTopics(), function (topic) {
+                // and for each class
+                angular.forEach(topic.classes, function (classType) {
+                    if (!classType.activeClassGroup) {
+                        return;
+                    }
+
+                    // and for each class activity
+                    angular.forEach(classType.activeClassGroup.activities, function (activity) {
+                        var entry = {
+                            summary: topic.code + " " + classType.name,
+                            start: { timeZone: "Australia/Adelaide", dateTime: moment(activity.firstDay + " " + activity.timeStartsAt + " +9:30").format() },
+                            end: { timeZone: "Australia/Adelaide", dateTime: moment(activity.firstDay + " " + activity.timeEndsAt + " +9:30").format() }
+                        };
+
+                        if (activity.firstDay != activity.lastDay) {
+                            entry.recurrence = [
+                                "RRULE:FREQ=WEEKLY;UNTIL=" + moment(activity.lastDay + " " + activity.timeEndsAt + " +9:30").format("YYYYMMDDTHHmmss\\Z")
+                            ];
+
+                            console.log(entry.recurrence[0]);
+                        }
+
+                        console.log(entry);
+
+                        calendarClient.createEvent(calendar.id, entry, function() { console.log("moo?"); });
+                    });
+                });
+            });
+        }
+
+
+        $scope.chosenTopics = chosenTopicService.getTopics();
+
+        $scope.exportCalendar = function exportCalendar() {
+            calendarClient.authorizeUser(createCalendar);
+        };
+    })
+
 ;
 
