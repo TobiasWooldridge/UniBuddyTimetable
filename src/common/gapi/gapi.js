@@ -61,6 +61,7 @@ angular.module('gapi', [])
 
         calendarClient.authorizeUser = authorizeUser;
         calendarClient.findOrCreateCalendar = findOrCreateCalendar;
+        calendarClient.createCalendar = createCalendar;
         calendarClient.createEvent = createEvent;
 
         return calendarClient;

@@ -973,7 +973,21 @@ angular.module('unibuddyTimetable.timetable', [
 
     .controller('CalendarController', function ($scope, chosenTopicService, calendarClient, moment) {
         function createCalendar(callback) {
-            calendarClient.findOrCreateCalendar("UniBuddy Timetable", addEventsToCalendar);
+            calendarClient.createCalendar("UniBuddy Timetable", addEventsToCalendar);
+        }
+
+        function recurrenceUntil(mo) {
+            return [
+                "RRULE:FREQ=WEEKLY;UNTIL=" + mo.format("YYYYMMDDTHHmmss\\Z")
+            ];
+        }
+
+        function stringifyRoom(room) {
+            if (!room) {
+                return "";
+            }
+
+            return room.name + " (" + room.fullName + ")";
         }
 
         function addEventsToCalendar(calendar) {
@@ -988,23 +1002,23 @@ angular.module('unibuddyTimetable.timetable', [
 
                     // and for each class activity
                     angular.forEach(classType.activeClassGroup.activities, function (activity) {
+                        var zone = "Australia/Adelaide";
+                        var offset = moment().tz(zone).format("Z");
+
                         var entry = {
                             summary: topic.code + " " + classType.name,
-                            start: { timeZone: "Australia/Adelaide", dateTime: moment(activity.firstDay + " " + activity.timeStartsAt + " +9:30").format() },
-                            end: { timeZone: "Australia/Adelaide", dateTime: moment(activity.firstDay + " " + activity.timeEndsAt + " +9:30").format() }
+                            start: { timeZone: zone, dateTime: moment(activity.firstDay + " " + activity.timeStartsAt + " " + offset).tz(zone).format() },
+                            end: { timeZone: zone, dateTime: moment(activity.firstDay + " " + activity.timeEndsAt + " " + offset).tz(zone).format() },
+                            location : stringifyRoom(activity.room)
                         };
 
                         if (activity.firstDay != activity.lastDay) {
-                            entry.recurrence = [
-                                "RRULE:FREQ=WEEKLY;UNTIL=" + moment(activity.lastDay + " " + activity.timeEndsAt + " +9:30").format("YYYYMMDDTHHmmss\\Z")
-                            ];
-
-                            console.log(entry.recurrence[0]);
+                            entry.recurrence = recurrenceUntil(moment(activity.lastDay + " " + activity.timeEndsAt + " " + offset).tz(zone));
                         }
 
-                        console.log(entry);
+                        console.log(entry.start.dateTime, entry.end.dateTime);
 
-                        calendarClient.createEvent(calendar.id, entry, function() { console.log("moo?"); });
+                        calendarClient.createEvent(calendar.id, entry);
                     });
                 });
             });

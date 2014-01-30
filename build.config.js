@@ -71,7 +71,8 @@ module.exports = {
             'vendor/angular-ui-router/release/angular-ui-router.js',
             'vendor/angular-ui-utils/modules/route/route.js',
             'vendor/angular-ui-sortable/src/sortable.js',
-            'vendor/moment/moment.js'
+            'vendor/moment/moment.js',
+            'vendor/moment-timezone/moment-timezone.js'
         ],
         css: [
         ],
