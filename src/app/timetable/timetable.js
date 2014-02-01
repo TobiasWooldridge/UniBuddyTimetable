@@ -21,6 +21,8 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
+    .constant('topicColours', 9)
+
     .controller('TimetableCtrl', function TimetableController($scope, $location, chosenTopicService, urlService, topicFactory) {
 
         $scope.$on('chosenClassesUpdate', function () {
@@ -856,7 +858,23 @@ angular.module('unibuddyTimetable.timetable', [
         };
     })
 
-    .directive('booking', function () {
+    .directive('topicHighlight', function bookingHighlightDirective(topicColours) {
+        var bookingHighlight = {
+            restrict: 'A',
+            link: function link(scope, elem, attrs) {
+                if (scope.booking !== undefined) {
+                    elem.addClass('topic-' + scope.booking.topicHash % topicColours);
+                }
+                else if (scope.topic !== undefined) {
+                    elem.addClass('topic-' + scope.topic.getHash() % topicColours);
+                }
+            }
+        };
+
+        return bookingHighlight;
+    })
+
+    .directive('booking', function bookingDirective() {
         var booking = {
             restrict: 'E',
             scope: {
@@ -869,8 +887,7 @@ angular.module('unibuddyTimetable.timetable', [
                     $scope.startOffset = 28800;
                 }
                 $scope.getClass = function () {
-                    var className = 'booking topic-';
-                    className += ($scope.booking.topicHash % 9);
+                    var className = '';
                     if ($scope.booking.locked) {
                         className += ' locked';
                     }
