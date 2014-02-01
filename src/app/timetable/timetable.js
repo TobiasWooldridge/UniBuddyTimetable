@@ -699,9 +699,7 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         $scope.updateAvailableSemesters = function updateAvailableSemesters() {
-            var semesters = $scope.activeInstitution.resources.timetableSemesters[$scope.activeYear];
-
-            $scope.semesters = semesters;
+            $scope.semesters = $scope.activeInstitution.resources.timetableSemesters[$scope.activeYear];
 
             angular.forEach($scope.semesters, function (semester) {
                 if (semester.selected === undefined) {
@@ -935,7 +933,7 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         var ONE_HOUR = 3600;
-        $scope.clashAllowanceChoices = [0, 1 * ONE_HOUR, 2 * ONE_HOUR, 3 * ONE_HOUR];
+        $scope.clashAllowanceChoices = [0, ONE_HOUR, 2 * ONE_HOUR, 3 * ONE_HOUR];
 
         $scope.prioritiesSortableOptions = {
             axis: "y"
