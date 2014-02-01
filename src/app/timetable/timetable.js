@@ -870,7 +870,7 @@ angular.module('unibuddyTimetable.timetable', [
                 }
                 $scope.getClass = function () {
                     var className = 'booking topic-';
-                    className += ($scope.booking.topicHash % 16);
+                    className += ($scope.booking.topicHash % 9);
                     if ($scope.booking.locked) {
                         className += ' locked';
                     }

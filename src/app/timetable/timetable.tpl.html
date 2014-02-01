@@ -230,7 +230,7 @@
 
         <div class="row">
             <div ng-repeat="topic in chosenTopics" ng-show="topic.timetableLoaded"
-                 class="col-md-3 topic topic-{{topic.getHash() % 16}}">
+                 class="col-md-3 topic topic-{{topic.getHash() % 9}}">
                 <h4>{{ topic.code }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
