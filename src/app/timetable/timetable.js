@@ -874,6 +874,35 @@ angular.module('unibuddyTimetable.timetable', [
         return bookingHighlight;
     })
 
+    .directive('bookingLockedIndicator', function bookingLockedIndicatorDirective() {
+        var bookingLockedIndicator = {
+            restrict: 'A',
+            link: function link(scope, elem, attrs) {
+                if (scope.booking.locked) {
+                    elem.addClass('locked');
+                }
+            }
+        };
+
+        return bookingLockedIndicator;
+    })
+
+    .directive('bookingTopOffset', function bookingTopOffsetDirective() {
+        var bookingTopOffset = {
+            restrict: 'A',
+            link: function link(scope, elem, attrs) {
+                if (scope.startOffset === undefined) {
+                    scope.startOffset = 28800;
+                }
+
+                elem.css('height', (scope.booking.secondsDuration / (20 * 60)) + 'em');
+                elem.css('top', ((scope.booking.secondsStartsAt - scope.startOffset) / (20 * 60)) + 'em');
+            }
+        };
+
+        return bookingTopOffset;
+    })
+
     .directive('booking', function bookingDirective() {
         var booking = {
             restrict: 'E',
@@ -881,27 +910,7 @@ angular.module('unibuddyTimetable.timetable', [
                 booking: '=',
                 startOffset: '='
             },
-            templateUrl: 'timetable/views/booking.tpl.html',
-            link: function ($scope, element, attrs) {
-                if ($scope.startOffset === undefined) {
-                    $scope.startOffset = 28800;
-                }
-                $scope.getClass = function () {
-                    var className = '';
-                    if ($scope.booking.locked) {
-                        className += ' locked';
-                    }
-                    return className;
-                };
-
-                $scope.getStyle = function () {
-                    return {
-                        height: ($scope.booking.secondsDuration / (20 * 60)) + 'em',
-                        top: (($scope.booking.secondsStartsAt - $scope.startOffset) / (20 * 60)) + 'em'
-                    };
-                };
-
-            }
+            templateUrl: 'timetable/views/booking.tpl.html'
         };
 
         return booking;
