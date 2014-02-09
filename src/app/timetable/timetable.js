@@ -21,7 +21,7 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
-    .constant('topicColours', 9)
+    .constant('topicColors', 9)
 
     .controller('TimetableCtrl', function TimetableController($scope, $location, chosenTopicService, urlService, topicFactory) {
 
@@ -856,16 +856,46 @@ angular.module('unibuddyTimetable.timetable', [
         };
     })
 
-    .directive('topicHighlight', function bookingHighlightDirective(topicColours) {
+    .directive('topicHighlight', function bookingHighlightDirective(topicColors) {
+        var recentlyAssigned = [];
+
+        var assignments = {};
+
+        function assignColor (topicHash) {
+            if (assignments[topicHash] !== undefined) {
+                return assignments[topicHash];
+            }
+
+            var colorId = topicHash % topicColors;
+
+            if (recentlyAssigned.length == topicColors) {
+                colorId = recentlyAssigned.shift();
+            }
+            else {
+                if (recentlyAssigned.indexOf(colorId) !== -1) {
+                    colorId = Math.floor(Math.random() * topicColors);
+                }
+            }
+
+            assignments[topicHash] = colorId;
+            recentlyAssigned.push(colorId);
+            return colorId;
+        }
+
         var bookingHighlight = {
             restrict: 'A',
             link: function link(scope, elem, attrs) {
+
                 if (scope.booking !== undefined) {
-                    elem.addClass('topic-' + scope.booking.topicHash % topicColours);
+                    topicHash = scope.booking.topicHash;
                 }
                 else if (scope.topic !== undefined) {
-                    elem.addClass('topic-' + scope.topic.getHash() % topicColours);
+                    topicHash = scope.topic.getHash();
                 }
+
+                var colorId = assignColor(topicHash);
+
+                elem.addClass('topic-' + colorId);
             }
         };
 
