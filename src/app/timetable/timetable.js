@@ -205,7 +205,7 @@ angular.module('unibuddyTimetable.timetable', [
         return urlService;
     })
 
-    .factory('displayableTimetableFactory', function (dayService, clashService, sessionsService, clashGroupFactory) {
+    .factory('displayableTimetableFactory', function (dayService, clashService, sessionsService, clashGroupFactory, duplicateBookingsService) {
         var displayableTimetableFactory = {};
 
         displayableTimetableFactory.createEmptyTimetable = function () {
@@ -218,33 +218,6 @@ angular.module('unibuddyTimetable.timetable', [
             return timetable;
         };
 
-        function removeDuplicateLookingBookings (bookings) {
-            bookings = bookings.slice(0);
-
-            for (var i = 0; i < (bookings.length - 1); i++) {
-                var a = bookings[i];
-                var b = bookings[i + 1];
-
-                var sessionComparisonFields = ['topicId', 'className', 'dayOfWeek', 'secondsStartsAt', 'secondsEndsAt'];
-
-                var found = true;
-                for (var j = 0; j < sessionComparisonFields.length; j++) {
-                    var field = sessionComparisonFields[j];
-                    if (a[field] !== b[field]) {
-                        found = false;
-                        break;
-                    }
-                }
-
-                // Remove the duplicate
-                if (found) {
-                    bookings.splice(i, 1);
-                    i--; // move the cursor back a space
-                }
-            }
-
-            return bookings;
-        }
 
         displayableTimetableFactory.createTimetableForBookings = function (bookings) {
             var timetable = displayableTimetableFactory.createEmptyTimetable();
@@ -253,7 +226,7 @@ angular.module('unibuddyTimetable.timetable', [
             bookings = sessionsService.sortSessions(bookings.slice(0));
 
             // Remove duplicate bookings where the only difference between the two bookings is the room they're in
-            bookings = removeDuplicateLookingBookings(bookings);
+            bookings = duplicateBookingsService.removeDuplicateLookingBookings(bookings);
 
             angular.forEach(bookings, function (booking) {
                 var day = booking.dayOfWeek;
@@ -472,6 +445,40 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         return that;
+    })
+
+    .factory('duplicateBookingsService', function () {
+        var duplicateBookingsService = {};
+
+        duplicateBookingsService.removeDuplicateLookingBookings = function removeDuplicateLookingBookings (bookings) {
+            bookings = bookings.slice(0);
+
+            for (var i = 0; i < (bookings.length - 1); i++) {
+                var a = bookings[i];
+                var b = bookings[i + 1];
+
+                var sessionComparisonFields = ['topicId', 'className', 'dayOfWeek', 'secondsStartsAt', 'secondsEndsAt'];
+
+                var found = true;
+                for (var j = 0; j < sessionComparisonFields.length; j++) {
+                    var field = sessionComparisonFields[j];
+                    if (a[field] !== b[field]) {
+                        found = false;
+                        break;
+                    }
+                }
+
+                // Remove the duplicate
+                if (found) {
+                    bookings.splice(i, 1);
+                    i--; // move the cursor back a space
+                }
+            }
+
+            return bookings;
+        };
+
+        return duplicateBookingsService;
     })
 
 
@@ -774,9 +781,10 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
-    .controller('ManualClassChooserController', function ($scope, chosenTopicService) {
+    .controller('ManualClassChooserController', function ($scope, chosenTopicService, duplicateBookingsService) {
         $scope.broadcastClassesUpdate = chosenTopicService.broadcastClassesUpdate;
         $scope.chosenTopics = chosenTopicService.getTopics();
+        $scope.removeDuplicateLookingBookings = duplicateBookingsService.removeDuplicateLookingBookings;
     })
 
     .directive('timetableMini', function (bookingFactory, displayableTimetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {
