@@ -247,7 +247,7 @@
                             </span>
 
                             <p class="list-group-item-text"
-                               ng-repeat="activity in removeDuplicateLookingBookings(classGroup.activities)">
+                               ng-repeat="activity in sortSessions(removeDuplicateLookingBookings(classGroup.activities))">
                                 {{ activity.dayOfWeek }} {{ activity.timeStartsAt }} <span class="until"> &ndash; {{ activity.timeEndsAt }}</span>
                             </p>
                         </a>

@@ -781,10 +781,11 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
-    .controller('ManualClassChooserController', function ($scope, chosenTopicService, duplicateBookingsService) {
+    .controller('ManualClassChooserController', function ($scope, chosenTopicService, duplicateBookingsService, sessionsService) {
         $scope.broadcastClassesUpdate = chosenTopicService.broadcastClassesUpdate;
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.removeDuplicateLookingBookings = duplicateBookingsService.removeDuplicateLookingBookings;
+        $scope.sortSessions = sessionsService.sortSessions;
     })
 
     .directive('timetableMini', function (bookingFactory, displayableTimetableFactory, clashService, dayService, sessionsService, clashGroupFactory) {

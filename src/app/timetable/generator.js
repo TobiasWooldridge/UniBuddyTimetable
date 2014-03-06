@@ -27,7 +27,7 @@ angular.module('unibuddyTimetable.generator', [])
         };
 
         var maximize = function (a, b) {
-            return -minimize(a, b);
+            return b - a;
         };
 
         /**
@@ -83,24 +83,23 @@ angular.module('unibuddyTimetable.generator', [])
          * @returns {Array} of timetablePrioritys
          */
         timetablePriorityFactory.createAllTimetablePriorities = function () {
-            var timetablePriorities = [];
+            var timetablePriorities = [
+                createTimetablePriority('Minimize days at uni', function (a, b) {
+                    return minimize(a.daysAtUni, b.daysAtUni);
+                }),
 
-            timetablePriorities.push(createTimetablePriority('Minimize days at uni', function (a, b) {
-                return minimize(a.daysAtUni, b.daysAtUni);
-            }));
+                createTimetablePriority('Minimize time at uni', function (a, b) {
+                    return minimize(a.secondsAtUni, b.secondsAtUni);
+                }),
 
-            timetablePriorities.push(createTimetablePriority('Minimize time at uni', function (a, b) {
-                return minimize(a.secondsAtUni, b.secondsAtUni);
-            }));
+                createTimetablePriority('Consistent start time', function (a, b) {
+                    return minimize(a.startTimeVariability, b.startTimeVariability);
+                }),
 
-            timetablePriorities.push(createTimetablePriority('Consistent start time', function (a, b) {
-                return minimize(a.startTimeVariability, b.startTimeVariability);
-            }));
-
-            timetablePriorities.push(timetablePriorityFactory.createEarlierLaterPriority("Start weekend", "weekendStartsAt", "earlier"));
-            timetablePriorities.push(timetablePriorityFactory.createEarlierLaterPriority("Start day", "averageStartTime", "later"));
-
-            timetablePriorities.push(timetablePriorityFactory.createDayOfWeekProperty("Minimize time at uni on", "secondsAtUniByDay", "later"));
+                timetablePriorityFactory.createEarlierLaterPriority("Start weekend", "weekendStartsAt", "earlier"),
+                timetablePriorityFactory.createEarlierLaterPriority("Start day", "averageStartTime", "later"),
+                timetablePriorityFactory.createDayOfWeekProperty("Minimize time at uni on", "secondsAtUniByDay", "later")
+            ];
 
             return timetablePriorities;
         };
@@ -146,7 +145,6 @@ angular.module('unibuddyTimetable.generator', [])
         return timetableSpecFactory;
     })
 
-
     .factory('timetablePossibilityFactory', function (topicService, timetableSpecFactory, clashService) {
         var timetablePossibilityFactory = {};
 
@@ -164,7 +162,6 @@ angular.module('unibuddyTimetable.generator', [])
 
             return possibleTimetables;
         };
-
 
         timetablePossibilityFactory.findTimetablesWithMinimumClashes = function (topics, config) {
             // Add in default config values if they're undefined
@@ -293,7 +290,6 @@ angular.module('unibuddyTimetable.generator', [])
 
         return timetablePossibilityFactory;
     })
-
 
     .factory('timetableGeneratorService', function (dayService, arrayMath, timetablePriorityFactory) {
         var timetableGeneratorService = {};
