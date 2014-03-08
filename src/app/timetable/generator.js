@@ -145,10 +145,8 @@ angular.module('unibuddyTimetable.generator', [])
         return timetableSpecFactory;
     })
 
-    .factory('timetablePossibilityFactory', function (topicService, timetableSpecFactory, clashService) {
-        var timetablePossibilityFactory = {};
-
-        timetablePossibilityFactory.countPossibleTimetables = function (topics) {
+    .factory('countPossibleTimetables', function() {
+        return function countPossibleTimetables(topics) {
             var possibleTimetables = 1;
 
             angular.forEach(topics, function (topic) {
@@ -162,6 +160,10 @@ angular.module('unibuddyTimetable.generator', [])
 
             return possibleTimetables;
         };
+    })
+
+    .factory('timetablePossibilityFactory', function (topicService, timetableSpecFactory, clashService) {
+        var timetablePossibilityFactory = {};
 
         timetablePossibilityFactory.findTimetablesWithMinimumClashes = function (topics, config) {
             // Add in default config values if they're undefined

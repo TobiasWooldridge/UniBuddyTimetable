@@ -962,7 +962,7 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
-    .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, timetablePossibilityFactory, chosenTopicService, timetablePriorityFactory, timetableGeneratorService, maxTimetablePages, timetablesPerPage) {
+    .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, countPossibleTimetables, timetablePossibilityFactory, chosenTopicService, timetablePriorityFactory, timetableGeneratorService, maxTimetablePages, timetablesPerPage) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
 
@@ -1028,7 +1028,7 @@ angular.module('unibuddyTimetable.timetable', [
             chosenTopics = chosenTopicService.getTopics();
             $scope.hasChosenTopics = (chosenTopics.length > 0);
 
-            $scope.numPossibleTimetables = timetablePossibilityFactory.countPossibleTimetables(chosenTopics);
+            $scope.numPossibleTimetables = countPossibleTimetables(chosenTopics);
 
             $scope.hasGeneratedTimetables = false;
         });

@@ -113,110 +113,117 @@
         <h3>Timetable Generator</h3>
     </div>
 
-    <p>You have {{ numPossibleTimetables }} possible timetables. To find your ideal timetable, we're going to need a
-        little more information</p>
-
-    <p>Order the below list in terms of what's important to you, most important first.</p>
-
-
-    <div class="row">
-        <div class="col-md-7 generator-priorities">
-            <div class="page-header">
-                <h4>Sort your preference</h4>
-            </div>
-
-            <p>Drag the preferences to sort them</p>
-            <ol ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities">
-                <li ng-repeat="priority in timetablePriorities">
-                    {{ $index + 1 }}. {{ priority.label }}
-
-                    <select ng-show="priority.options" ng-model="priority.selectedOption"
-                            ng-options="p as p for p in priority.options">
-                    </select>
-
-                    <span class="hint" ng-show="$first">(Most important)</span>
-                    <span class="hint" ng-show="$last">(Least important)</span>
-
-                    <span class="glyphicon glyphicon-arrow-down pull-right"
-                          ng-click="movePreference($index, 1)"></span>
-                    <span class="glyphicon glyphicon-arrow-up pull-right" ng-click="movePreference($index, -1)"></span>
-                </li>
-            </ol>
-        </div>
-        <div class="col-md-5 generator-configuration">
-            <div class="page-header">
-                <h4>Generator Settings</h4>
-            </div>
-            <form>
-                <ul>
-                    <li><label>Avoid Full Classes <input type="checkbox" ng-model="config.avoidFull"> </label></li>
-                    <li><label>Allow <select ng-model="config.clashAllowance"
-                                             ng-options="a as a|secondsToHours for a in clashAllowanceChoices"></select>
-                        of avoidable clashes</label></li>
-                </ul>
-            </form>
-
-        </div>
+    <div ng-show="numPossibleTimetables <= 1">
+        <p>You only have <strong>{{ numPossibleTimetables | number }}</strong> possible timetables, so the generator won't be able to help you.</p>
+        <p>You can still export your class timetable to Google calendar below, though!</p>
     </div>
 
-    <div>
-        <p>
-            <button class="btn btn-primary" ng-click="generateTimetables()">Generate Timetables</button>
-        </p>
-    </div>
+    <div ng-show="numPossibleTimetables > 1">
+        <p>You have <strong>{{ numPossibleTimetables | number }}</strong> possible timetables. To find your ideal timetable, we're going to need a
+            little more information</p>
 
-    <div ng-show="hasGeneratedTimetables" class="generated-timetables">
-        <hr/>
-        <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables meeting your criteria.
+        <p>Order the below list in terms of what's important to you, most important first.</p>
 
-        <p>This took {{ examineDuration }} seconds.</p>
 
-        <div class="suggestions">
-            <div class="row labels">
-                <div class="col-xs-4 col-sm-2">
-                    Time at uni
+        <div class="row">
+            <div class="col-md-7 generator-priorities">
+                <div class="page-header">
+                    <h4>Sort your preference</h4>
                 </div>
-                <div class="col-xs-4 col-sm-2">
-                    Earliest start
-                </div>
-                <div class="col-xs-4 col-sm-2">
-                    Latest end
-                </div>
-                <div class="col-sm-5 hidden-xs">
-                    Timetable Preview
-                </div>
+
+                <p>Drag the preferences to sort them</p>
+                <ol ui-sortable="prioritiesSortableOptions" ng-model="timetablePriorities">
+                    <li ng-repeat="priority in timetablePriorities">
+                        {{ $index + 1 }}. {{ priority.label }}
+
+                        <select ng-show="priority.options" ng-model="priority.selectedOption"
+                                ng-options="p as p for p in priority.options">
+                        </select>
+
+                        <span class="hint" ng-show="$first">(Most important)</span>
+                        <span class="hint" ng-show="$last">(Least important)</span>
+
+                        <span class="glyphicon glyphicon-arrow-down pull-right"
+                              ng-click="movePreference($index, 1)"></span>
+                        <span class="glyphicon glyphicon-arrow-up pull-right" ng-click="movePreference($index, -1)"></span>
+                    </li>
+                </ol>
             </div>
+            <div class="col-md-5 generator-configuration">
+                <div class="page-header">
+                    <h4>Generator Settings</h4>
+                </div>
+                <form>
+                    <ul>
+                        <li><label>Avoid Full Classes <input type="checkbox" ng-model="config.avoidFull"> </label></li>
+                        <li><label>Allow <select ng-model="config.clashAllowance"
+                                                 ng-options="a as a|secondsToHours for a in clashAllowanceChoices"></select>
+                            of avoidable clashes</label></li>
+                    </ul>
+                </form>
 
-            <div class="row" ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
-                <div class="col-xs-4 col-sm-2">
-                    {{ candidate.stats.secondsAtUni | secondsToHours }}
-                </div>
-                <div class="col-xs-4 col-sm-2">
-                    {{ candidate.stats.earliestStartTime | secondsToTime }}
-                </div>
-                <div class="col-xs-4 col-sm-2">
-                    {{ candidate.stats.latestEndTime | secondsToTime }}
-                </div>
-                <div class="col-sm-5 col-xs-10">
-                    <span class="visible-xs label">Timetable Preview</span>
-
-                    <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
-                </div>
-                <div class="col-sm-1 col-xs-2">
-                    <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
-                        Apply
-                    </button>
-                </div>
             </div>
         </div>
 
-        <p>Showing page {{pageIndex + 1}} of {{ numPages }}</p>
-        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show
-            previous suggestions
-        </button>
-        <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1"
-                ng-disabled="pageIndex >= (numPages - 1)">Show next suggestions
-        </button>
+        <div>
+            <p>
+                <button class="btn btn-primary" ng-click="generateTimetables()">Generate Timetables</button>
+            </p>
+        </div>
+
+        <div ng-show="hasGeneratedTimetables" class="generated-timetables">
+            <hr/>
+            <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables meeting your criteria.
+
+            <p>This took {{ examineDuration }} seconds.</p>
+
+            <div class="suggestions">
+                <div class="row labels">
+                    <div class="col-xs-4 col-sm-2">
+                        Time at uni
+                    </div>
+                    <div class="col-xs-4 col-sm-2">
+                        Earliest start
+                    </div>
+                    <div class="col-xs-4 col-sm-2">
+                        Latest end
+                    </div>
+                    <div class="col-sm-5 hidden-xs">
+                        Timetable Preview
+                    </div>
+                </div>
+
+                <div class="row" ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
+                    <div class="col-xs-4 col-sm-2">
+                        {{ candidate.stats.secondsAtUni | secondsToHours }}
+                    </div>
+                    <div class="col-xs-4 col-sm-2">
+                        {{ candidate.stats.earliestStartTime | secondsToTime }}
+                    </div>
+                    <div class="col-xs-4 col-sm-2">
+                        {{ candidate.stats.latestEndTime | secondsToTime }}
+                    </div>
+                    <div class="col-sm-5 col-xs-10">
+                        <span class="visible-xs label">Timetable Preview</span>
+
+                        <timetable-mini topics="chosenTopics" candidate="candidate" class="mini"></timetable-mini>
+                    </div>
+                    <div class="col-sm-1 col-xs-2">
+                        <button class="btn btn-primary btn-sm" ng-click="applyClassGroupSelection(candidate.classPicks)">
+                            Apply
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <p>Showing page {{pageIndex + 1}} of {{ numPages }}</p>
+            <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex - 1" ng-disabled="pageIndex <= 0">Show
+                previous suggestions
+            </button>
+            <button class="btn btn-primary btn-sm" ng-click="pageIndex = pageIndex + 1"
+                    ng-disabled="pageIndex >= (numPages - 1)">Show next suggestions
+            </button>
+        </div>
     </div>
 </div>
 
