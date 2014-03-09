@@ -293,6 +293,18 @@ angular.module('unibuddyTimetable.generator', [])
         return timetablePossibilityFactory;
     })
 
+    .service('timetableGenerator', function generateTimetables (timetablePossibilityFactory, timetableGeneratorService) {
+        return {
+            generateTimetables : function generateTimetables(chosenTopics, config, timetablePriorities) {
+                var generatedTimetables = timetablePossibilityFactory.findTimetablesWithMinimumClashes(chosenTopics, config);
+
+                generatedTimetables = timetableGeneratorService.sortTimetablesByPriorities(generatedTimetables, timetablePriorities);
+
+                return generatedTimetables;
+            }
+        };
+    })
+
     .factory('timetableGeneratorService', function (dayService, arrayMath, timetablePriorityFactory) {
         var timetableGeneratorService = {};
 

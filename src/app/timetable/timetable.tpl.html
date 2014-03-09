@@ -173,7 +173,7 @@
 
         <div ng-show="hasGeneratedTimetables" class="generated-timetables">
             <hr/>
-            <p>Auto generation found {{ numRefinedPossibleTimetables }} possible timetables meeting your criteria.
+            <p>Auto generation found {{ timetableCandidates.length }} possible timetables meeting your criteria.
 
             <p>This took {{ examineDuration | number:3 }} seconds.</p>
 
@@ -193,7 +193,7 @@
                     </div>
                 </div>
 
-                <div class="row" ng-repeat="candidate in topTimetableCandidates | paginate: pageIndex:suggestionsPerPage">
+                <div class="row" ng-repeat="candidate in timetableCandidates | paginate: pageIndex:suggestionsPerPage">
                     <div class="col-xs-4 col-sm-2">
                         {{ candidate.stats.secondsAtUni | secondsToHours }}
                     </div>

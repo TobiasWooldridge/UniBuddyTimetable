@@ -968,11 +968,10 @@ angular.module('unibuddyTimetable.timetable', [
             $location,
             $anchorScroll,
             countPossibleTimetables,
-            timetablePossibilityFactory,
             chosenTopicService,
-            timetablePriorityFactory,
-            timetableGeneratorService,
+            timetableGenerator,
             maxTimetablePages,
+            timetablePriorityFactory,
             timetablesPerPage,
             stopwatch) {
         $scope.chosenTopics = chosenTopicService.getTopics();
@@ -992,7 +991,6 @@ angular.module('unibuddyTimetable.timetable', [
 
         $scope.timetablePriorities = timetablePriorityFactory.createAllTimetablePriorities();
 
-
         var allGeneratedTimetables = [];
 
         $scope.movePreference = function (index, movement) {
@@ -1004,7 +1002,6 @@ angular.module('unibuddyTimetable.timetable', [
                 $scope.timetablePriorities[destination] = buffer;
             }
         };
-
 
         $scope.applyClassGroupSelection = function (classGroupSelection) {
             angular.forEach(classGroupSelection, function (entry) {
@@ -1021,14 +1018,10 @@ angular.module('unibuddyTimetable.timetable', [
         $scope.generateTimetables = function () {
             var timer = stopwatch();
 
-            allGeneratedTimetables = timetablePossibilityFactory.findTimetablesWithMinimumClashes(chosenTopics, $scope.config);
-            $scope.numRefinedPossibleTimetables = allGeneratedTimetables.length;
+            $scope.timetableCandidates = timetableGenerator.generateTimetables(chosenTopics, $scope.config, $scope.timetablePriorities);
 
-            allGeneratedTimetables = timetableGeneratorService.sortTimetablesByPriorities(allGeneratedTimetables, $scope.timetablePriorities);
-
-            $scope.topTimetableCandidates = allGeneratedTimetables;
             $scope.pageIndex = 0;
-            $scope.numPages = Math.min(maxTimetablePages, Math.ceil(allGeneratedTimetables.length / timetablesPerPage));
+            $scope.numPages = Math.min(maxTimetablePages, Math.ceil($scope.timetableCandidates / timetablesPerPage));
             $scope.suggestionsPerPage = timetablesPerPage;
 
             $scope.hasGeneratedTimetables = true;
@@ -1039,9 +1032,7 @@ angular.module('unibuddyTimetable.timetable', [
         $scope.$on('chosenTopicsUpdate', function () {
             chosenTopics = chosenTopicService.getTopics();
             $scope.hasChosenTopics = (chosenTopics.length > 0);
-
             $scope.numPossibleTimetables = countPossibleTimetables(chosenTopics);
-
             $scope.hasGeneratedTimetables = false;
         });
     })
