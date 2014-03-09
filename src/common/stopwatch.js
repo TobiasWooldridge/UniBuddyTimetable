@@ -1,7 +1,17 @@
 angular.module('stopwatch', [])
     .factory('stopwatch', function () {
-        function now() {
-            return new Date().getTime();
+        var now;
+
+        // Ultra high resolution timer for vanity reasons :P
+        if (window.performance && window.performance.now) {
+            now = function now() {
+                return window.performance.now();
+            };
+        }
+        else {
+            now = function legacyNow() {
+                return new Date().getTime();
+            };
         }
 
         return function stopwatch() {
