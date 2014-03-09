@@ -5,7 +5,8 @@ angular.module('unibuddyTimetable.timetable', [
         'arrayMath',
         'unibuddyTimetable.generator',
         'unibuddyTimetable.config',
-        'gapi'
+        'gapi',
+        'stopwatch'
     ])
 
     .config(function config($stateProvider) {
@@ -962,7 +963,18 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
-    .controller('TimetableGeneratorController', function ($scope, $location, $anchorScroll, countPossibleTimetables, timetablePossibilityFactory, chosenTopicService, timetablePriorityFactory, timetableGeneratorService, maxTimetablePages, timetablesPerPage) {
+    .controller('TimetableGeneratorController', function (
+            $scope,
+            $location,
+            $anchorScroll,
+            countPossibleTimetables,
+            timetablePossibilityFactory,
+            chosenTopicService,
+            timetablePriorityFactory,
+            timetableGeneratorService,
+            maxTimetablePages,
+            timetablesPerPage,
+            stopwatch) {
         $scope.chosenTopics = chosenTopicService.getTopics();
         $scope.numPossibleTimetables = 1;
 
@@ -1007,7 +1019,7 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         $scope.generateTimetables = function () {
-            var startMillis = new Date().getTime();
+            var timer = stopwatch();
 
             allGeneratedTimetables = timetablePossibilityFactory.findTimetablesWithMinimumClashes(chosenTopics, $scope.config);
             $scope.numRefinedPossibleTimetables = allGeneratedTimetables.length;
@@ -1021,7 +1033,7 @@ angular.module('unibuddyTimetable.timetable', [
 
             $scope.hasGeneratedTimetables = true;
 
-            $scope.examineDuration = (new Date().getTime() - startMillis) / 1000;
+            $scope.examineDuration = timer.elapsedSeconds();
         };
 
         $scope.$on('chosenTopicsUpdate', function () {
