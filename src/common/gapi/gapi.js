@@ -3,6 +3,7 @@ angular.module('gapi', [])
     .constant('gapiKey', 'AIzaSyBlqYPaQsE5t6WE-sRpcf792QULgQuYxzM')
     .constant('gapiScopes', 'https://www.googleapis.com/auth/calendar')
 
+    // TODO(TobiasWooldridge): Why isn't this a service/provider?
     .factory('calendarClient', function(gapiClientId, gapiKey, gapiScopes) {
         function authorizeUser(callback) {
             gapi.client.setApiKey(gapiKey);
@@ -16,19 +17,33 @@ angular.module('gapi', [])
             };
         }
 
+        function deleteCalendar(calendar, callback) {
+            var p = gapi.client.calendar.calendars["delete"]({ calendarId : calendar.id });
+            if (callback) {
+                p.execute(callback);
+            }
+        }
+
+        function listCalendars(callback) {
+            gapi.client.calendar.calendarList.list().execute(function(calendars) {
+                callback(calendars.items);
+            });
+        }
+
         function findCalendar(name, callback) {
             var calendar = null;
 
-            gapi.client.calendar.calendarList.list().execute(function(resp) {
-                resp.items.forEach(function(item) {
+            listCalendars(function(resp) {
+                angular.forEach(resp, function(item) {
                     if (item.summary == name) {
                         calendar = item;
                     }
                 });
 
-                callback(calendar);
+                if (callback) {
+                    callback(calendar);
+                }
             });
-
         }
 
         function createCalendar(name, callback) {
@@ -43,28 +58,30 @@ angular.module('gapi', [])
                     createCalendar(name, callback);
                 }
                 else {
-                    callback(calendar);
+                    if (callback) {
+                        callback(calendar);
+                    }
                 }
             });
         }
 
         function createEvent(calendarId, event, callback) {
-            gapi.client.calendar.events.insert({
+            var request = gapi.client.calendar.events.insert({
                 calendarId: calendarId,
                 resource: event
-            }).execute(callback);
+            });
+
+            request.execute(callback || function() {});
         }
 
-
-
-        var calendarClient = {};
-
-        calendarClient.authorizeUser = authorizeUser;
-        calendarClient.findOrCreateCalendar = findOrCreateCalendar;
-        calendarClient.createCalendar = createCalendar;
-        calendarClient.createEvent = createEvent;
-
-        return calendarClient;
+        return {
+            authorizeUser : authorizeUser,
+            listCalendars : listCalendars,
+            findCalendar : findCalendar,
+            findOrCreateCalendar : findOrCreateCalendar,
+            createCalendar : createCalendar,
+            createEvent : createEvent
+        };
     })
 ;
 

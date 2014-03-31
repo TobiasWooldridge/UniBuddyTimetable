@@ -277,5 +277,44 @@
     </ul>
     <p>Well, you can! UniBuddy now lets you export your timetable to Google Calendar and access it wherever you are through <a href="http://calendar.google.com/">Google Calendar</a> or Google's Android Calendar app, or sync it to <a href="https://support.google.com/calendar/answer/99358?hl=en">Apple iCal</a>.</p>
     <p class="hint">You should check that the created Google Calendar matches your university's provided timetable. We do not guarantee that your calendar will be exported correctly.</p>
-    <button class="btn btn-primary" ng-click="exportCalendar()">Log in to Google Calendar</button>
+
+    <hr />
+
+    <div ng-show="!authorized">
+        <button class="btn btn-primary" ng-click="authorizeUser()" ng-disabled="authorized">Log in to Google
+            Account</button>
+    </div>
+
+    <div ng-show="authorized">
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Calendar Name</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                <td>
+                    <input class="form-control" hint="Enter a new calendar name" ng-model="calendarName" />
+                </td>
+                <td><button class="btn btn-primary btn-sm" ng-disabled="!calendarName.length" ng-click="createCalendar(calendarName)">Create Calendar</button></td>
+            </tr>
+            </tfoot>
+            <tbody>
+            <tr ng-repeat="calendar in calendars" ng-class="{ active : calendar == activeCalendar && !exported,  success : calendar == activeCalendar && exported }">
+                <td>{{ calendar.summary }}</td>
+                <td><input type="radio" ng-model="$parent.activeCalendar" name="activeCalendar" ng-value="calendar" /></td>
+            </tr>
+
+            </tbody>
+        </table>
+
+        <hr />
+
+        <p ng-show="!activeCalendar">Select a calendar to export your timetable to.</p>
+
+        <div class="alert alert-success" ng-show="exported">Your calendar was successfully exported!</div>
+        <button class="btn btn-primary" ng-disabled="!activeCalendar || exporting" ng-show="!exported" ng-click="exportCalendar(activeCalendar)">Export Calendar</button>
+    </div>
 </div>

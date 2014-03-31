@@ -3,8 +3,9 @@ angular.module('unibuddyTimetable.timetable', [
         'ui.sortable',
         'flap.topics',
         'arrayMath',
-        'unibuddyTimetable.generator',
         'unibuddyTimetable.config',
+        'unibuddyTimetable.exporter',
+        'unibuddyTimetable.generator',
         'gapi',
         'stopwatch'
     ])
@@ -136,6 +137,7 @@ angular.module('unibuddyTimetable.timetable', [
     })
 
     .factory('moment', function () {
+        // moment is defined in the global namespace
         return moment;
     })
 
@@ -1021,7 +1023,7 @@ angular.module('unibuddyTimetable.timetable', [
             $scope.timetableCandidates = timetableGenerator.generateTimetables(chosenTopics, $scope.config, $scope.timetablePriorities);
 
             $scope.pageIndex = 0;
-            $scope.numPages = Math.min(maxTimetablePages, Math.ceil($scope.timetableCandidates / timetablesPerPage));
+            $scope.numPages = Math.min(maxTimetablePages, Math.ceil($scope.timetableCandidates.length / timetablesPerPage));
             $scope.suggestionsPerPage = timetablesPerPage;
 
             $scope.hasGeneratedTimetables = true;
@@ -1037,65 +1039,69 @@ angular.module('unibuddyTimetable.timetable', [
         });
     })
 
-    .controller('CalendarController', function ($scope, chosenTopicService, calendarClient, moment) {
-        function createCalendar(callback) {
-            calendarClient.createCalendar("UniBuddy Timetable", addEventsToCalendar);
-        }
 
-        function recurrenceUntil(mo) {
-            return [
-                "RRULE:FREQ=WEEKLY;UNTIL=" + mo.format("YYYYMMDDTHHmmss\\Z")
-            ];
-        }
 
-        function stringifyRoom(room) {
-            if (!room) {
-                return "";
-            }
 
-            return room.name + " (" + room.fullName + ")";
-        }
-
-        function addEventsToCalendar(calendar) {
-            console.log(calendar.id);
-            // for each topic
-            angular.forEach(chosenTopicService.getTopics(), function (topic) {
-                // and for each class
-                angular.forEach(topic.classes, function (classType) {
-                    if (!classType.activeClassGroup) {
-                        return;
-                    }
-
-                    // and for each class activity
-                    angular.forEach(classType.activeClassGroup.activities, function (activity) {
-                        var zone = "Australia/Adelaide";
-                        var offset = moment().tz(zone).format("Z");
-
-                        var entry = {
-                            summary: topic.code + " " + classType.name,
-                            start: { timeZone: zone, dateTime: moment(activity.firstDay + " " + activity.timeStartsAt + " " + offset).tz(zone).format() },
-                            end: { timeZone: zone, dateTime: moment(activity.firstDay + " " + activity.timeEndsAt + " " + offset).tz(zone).format() },
-                            location : stringifyRoom(activity.room)
-                        };
-
-                        if (activity.firstDay != activity.lastDay) {
-                            entry.recurrence = recurrenceUntil(moment(activity.lastDay + " " + activity.timeEndsAt + " " + offset).tz(zone));
-                        }
-
-                        console.log(entry.start.dateTime, entry.end.dateTime);
-
-                        calendarClient.createEvent(calendar.id, entry);
-                    });
+    .controller('CalendarController', function ($scope, chosenTopicService, gcalExporter) {
+        function updateCalendarList() {
+            gcalExporter.listCalendars(function (calendars) {
+                $scope.$apply(function() {
+                    $scope.calendars = calendars;
                 });
             });
         }
 
-
+        $scope.activeCalendar = null;
+        $scope.calendarName = "UniBuddy Calendar";
         $scope.chosenTopics = chosenTopicService.getTopics();
+        $scope.authorized = false;
+        $scope.exporting = false;
+        $scope.exported = false;
 
-        $scope.exportCalendar = function exportCalendar() {
-            calendarClient.authorizeUser(createCalendar);
+        $scope.isActive = function isActive(calendar) {
+            if (!$scope.activeCalendar) {
+                return false;
+            }
+            console.log("asdf");
+
+            return $scope.activeCalendar.id == calendar.id;
         };
+
+        $scope.authorizeUser = function authorizeUser() {
+            gcalExporter.authorize(function authorizedCallback() {
+                $scope.authorized = true;
+                updateCalendarList();
+            });
+        };
+
+        $scope.createCalendar = function createCalendar(calendarName) {
+            gcalExporter.createCalendar(calendarName, function(calendar) {
+                $scope.$apply(function() {
+                    $scope.calendars.push(calendar);
+                    $scope.activeCalendar = calendar;
+                });
+            });
+        };
+
+        $scope.exportCalendar = function exportCalendar(calendar) {
+            $scope.exporting = true;
+            gcalExporter.exportTopicsToCalendar(calendar, $scope.chosenTopics, function() {
+                if ($scope.exporting) {
+                    $scope.exported = true;
+                }
+            });
+        };
+
+
+        $scope.$on('chosenClassesUpdate', function () {
+            $scope.exporting = false;
+            $scope.exported = false;
+        });
+
+        $scope.$watch('activeCalendar', function () {
+            $scope.exporting = false;
+            $scope.exported = false;
+        });
     })
 
 ;
