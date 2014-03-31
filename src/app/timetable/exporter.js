@@ -12,7 +12,7 @@ angular.module('unibuddyTimetable.exporter', [])
         }
 
         function gcalTime(date, time, timezone) {
-            return { timeZone: timezone, dateTime: mTime(date, time, timezone).format("Z") };
+            return { timeZone: timezone, dateTime: mTime(date, time, timezone).format() };
         }
 
         function stringifyRoom(room) {

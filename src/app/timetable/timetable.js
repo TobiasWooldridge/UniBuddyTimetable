@@ -1075,6 +1075,7 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         $scope.createCalendar = function createCalendar(calendarName) {
+            $scope.calendarName = "";
             gcalExporter.createCalendar(calendarName, function(calendar) {
                 $scope.$apply(function() {
                     $scope.calendars.push(calendar);
