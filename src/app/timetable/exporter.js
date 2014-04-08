@@ -7,7 +7,7 @@ angular.module('unibuddyTimetable.exporter', [])
         }
 
         function mTime(date, time, timezone) {
-            var offset = moment().tz(timezone).format("Z");
+            var offset = moment(date).tz(timezone).format("Z");
             return moment(date + " " + time + " " + offset).tz(timezone);
         }
 
