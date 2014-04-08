@@ -1046,11 +1046,14 @@ angular.module('unibuddyTimetable.timetable', [
         function updateCalendarList() {
             gcalExporter.listCalendars(function (calendars) {
                 $scope.$apply(function() {
-                    $scope.calendars = calendars;
+                    $scope.calendars = calendars || [];
+
+                    $scope.calendarsEnabled = calendars.length > 0;
                 });
             });
         }
 
+        $scope.calendarsEnabled = false;
         $scope.activeCalendar = null;
         $scope.calendarName = "UniBuddy Calendar";
         $scope.chosenTopics = chosenTopicService.getTopics();
@@ -1094,15 +1097,13 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
 
-        $scope.$on('chosenClassesUpdate', function () {
+        var resetExporting = function resetExporting() {
             $scope.exporting = false;
             $scope.exported = false;
-        });
+        };
 
-        $scope.$watch('activeCalendar', function () {
-            $scope.exporting = false;
-            $scope.exported = false;
-        });
+        $scope.$on('chosenClassesUpdate', resetExporting);
+        $scope.$watch('activeCalendar', resetExporting);
     })
 
 ;

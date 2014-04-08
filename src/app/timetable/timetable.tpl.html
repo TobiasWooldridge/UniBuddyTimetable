@@ -285,13 +285,13 @@
             Account</button>
     </div>
 
-    <div ng-show="authorized">
+    <div ng-show="authorized && calendarsEnabled">
         <table class="table table-condensed">
             <thead>
-                <tr>
-                    <th>Calendar Name</th>
-                    <th></th>
-                </tr>
+            <tr>
+                <th>Calendar Name</th>
+                <th></th>
+            </tr>
             </thead>
             <tfoot>
             <tr>
@@ -316,5 +316,11 @@
 
         <div class="alert alert-success" ng-show="exported">Your calendar was successfully exported!</div>
         <button class="btn btn-primary" ng-disabled="!activeCalendar || exporting" ng-show="!exported" ng-click="exportCalendar(activeCalendar)">Export Calendar</button>
+    </div>
+    <div ng-show="authorized && !calendarsEnabled">
+        <div class="alert alert-danger">
+            <p>There was an error accessing Google Calendar for your account :(</p>
+            <p>Make sure you have Google Calendar set up <a href="http://calendar.google.com/">here</a>.</p>
+        </div>
     </div>
 </div>
