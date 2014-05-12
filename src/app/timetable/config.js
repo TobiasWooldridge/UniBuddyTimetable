@@ -6,7 +6,7 @@ angular.module('unibuddyTimetable.config', [])
             "Semester 1 (includes NS1)" : "S1,NS1",
             "Semester 2 (includes NS2)" : "S2,NS2"
         },
-        defaultSemester: "S1,NS1"
+        defaultSemester: "S2,NS2"
     })
 
     .constant('timetablesPerPage', 5)
