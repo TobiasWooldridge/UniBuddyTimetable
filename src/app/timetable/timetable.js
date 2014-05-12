@@ -713,7 +713,7 @@ angular.module('unibuddyTimetable.timetable', [
 
             angular.forEach($scope.semesters, function (semester) {
                 if (semester.selected === undefined) {
-                    semester.selected = ["S1", "NS1"].indexOf(semester.code) !== -1;
+                    semester.selected = ["S2", "NS2"].indexOf(semester.code) !== -1;
                 }
             });
 
