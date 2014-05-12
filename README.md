@@ -5,15 +5,29 @@ FlindersTimetable
 
 This project helps Flinders students find their ideal timetable for a semester.
 
-### Prerequisites
+### Environment
 
-To build the project, you'll need a modern version of Node.jsm, NPM and git in your classpath.
+To build the project, you'll need a modern version of Node.js, NPM and git in your classpath.
 
 #### OS X
 
 If you have homebrew installed, run
 
     brew install nodejs git
+
+#### Windows
+
+Download and install [Node.js](http://nodejs.org/download/)
+
+Download and install  [Github for Windows](https://windows.github.com/) (not strictly necessary, but I like the UI. #dealwithit)
+
+'cd' to the following directory and add the resolved path to your PATH environmental variable.
+
+    %LOCALAPPDATA%/GitHub/PortableGit_*/bin
+
+or just manually install git somewhere sensible and add that directory to your PATH.
+
+
 
 ### Installation
 
