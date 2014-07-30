@@ -33,7 +33,7 @@ angular.module('unibuddyTimetable.exporter', [])
 
                 // and for each class activity
                 angular.forEach(classType.activeClassGroup.activities, function (activity) {
-                    var summary = classType.name + " - " + topic.name + "(" + topic.code + ")";
+                    var summary = classType.name + " - " + topic.name + " (" + topic.code + ")";
 
 
                     var entry = {
