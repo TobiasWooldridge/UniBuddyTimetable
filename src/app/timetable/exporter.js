@@ -1,6 +1,10 @@
-angular.module('unibuddyTimetable.exporter', [])
+angular.module('unibuddyTimetable.exporter', [
+        'colorAllocator'
+    ])
+
     // TODO(TobiasWooldridge): This shouldn't be a constant.
     .constant("timezone", "Australia/Adelaide")
+
     .factory('gcalExporter', function(calendarClient, moment, timezone) {
         function recurrenceUntil(until) {
             return "RRULE:FREQ=WEEKLY;UNTIL=" + until.format("YYYYMMDDTHHmmss\\Z");
@@ -23,7 +27,7 @@ angular.module('unibuddyTimetable.exporter', [])
             return room.name + " (" + room.fullName + ")";
         }
 
-        function createGcalEntriesForTopic(topic) {
+        function createGcalEntriesForTopic(topic, assignColor) {
             var entries = [];
 
             angular.forEach(topic.classes, function (classType) {
@@ -40,7 +44,8 @@ angular.module('unibuddyTimetable.exporter', [])
                         summary: summary,
                         start: gcalTime(activity.firstDay, activity.timeStartsAt, timezone),
                         end: gcalTime(activity.firstDay, activity.timeEndsAt, timezone),
-                        location : stringifyRoom(activity.room)
+                        location : stringifyRoom(activity.room),
+                        colorId : assignColor(topic.getHash())
                     };
 
                     if (activity.firstDay != activity.lastDay) {

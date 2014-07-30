@@ -3,6 +3,7 @@ angular.module('unibuddyTimetable.timetable', [
         'ui.sortable',
         'flap.topics',
         'arrayMath',
+        'colorAllocator',
         'unibuddyTimetable.config',
         'unibuddyTimetable.exporter',
         'unibuddyTimetable.generator',
@@ -22,8 +23,6 @@ angular.module('unibuddyTimetable.timetable', [
             data: { pageTitle: 'UniBuddy University Timetable Planner' }
         });
     })
-
-    .constant('topicColors', 9)
 
     .controller('TimetableCtrl', function TimetableController($scope, $location, chosenTopicService, urlService, topicFactory) {
 
@@ -868,36 +867,10 @@ angular.module('unibuddyTimetable.timetable', [
         };
     })
 
-    .directive('topicHighlight', function bookingHighlightDirective(topicColors) {
-        var recentlyAssigned = [];
-
-        var assignments = {};
-
-        function assignColor (topicHash) {
-            if (assignments[topicHash] !== undefined) {
-                return assignments[topicHash];
-            }
-
-            var colorId = topicHash % topicColors;
-
-            if (recentlyAssigned.length == topicColors) {
-                colorId = recentlyAssigned.shift();
-            }
-            else {
-                if (recentlyAssigned.indexOf(colorId) !== -1) {
-                    colorId = Math.floor(Math.random() * topicColors);
-                }
-            }
-
-            assignments[topicHash] = colorId;
-            recentlyAssigned.push(colorId);
-            return colorId;
-        }
-
+    .directive('topicHighlight', function bookingHighlightDirective(colorAllocator) {
         var bookingHighlight = {
             restrict: 'A',
             link: function link(scope, elem, attrs) {
-
                 if (scope.booking !== undefined) {
                     topicHash = scope.booking.topicHash;
                 }
@@ -905,7 +878,7 @@ angular.module('unibuddyTimetable.timetable', [
                     topicHash = scope.topic.getHash();
                 }
 
-                var colorId = assignColor(topicHash);
+                var colorId = colorAllocator(topicHash);
 
                 elem.addClass('topic-' + colorId);
             }
@@ -1065,7 +1038,6 @@ angular.module('unibuddyTimetable.timetable', [
             if (!$scope.activeCalendar) {
                 return false;
             }
-            console.log("asdf");
 
             return $scope.activeCalendar.id == calendar.id;
         };
