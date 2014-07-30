@@ -1033,6 +1033,7 @@ angular.module('unibuddyTimetable.timetable', [
         $scope.authorized = false;
         $scope.exporting = false;
         $scope.exported = false;
+        $scope.percentage = 0;
 
         $scope.isActive = function isActive(calendar) {
             if (!$scope.activeCalendar) {
@@ -1061,10 +1062,16 @@ angular.module('unibuddyTimetable.timetable', [
 
         $scope.exportCalendar = function exportCalendar(calendar) {
             $scope.exporting = true;
-            gcalExporter.exportTopicsToCalendar(calendar, $scope.chosenTopics, function() {
-                if ($scope.exporting) {
-                    $scope.exported = true;
-                }
+            $scope.percentage = 0;
+
+            gcalExporter.exportTopicsToCalendar(calendar, $scope.chosenTopics, function(percentage) {
+                $scope.$apply(function() {
+                    $scope.percentage = percentage;
+                    if (percentage >= 100 && $scope.exporting) {
+                        $scope.exported = true;
+                        console.log($scope.exported);
+                    }
+                });
             });
         };
 

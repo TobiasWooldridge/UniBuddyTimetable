@@ -72,15 +72,18 @@ angular.module('unibuddyTimetable.exporter', [
             calendarClient.createEvent(calendar.id, entry, callback);
         }
 
-        function addEntriesToCalendar(calendar, entries, callback) {
-            // TODO(TobiasWooldridge): Replace with batch API call.
-            angular.forEach(entries, function (entry) {
-                addEntryToCalendar(calendar, entry);
-            });
+        function addEntriesToCalendar(calendar, entries, percentageCallback) {
+            var addedEntries = 0;
 
-            if (callback) {
-                callback();
-            }
+            angular.forEach(entries, function (entry) {
+                addEntryToCalendar(calendar, entry, function() {
+                    addedEntries++;
+
+                    if (percentageCallback) {
+                        percentageCallback(100 * addedEntries / entries.length);
+                    }
+                });
+            });
         }
 
 
@@ -93,9 +96,9 @@ angular.module('unibuddyTimetable.exporter', [
             calendarClient.createCalendar(name, callback);
         };
 
-        gcalExporter.exportTopicsToCalendar = function exportTopicsToCalendar(calendar, topics, callback) {
+        gcalExporter.exportTopicsToCalendar = function exportTopicsToCalendar(calendar, topics, percentageCallback) {
             var entries = createGcalEntriesForTopics(topics);
-            addEntriesToCalendar(calendar, entries, callback);
+            addEntriesToCalendar(calendar, entries, percentageCallback);
         };
 
         gcalExporter.listCalendars = calendarClient.listCalendars;

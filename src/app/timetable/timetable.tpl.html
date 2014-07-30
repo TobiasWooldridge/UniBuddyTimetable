@@ -314,6 +314,14 @@
 
         <p ng-show="!activeCalendar">Select a calendar to export your timetable to.</p>
 
+        <div class="progress" ng-show="exporting">
+            <div class="progress-bar progress-bar-striped" role="progressbar"
+                 ng-style="{ 'width' : percentage + '%' }"
+                 ng-class="{ 'progress-bar-success' : (percentage >= 100) }">
+                 </div>
+        </div>
+
+
         <div class="alert alert-success" ng-show="exported">Your calendar was successfully exported!</div>
         <button class="btn btn-primary" ng-disabled="!activeCalendar || exporting" ng-show="!exported" ng-click="exportCalendar(activeCalendar)">Export Calendar</button>
     </div>
