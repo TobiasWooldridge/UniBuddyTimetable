@@ -33,8 +33,11 @@ angular.module('unibuddyTimetable.exporter', [])
 
                 // and for each class activity
                 angular.forEach(classType.activeClassGroup.activities, function (activity) {
+                    var summary = classType.name + " - " + topic.name + "(" + topic.code + ")";
+
+
                     var entry = {
-                        summary: topic.code + " " + classType.name,
+                        summary: summary,
                         start: gcalTime(activity.firstDay, activity.timeStartsAt, timezone),
                         end: gcalTime(activity.firstDay, activity.timeEndsAt, timezone),
                         location : stringifyRoom(activity.room)
