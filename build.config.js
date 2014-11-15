@@ -59,7 +59,7 @@ module.exports = {
      */
     vendor_files: {
         js: [
-            'vendor/jquery/jquery.js',
+            'vendor/jquery/dist/jquery.js',
             'vendor/bootstrap/dist/js/bootstrap.js',
             'vendor/jquery-ui/ui/jquery.ui.core.js',
             'vendor/jquery-ui/ui/jquery.ui.widget.js',
