@@ -30,6 +30,28 @@ describe('unibuddyTimetable clash service', function () {
     });
 
 
+    it('should detect no clash for two identical sessions with different date ranges', function () {
+        var a = {
+            firstDay: "2014-11-10",
+            lastDay: "2013-11-17",
+            dayOfWeek: "Monday",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600
+        };
+
+        var b = {
+            firstDay: "2014-11-24",
+            lastDay: "2013-12-1",
+            dayOfWeek: "Monday",
+            secondsStartsAt: 0,
+            secondsEndsAt: 600,
+            secondsDuration: 600
+        };
+
+        expectSessionsClash(a, b, 0);
+    });
+
     it('should detect no clash for two identical sessions on different days', function () {
         var a = {
             firstDay: "2013-08-06",
@@ -232,8 +254,6 @@ describe('unibuddyTimetable clash service', function () {
 
 
     // Class group clashes
-
-
     var expectGroupsClash = function (a, b, clashDuration) {
         expect(clashService.classGroupsClash(a, b)).toEqual(clashDuration);
         expect(clashService.classGroupsClash(b, a)).toEqual(clashDuration);

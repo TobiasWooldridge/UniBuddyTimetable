@@ -516,6 +516,10 @@ angular.module('unibuddyTimetable.timetable', [
             if (a.dayOfWeek !== b.dayOfWeek) {
                 return 0;
             }
+            else if (moment(a.lastDay).isBefore(moment(b.firstDay)) ||
+                     moment(b.lastDay).isBefore(moment(a.firstDay))) {
+                return 0;
+            }
             else if (a.secondsStartsAt === b.secondsStartsAt) {
                 // a and b start at the same time
                 // clash's duration is until first ends
