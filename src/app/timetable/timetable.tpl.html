@@ -65,7 +65,7 @@
             <tbody>
             <tr ng-repeat="topic in chosenTopics">
                 <td width="*">
-                    {{ topic.code }} {{ topic.name }} <span class="subtle">({{topic.institution.nickname }} {{ topic.year }} {{ topic.semester }})</span>
+                    {{ topic.code }} {{ topic.name }} <span class="subtle">{{topic.institution.nickname }} {{ topic.location }} {{ topic.year }} {{ topic.semester }}</span>
                 </td>
                 <td class="action">
                     <button type="button" class="btn btn-danger btn-sm" ng-click="removeTopic(topic)">Remove</button>
@@ -93,7 +93,7 @@
                             <label ng-repeat="topic in matchingTopics">
                                 <input type="radio" name="activeTopic" ng-model="$parent.activeTopic" ng-value="topic" />
 
-                                {{ topic.code }} {{ topic.name }} <span class="subtle">({{topic.institution.nickname }} {{ topic.year }} {{ topic.semester }})</span>
+                                {{ topic.code }} {{ topic.name }} <span class="subtle">{{ topic.location }} {{ topic.year }} {{ topic.semester }}</span>
                             </label>
                             <p ng-show="!matchingTopics.length" class="hint hint-filter">Your search returned no results. Make sure you've selected the correct university and semester above :)</p>
                         </div>
