@@ -156,9 +156,11 @@
                 <form>
                     <ul>
                         <li><label>Avoid Full Classes <input type="checkbox" ng-model="config.avoidFull"> </label></li>
-                        <li><label>Allow <select ng-model="config.clashAllowance"
-                                                 ng-options="a as a|secondsToHours for a in clashAllowanceChoices"></select>
-                            of avoidable clashes</label></li>
+                        <li><label>
+                            Allow
+                            <select ng-model="config.clashAllowance" ng-options="a as a|secondsToHours for a in clashAllowanceChoices"></select>
+                            of avoidable clashes
+                        </label></li>
                     </ul>
                 </form>
 
@@ -241,20 +243,22 @@
                 <h4>{{ topic.code }}</h4>
 
                 <div ng-show="topic.classes" ng-repeat="class in topic.classes">
-                    <h5>{{ class.name }} ({{ (class.classGroups[0].activities[0].secondsDuration || 0) |
-                        secondsToHours }})</h5>
+                    <h5>{{ class.name }} ({{ (class.classGroups[0].activities[0].secondsDuration || 0) | secondsToHours }})</h5>
 
                     <div ng-show="class.classGroups" class="list-group class-group">
                         <a ng-repeat="classGroup in class.classGroups" class="list-group-item activity"
                            ng-class="{ active: (classGroup == class.activeClassGroup), full: classGroup.full }"
-                           ng-click="(class.activeClassGroup = classGroup) && broadcastClassesUpdate()">
+                           ng-click="selectClassGroup(topic, class, classGroup)">
 
-                            <span class="full pull-right" ng-show="classGroup.full">
-                                <span class="glyphicon glyphicon-warning-sign" ng-show="classGroup.full"></span> Full
+                            <span class="stream-name pull-right" ng-show="classGroup.stream" title="Stream {{ classGroup.stream.name }}">
+                                <span class="glyphicon glyphicon-pushpin"></span> {{ classGroup.stream.name }}
                             </span>
 
-                            <p class="list-group-item-text"
-                               ng-repeat="activity in sortSessions(removeDuplicateLookingBookings(classGroup.activities))">
+                            <span class="full pull-right" ng-show="classGroup.full">
+                                <span class="glyphicon glyphicon-warning-sign"></span> Full
+                            </span>
+
+                            <p class="list-group-item-text" ng-repeat="activity in sortSessions(removeDuplicateLookingBookings(classGroup.activities))">
                                 {{ activity.dayOfWeek }} {{ activity.timeStartsAt }} <span class="until"> &ndash; {{ activity.timeEndsAt }}</span>
                             </p>
                         </a>
@@ -281,8 +285,7 @@
     <hr />
 
     <div ng-show="!authorized">
-        <button class="btn btn-primary" ng-click="authorizeUser()" ng-disabled="authorized">Log in to Google
-            Account</button>
+        <button class="btn btn-primary" ng-click="authorizeUser()" ng-disabled="authorized">Log in to Google Account</button>
     </div>
 
     <div ng-show="authorized && calendarsEnabled">

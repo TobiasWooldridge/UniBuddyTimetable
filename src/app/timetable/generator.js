@@ -221,11 +221,11 @@ angular.module('unibuddyTimetable.generator', [])
 
             /**
              * Recursive method used for enumerating every possible timetable. Uses 'secondsClashesPrior' to skip some timetables where sensible.
-             * @param previousClassGroupSelections
+             * @param classGroupSelections
              * @param remainingClassChoices
              * @param secondsClashesPrior
              */
-            var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, secondsClashesPrior) {
+            var searchTimetables = function (classGroupSelections, remainingClassChoices, secondsClashesPrior) {
                 var currentClassType = remainingClassChoices.pop();
 
                 var eligibleGroups = [];
@@ -241,26 +241,25 @@ angular.module('unibuddyTimetable.generator', [])
                 angular.forEach(eligibleGroups, function (currentGroup) {
                     var secondsClashesCurrent = secondsClashesPrior;
 
-                    angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {
+                    angular.forEach(classGroupSelections, function (previousClassGroupSelection) {
                         secondsClashesCurrent += clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup);
                     });
-
 
                     // Make sure we're not exceeding our clash limit
                     if (secondsClashesCurrent <= allowedSecondsClashing) {
                         // Work with this group for now
-                        previousClassGroupSelections[currentGroup.id] = timetableSpecFactory.newTimetableSpec(currentClassType, currentGroup);
+                        classGroupSelections[currentGroup.id] = timetableSpecFactory.newTimetableSpec(currentClassType, currentGroup);
 
                         if (remainingClassChoices.length === 0) {
                             // No more choices we can make, check if this timetable is good and move on
-                            examineAndAddTimetable(previousClassGroupSelections, secondsClashesCurrent);
+                            examineAndAddTimetable(classGroupSelections, secondsClashesCurrent);
                         } else {
                             // Keep making choices until we find a working timetable
-                            searchTimetables(previousClassGroupSelections, remainingClassChoices, secondsClashesCurrent);
+                            searchTimetables(classGroupSelections, remainingClassChoices, secondsClashesCurrent);
                         }
 
                         // Stop working with the current group
-                        delete(previousClassGroupSelections[currentGroup.id]);
+                        delete(classGroupSelections[currentGroup.id]);
                     }
                 });
 
