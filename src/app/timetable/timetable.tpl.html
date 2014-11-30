@@ -65,7 +65,8 @@
             <tbody>
             <tr ng-repeat="topic in chosenTopics">
                 <td width="*">
-                    {{ topic.code }} {{ topic.name }} <span class="subtle">{{topic.institution.nickname }} {{ topic.location }} {{ topic.year }} {{ topic.semester }}</span>
+                    {{ topic.code }} {{ topic.name }} <span class="subtle">{{topic.institution.nickname }} {{ topic.location }} {{ topic.year }} {{ topic.semester }} </span>
+                    <span class="topic-subscript" ng-show="topic.subscript">{{ topic.subscript }}</span>
                 </td>
                 <td class="action">
                     <button type="button" class="btn btn-danger btn-sm" ng-click="removeTopic(topic)">Remove</button>
@@ -94,6 +95,7 @@
                                 <input type="radio" name="activeTopic" ng-model="$parent.activeTopic" ng-value="topic" />
 
                                 {{ topic.code }} {{ topic.name }} <span class="subtle">{{ topic.location }} {{ topic.year }} {{ topic.semester }}</span>
+                                <span class="topic-subscript" ng-show="topic.subscript">{{ topic.subscript }}</span>
                             </label>
                             <p ng-show="!matchingTopics.length" class="hint hint-filter">Your search returned no results. Make sure you've selected the correct university and semester above :)</p>
                         </div>
@@ -160,6 +162,11 @@
                             Allow
                             <select ng-model="config.clashAllowance" ng-options="a as a|secondsToHours for a in clashAllowanceChoices"></select>
                             of avoidable clashes
+                        </label></li>
+                        <li><label>
+                            Limit generator to comparing up to
+                            <select ng-model="config.maxTimetables" ng-options="v as k for (k, v) in maxTimetablesChoices"></select>
+                            timetables <span class="subtle">(use a smaller number if UniBuddy freezes)</span>
                         </label></li>
                     </ul>
                 </form>

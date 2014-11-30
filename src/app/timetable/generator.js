@@ -169,9 +169,9 @@ angular.module('unibuddyTimetable.generator', [])
             // Add in default config values if they're undefined
             config = angular.extend({
                 avoidFull: true,
+                maxTimetables: 0, // 0 is unlimited
                 clashAllowance: 0
             }, config);
-
 
             if (topics.length === 0) {
                 return [];
@@ -181,6 +181,8 @@ angular.module('unibuddyTimetable.generator', [])
             var allowedSecondsClashing = Number.MAX_VALUE;
 
             var generatedTimetables = [];
+
+            var streamSelections = {};
 
             var examineAndAddTimetable = function (classGroupSelections, secondsOfClashes) {
                 if (secondsOfClashes < fewestSecondsClashing) {
@@ -221,11 +223,11 @@ angular.module('unibuddyTimetable.generator', [])
 
             /**
              * Recursive method used for enumerating every possible timetable. Uses 'secondsClashesPrior' to skip some timetables where sensible.
-             * @param classGroupSelections
+             * @param previousClassGroupSelections
              * @param remainingClassChoices
              * @param secondsClashesPrior
              */
-            var searchTimetables = function (classGroupSelections, remainingClassChoices, secondsClashesPrior) {
+            var searchTimetables = function (previousClassGroupSelections, remainingClassChoices, secondsClashesPrior) {
                 var currentClassType = remainingClassChoices.pop();
 
                 var eligibleGroups = [];
@@ -239,27 +241,57 @@ angular.module('unibuddyTimetable.generator', [])
                 }
 
                 angular.forEach(eligibleGroups, function (currentGroup) {
+                    if (config.maxTimetables) {
+                        if (generatedTimetables.length >= config.maxTimetables) {
+                            return false;
+                        }
+                    }
+                    // We should make sure this classGroup isn't from a stream that's not selected, if a stream is specified
+                    if (currentGroup.stream) {
+                        // If we've made a selection for this stream already, we should reuse it.
+                        var selectedStream = streamSelections[currentGroup.stream.streamgroup];
+
+                        if (selectedStream) {
+                            if (currentGroup.stream.id != selectedStream.id) {
+                                return;
+                            }
+                        }
+                        else {
+                            streamSelections[currentGroup.stream.streamgroup] = {
+                                id: currentGroup.stream.id,
+                                origin : currentGroup.id
+                            };
+                        }
+                    }
+
                     var secondsClashesCurrent = secondsClashesPrior;
 
-                    angular.forEach(classGroupSelections, function (previousClassGroupSelection) {
+                    angular.forEach(previousClassGroupSelections, function (previousClassGroupSelection) {
                         secondsClashesCurrent += clashService.classGroupsClash(currentGroup, previousClassGroupSelection.classGroup);
                     });
 
                     // Make sure we're not exceeding our clash limit
                     if (secondsClashesCurrent <= allowedSecondsClashing) {
                         // Work with this group for now
-                        classGroupSelections[currentGroup.id] = timetableSpecFactory.newTimetableSpec(currentClassType, currentGroup);
+                        previousClassGroupSelections[currentGroup.id] = timetableSpecFactory.newTimetableSpec(currentClassType, currentGroup);
 
                         if (remainingClassChoices.length === 0) {
                             // No more choices we can make, check if this timetable is good and move on
-                            examineAndAddTimetable(classGroupSelections, secondsClashesCurrent);
+                            examineAndAddTimetable(previousClassGroupSelections, secondsClashesCurrent);
                         } else {
                             // Keep making choices until we find a working timetable
-                            searchTimetables(classGroupSelections, remainingClassChoices, secondsClashesCurrent);
+                            searchTimetables(previousClassGroupSelections, remainingClassChoices, secondsClashesCurrent);
                         }
 
                         // Stop working with the current group
-                        delete(classGroupSelections[currentGroup.id]);
+                        delete(previousClassGroupSelections[currentGroup.id]);
+                    }
+
+                    // Undo stream selections if we made one
+                    if (currentGroup.stream) {
+                        if (streamSelections[currentGroup.stream.streamgroup].origin == currentGroup.id) {
+                            streamSelections[currentGroup.stream.streamgroup] = undefined;
+                        }
                     }
                 });
 

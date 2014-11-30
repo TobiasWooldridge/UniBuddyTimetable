@@ -977,11 +977,14 @@ angular.module('unibuddyTimetable.timetable', [
 
         $scope.config = {
             avoidFull: true,
+            maxTimetables: 100000,
             clashAllowance: 0
         };
 
         var ONE_HOUR = 3600;
         $scope.clashAllowanceChoices = [0, ONE_HOUR, 2 * ONE_HOUR, 3 * ONE_HOUR];
+
+        $scope.maxTimetablesChoices = {"infinity": 0, "10": 10, "100": 100, "1000": 1000, "10000": 10000, "100000": 100000 };
 
         $scope.prioritiesSortableOptions = {
             axis: "y"
