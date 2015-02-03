@@ -797,7 +797,7 @@ angular.module('unibuddyTimetable.timetable', [
                 streamId = selectedGroup.stream.id;
 
                 angular.forEach(topic.classes, function (classType) {
-                    if (classType.activeClassGroup.stream.id == streamId) {
+                    if (classType.activeClassGroup.stream == null || classType.activeClassGroup.stream.id == streamId) {
                         return true;
                     }
 
