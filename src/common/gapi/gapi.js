@@ -71,7 +71,11 @@ angular.module('gapi', [])
                 resource: event
             });
 
-            request.execute(callback || function() {});
+            request.execute(function(resp) {
+                if (callback) {
+                    callback();
+                }
+            });
         }
 
         return {

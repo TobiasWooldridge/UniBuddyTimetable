@@ -1095,7 +1095,6 @@ angular.module('unibuddyTimetable.timetable', [
                     $scope.percentage = percentage;
                     if (percentage >= 100 && $scope.exporting) {
                         $scope.exported = true;
-                        console.log($scope.exported);
                     }
                 });
             });
