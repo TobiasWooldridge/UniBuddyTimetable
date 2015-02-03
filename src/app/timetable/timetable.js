@@ -790,19 +790,29 @@ angular.module('unibuddyTimetable.timetable', [
     .controller('ManualClassChooserController', function ($scope, chosenTopicService, duplicateBookingsService, sessionsService) {
         $scope.selectClassGroup = function(topic, classType, selectedGroup) {
             // If the selected group has a stream attached to it, we'll need to update every other class group with a stream
+
+            classType.activeClassGroup = selectedGroup;
+
             if (selectedGroup.stream !== null) {
                 streamId = selectedGroup.stream.id;
 
                 angular.forEach(topic.classes, function (classType) {
+                    if (classType.activeClassGroup.stream.id == streamId) {
+                        return true;
+                    }
+
+                    var matched = false;
                     angular.forEach(classType.classGroups, function (classGroup) {
+                        if (matched) {
+                            return;
+                        }
+
                         if (classGroup.stream !== null && classGroup.stream.id == streamId) {
                             classType.activeClassGroup = classGroup;
+                            matched = true;
                         }
                     });
                 });
-            }
-            else {
-                classType.activeClassGroup = selectedGroup;
             }
 
             chosenTopicService.broadcastClassesUpdate();
