@@ -150,7 +150,11 @@ angular.module( 'flap.topics', [
                         var id = classType.id;
 
                         if (typeof classSelections[id] !== "undefined") {
-                            classType.activeClassGroup = classType.classGroups[classSelections[id] - 1];
+                            angular.forEach(classType.classGroups, function(group) {
+                                if (group.groupId == classSelections[id]) {
+                                    classType.activeClassGroup = group;
+                                }
+                            });
                         }
 
                     });
