@@ -118,6 +118,17 @@ module.exports = function (grunt) {
                     }
                 ]
             },
+            build_vendor_fonts: {
+                files: [
+                    {
+                        src: [ '**' ],
+                        dest: '<%= build_dir %>/assets/',
+                        cwd: 'vendor/bootstrap/dist/fonts',
+                        expand: true,
+                        flatten: true
+                    }
+                ]
+            },
             build_appjs: {
                 files: [
                     {
@@ -498,7 +509,7 @@ module.exports = function (grunt) {
      */
     grunt.registerTask('build', [
         'clean', 'html2js', 'jshint', 'recess:build',
-        'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_assets',
+        'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_assets', 'copy:build_vendor_fonts',
         'copy:build_appjs', 'copy:build_vendorjs', 'index:build', 'karmaconfig', 'karma:continuous'
     ]);
 
