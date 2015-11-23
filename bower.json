@@ -3,6 +3,8 @@
   "version": "0.0.7",
   "devDependencies": {
     "angular": "~1.4.8",
+    "angular-mocks": "~1.0.7",
+    "bootstrap": "~3.0.0",
     "angular-bootstrap": "~0.14.3",
     "angular-ui-router": "~0.0.1",
     "angular-ui-utils": "~0.0.3",
