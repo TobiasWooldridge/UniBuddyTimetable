@@ -30,50 +30,50 @@ angular.module('unibuddyTimetable.timetable', [
             urlService.setTopics(chosenTopicService.getTopics());
         });
 
-        // var loadFromUrl = function () {
-        //     var newTopicSerials = urlService.getTopics();
-        //     var oldTopics = chosenTopicService.getTopics();
+        function loadFromUrl() {
+            var newTopicSerials = urlService.getTopics();
+            var oldTopics = chosenTopicService.getTopics();
 
-        //     var topicsToRemove = [];
+            var topicsToRemove = [];
 
-        //     angular.forEach(oldTopics, function (oldTopic) {
-        //         var index = newTopicSerials.indexOf(oldTopic.getSerial());
+            angular.forEach(oldTopics, function (oldTopic) {
+                var index = newTopicSerials.indexOf(oldTopic.getSerial());
 
-        //         if (index === -1) {
-        //             // The old topic should be removed.
-        //             topicsToRemove.push(oldTopic);
-        //         }
-        //         else {
-        //             // It isn't actually a new topic! Don't add it later.
-        //             newTopicSerials.splice(index, 1);
-        //         }
-        //     });
+                if (index === -1) {
+                    // The old topic should be removed.
+                    topicsToRemove.push(oldTopic);
+                }
+                else {
+                    // It isn't actually a new topic! Don't add it later.
+                    newTopicSerials.splice(index, 1);
+                }
+            });
 
-        //     angular.forEach(topicsToRemove, function (topic) {
-        //         chosenTopicService.removeTopic(topic, false);
-        //     });
+            angular.forEach(topicsToRemove, function (topic) {
+                chosenTopicService.removeTopic(topic, false);
+            });
 
 
-        //     // Don't try to broadcast while we're still asyncronously loading topics.
-        //     var topicsToLoad = newTopicSerials.length;
-        //     var broadcastUpdateWhenReady = function () {
-        //         if (topicsToLoad === 0) {
-        //             chosenTopicService.broadcastTopicsUpdate();
-        //         }
-        //     };
+            // Don't try to broadcast while we're still asyncronously loading topics.
+            var topicsToLoad = newTopicSerials.length;
+            var broadcastUpdateWhenReady = function () {
+                if (topicsToLoad === 0) {
+                    chosenTopicService.broadcastTopicsUpdate();
+                }
+            };
 
-        //     // Load all of the new topics
-        //     angular.forEach(newTopicSerials, function (topicSerial) {
-        //         topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
-        //             topicsToLoad--;
+            // Load all of the new topics
+            angular.forEach(newTopicSerials, function (topicSerial) {
+                topicFactory.loadTopicFromSerialAsync(topicSerial, function (topic) {
+                    topicsToLoad--;
 
-        //             chosenTopicService.addTopic(topic, false);
-        //             broadcastUpdateWhenReady();
-        //         });
-        //     });
+                    chosenTopicService.addTopic(topic, false);
+                    broadcastUpdateWhenReady();
+                });
+            });
 
-        //     broadcastUpdateWhenReady();
-        // };
+            broadcastUpdateWhenReady();
+        }
 
         // $scope.$watch(function () {
         //     return $location.search();
@@ -82,7 +82,7 @@ angular.module('unibuddyTimetable.timetable', [
         // });
 
 
-        // loadFromUrl();
+        loadFromUrl();
     })
 
 
