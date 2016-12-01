@@ -1027,6 +1027,10 @@ angular.module('unibuddyTimetable.timetable', [
         };
 
         $scope.generateTimetables = function () {
+            if (fbq) {
+                fbq('trackCustom', 'Generate', {});
+            }
+
             var timer = stopwatch();
 
             $scope.timetableCandidates = timetableGenerator.generateTimetables(chosenTopics, $scope.config, $scope.timetablePriorities);
