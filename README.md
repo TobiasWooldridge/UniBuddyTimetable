@@ -32,8 +32,8 @@ or just manually install git somewhere sensible and add that directory to your P
 ### Installation
 
     npm install -g grunt-cli karma bower
-    git clone git@github.com:TobiasWooldridge/FlindersTimetable.git
-    cd FlindersTimetable
+    git clone git@github.com:TobiasWooldridge/UniBuddyTimetable.git
+    cd UniBuddyTimetable
     npm install
     bower install
 
